@@ -175,14 +175,18 @@ void RunRimeIntegrationTest() {
 }
 }  // namespace
 
+int RunSceneLayoutTests();
+
 int main(int argc, char* argv[]) {
-  if (argc == 3 && std::string(argv[1]) == "--filter" &&
-      std::string(argv[2]) != "Config") {
-    return 0;
+  const std::string filter =
+      argc == 3 && std::string(argv[1]) == "--filter" ? argv[2] : "";
+  if (filter.empty() || filter == "Config") {
+    RunConfigTests();
+    RunRimeIntegrationTest();
   }
-  RunConfigTests();
-  RunRimeIntegrationTest();
+  if (filter.empty() || filter == "SceneLayout")
+    failures += RunSceneLayoutTests();
   if (failures == 0)
-    std::cout << "ConfigTests: PASS\n";
+    std::cout << "TestLeavesStoneUI: PASS\n";
   return failures == 0 ? 0 : 1;
 }
