@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cctype>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -7,6 +8,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
+#include <rime_api.h>
 
 namespace fs = std::filesystem;
 
@@ -108,6 +111,68 @@ void RunConfigTests() {
            "packaged config must not contain " + forbidden);
   }
 }
+
+void RunRimeIntegrationTest() {
+  const auto data_root = FindDataRoot();
+  const auto unique_suffix = std::to_string(
+      std::chrono::high_resolution_clock::now().time_since_epoch().count());
+  const auto user_root =
+      fs::temp_directory_path() / ("leaves-stone-rime-test-" + unique_suffix);
+  fs::create_directories(user_root);
+
+  const auto shared_data = data_root.string();
+  const auto user_data = user_root.string();
+  const auto prebuilt_data = (data_root / "build").string();
+  RimeApi* rime = rime_get_api();
+  Expect(rime != nullptr, "librime API must be available");
+  if (!rime)
+    return;
+
+  RIME_STRUCT(RimeTraits, traits);
+  traits.shared_data_dir = shared_data.c_str();
+  traits.user_data_dir = user_data.c_str();
+  traits.prebuilt_data_dir = prebuilt_data.c_str();
+  traits.distribution_name = "Leaves & Stone Tests";
+  traits.distribution_code_name = "leaves_stone_tests";
+  traits.distribution_version = "1.0";
+  traits.app_name = "leaves_stone.config_tests";
+
+  rime->setup(&traits);
+  rime->initialize(nullptr);
+  if (rime->start_maintenance(True))
+    rime->join_maintenance_thread();
+
+  const RimeSessionId session = rime->create_session();
+  Expect(session != 0, "librime must create a test session");
+  if (session) {
+    Expect(rime->select_schema(session, "leaves_stone") == True,
+           "librime must load the leaves_stone schema");
+    rime->set_option(session, "simplification", True);
+    Expect(rime->simulate_key_sequence(session, "jintiantianqihenhao") == True,
+           "full-pinyin key sequence must be accepted");
+
+    bool found_simplified_sentence = false;
+    RimeCandidateListIterator iterator = {0};
+    if (rime->candidate_list_begin(session, &iterator)) {
+      while (rime->candidate_list_next(&iterator)) {
+        if (iterator.candidate.text &&
+            std::string(iterator.candidate.text) == u8"���������ܺ�") {
+          found_simplified_sentence = true;
+          break;
+        }
+      }
+      rime->candidate_list_end(&iterator);
+    }
+    Expect(found_simplified_sentence,
+           "jintiantianqihenhao must produce the Simplified Chinese candidate "
+           "���������ܺ�");
+    rime->destroy_session(session);
+  }
+
+  rime->finalize();
+  std::error_code cleanup_error;
+  fs::remove_all(user_root, cleanup_error);
+}
 }  // namespace
 
 int main(int argc, char* argv[]) {
@@ -116,6 +181,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
   RunConfigTests();
+  RunRimeIntegrationTest();
   if (failures == 0)
     std::cout << "ConfigTests: PASS\n";
   return failures == 0 ? 0 : 1;
