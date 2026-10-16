@@ -1,0 +1,85 @@
+# Leaves & Stone Simplified Chinese full-pinyin schema
+# Derived from the Rime Luna Pinyin schema; see LEAVES_STONE_DATA_LICENSES.md.
+# encoding: utf-8
+
+schema:
+  schema_id: leaves_stone
+  name: "Leaves & Stone ƴ��"
+  version: "1.0"
+  author:
+    - "Leaves & Stone contributors"
+    - "Rime Developers"
+  description: "Fixed Simplified Chinese full-pinyin with English passthrough."
+
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [ ����, English ]
+  - name: simplification
+    reset: 1
+    states: [ �h��, ���� ]
+  - name: full_shape
+    reset: 0
+    states: [ ���, ȫ�� ]
+  - name: ascii_punct
+    reset: 0
+    states: [ ���ı��, English Punctuation ]
+
+engine:
+  processors:
+    - ascii_composer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - script_translator
+  filters:
+    - simplifier
+    - uniquifier
+
+menu:
+  page_size: 5
+
+speller:
+  alphabet: zyxwvutsrqponmlkjihgfedcba
+  delimiter: " '"
+  algebra:
+    - abbrev/^([a-z]).+$/$1/
+    - abbrev/^(zh|ch|sh).+$/$1/
+    - derive/^([nl])ve$/$1ue/
+    - derive/^([jqxy])u/$1v/
+    - derive/un$/uen$/
+    - derive/ui$/uei$/
+    - derive/iu$/iou$/
+
+translator:
+  dictionary: leaves_stone
+  prism: leaves_stone
+  enable_completion: true
+  enable_sentence: true
+  enable_user_dict: true
+  spelling_hints: 0
+  preedit_format:
+    - xform/([nl])v/$1��/
+    - xform/([nl])ue/$1��e/
+    - xform/([jqxy])v/$1u/
+
+simplifier:
+  option_name: simplification
+  opencc_config: t2s.json
+  tips: none
+
+punctuator:
+  __include: default:/punctuator
+
+key_binder:
+  __include: default:/key_binder
