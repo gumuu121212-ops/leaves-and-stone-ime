@@ -27,8 +27,10 @@ if ($DryRun) {
   return
 }
 
-& (Join-Path $PSScriptRoot 'verify-toolchain.ps1')
-if ($LASTEXITCODE -ne 0) {
+$verifyScript = Join-Path $PSScriptRoot 'verify-toolchain.ps1'
+. $verifyScript -NoExit
+$toolchain = Get-LeavesStoneToolchainStatus
+if (-not $toolchain.Ready) {
   throw 'Toolchain verification failed.'
 }
 
