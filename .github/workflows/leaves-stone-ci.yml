@@ -23,6 +23,10 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
+      - name: Configure upstream environment
+        shell: pwsh
+        run: Copy-Item env.vs2022.bat env.bat -Force
+
       - name: Cache Boost
         id: cache-boost
         uses: actions/cache@v4
@@ -30,14 +34,21 @@ jobs:
           path: ${{ env.BOOST_ROOT }}
           key: ${{ runner.os }}-boost-${{ env.boost_version }}
 
-      - name: Install Boost
+      - name: Install and build Boost
         if: steps.cache-boost.outputs.cache-hit != 'true'
-        shell: cmd
-        run: install_boost.bat
-
-      - name: Configure upstream environment
         shell: pwsh
-        run: Copy-Item env.vs2022.bat env.bat -Force
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $boostParent = Split-Path $env:BOOST_ROOT -Parent
+          $archive = Join-Path $boostParent 'boost_1_84_0.7z'
+          New-Item -ItemType Directory -Path $boostParent -Force | Out-Null
+          aria2c 'https://archives.boost.io/release/1.84.0/source/boost_1_84_0.7z' -d $boostParent
+          7z x $archive "-o$boostParent" -y
+          if (-not (Test-Path -LiteralPath (Join-Path $env:BOOST_ROOT 'boost'))) {
+            throw "Boost extraction did not create $env:BOOST_ROOT\boost"
+          }
+          .\build.bat boost
+          if ($LASTEXITCODE -ne 0) { throw "Boost build failed with $LASTEXITCODE" }
 
       - name: Fetch pinned Rime build inputs
         shell: pwsh
