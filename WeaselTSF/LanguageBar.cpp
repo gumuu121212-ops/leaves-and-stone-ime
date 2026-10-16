@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <resource.h>
 #include <thread>
 #include <shellapi.h>
@@ -37,9 +37,9 @@ static void HMENU2ITfMenu(HMENU hMenu, ITfMenu* pTfMenu) {
 static LPCWSTR GetWeaselRegName() {
   LPCWSTR WEASEL_REG_NAME_;
   if (is_wow64())
-    WEASEL_REG_NAME_ = L"Software\\WOW6432Node\\Rime\\Weasel";
+    WEASEL_REG_NAME_ = leaves_stone::product::kRegistryRootWow64;
   else
-    WEASEL_REG_NAME_ = L"Software\\Rime\\Weasel";
+    WEASEL_REG_NAME_ = leaves_stone::product::kRegistryRoot;
 
   return WEASEL_REG_NAME_;
 }
@@ -143,9 +143,9 @@ static LANGID GetActiveProfileLangId() {
 STDAPI CLangBarItemButton::GetTooltipString(BSTR* pbstrToolTip) {
   LANGID langid = get_language_id();
   if (langid == TEXTSERVICE_LANGID_HANS) {
-    *pbstrToolTip = SysAllocString(L"左键切换模式，右键打开菜单");
+    *pbstrToolTip = SysAllocString(L"����л�ģʽ���Ҽ��򿪲˵�");
   } else if (langid == TEXTSERVICE_LANGID_HANT) {
-    *pbstrToolTip = SysAllocString(L"左鍵切換模式，右鍵打開菜單");
+    *pbstrToolTip = SysAllocString(L"���I�ГQģʽ�����I���_�ˆ�");
   } else {
     *pbstrToolTip = SysAllocString(
         L"Left-click to switch modes\n\nRight-click for more options");
@@ -316,7 +316,8 @@ void WeaselTSF::_HandleLangBarMenuSelect(UINT wID) {
       }
       break;
     case ID_WEASELTRAY_USERCONFIG:
-      if (FAILED(RegGetStringValue(HKEY_CURRENT_USER, L"Software\\Rime\\Weasel",
+      if (FAILED(RegGetStringValue(HKEY_CURRENT_USER,
+                                   leaves_stone::product::kRegistryRoot,
                                    L"RimeUserDir", dir)) ||
           dir.empty()) {
         WCHAR _path[MAX_PATH] = {0};
