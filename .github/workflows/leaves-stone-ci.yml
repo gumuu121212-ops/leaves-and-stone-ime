@@ -3,7 +3,7 @@ name: Leaves & Stone Windows CI
 on:
   workflow_dispatch:
   push:
-    branches: ['main', 'feature/**']
+    branches: ['main']
   pull_request:
 
 jobs:
