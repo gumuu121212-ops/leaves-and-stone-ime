@@ -1,3 +1,5 @@
+.worktrees/
+.superpowers/
 .cache
 .clangd
 .xmake
@@ -27,6 +29,11 @@ compile_commands.json
 /output/data/essay.txt
 /output/data/opencc/
 /output/data/*.yaml
+!/output/data/default.yaml
+!/output/data/leaves_stone.schema.yaml
+!/output/data/leaves_stone.dict.yaml
+!/output/data/leaves_stone_theme.yaml
+!/output/data/weasel.yaml
 /output/archives
 /include/glog
 /include/rime*.h
@@ -56,3 +63,4 @@ arm64x_wrapper/*.dll
 arm64x_wrapper/*.ime
 arm64x_wrapper/*.lib
 arm64x_wrapper/*.exp
+
