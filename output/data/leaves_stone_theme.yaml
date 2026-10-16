@@ -1,0 +1,22 @@
+# Fixed renderer theme consumed by Leaves & Stone.
+# encoding: utf-8
+
+theme:
+  id: leaves_stone
+  version: "1.0"
+  orientation: horizontal
+  animation_enabled: true
+  decoration_enabled: true
+  candidate_page:
+    default_count: 5
+    allowed_counts: [5, 7, 9]
+    invalid_count_fallback: 5
+  geometry:
+    gap: 12
+    selected_elevation: 4
+  palette:
+    sky_blue: "#8CC9DF"
+    leaf_green: "#668D66"
+    terracotta: "#C8795A"
+    warm_ivory: "#F3E4CC"
+    stone_brown: "#705447"
