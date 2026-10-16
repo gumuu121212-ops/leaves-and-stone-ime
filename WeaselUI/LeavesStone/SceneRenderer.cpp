@@ -114,8 +114,8 @@ void DrawFrontArtwork(HDC target,
     return;
   const int width = static_cast<int>(std::ceil(scene.window_bounds.Width()));
   const int height = static_cast<int>(std::ceil(scene.window_bounds.Height()));
-  const int leaf_height = std::max(28, static_cast<int>(height * 0.58f));
-  const int leaf_width = std::max(36, static_cast<int>(leaf_height * 1.12f));
+  const int leaf_height = std::max(18, static_cast<int>(height * 0.38f));
+  const int leaf_width = std::max(22, static_cast<int>(leaf_height * 1.08f));
   DrawAsset(target, assets.Get(ThemeAssetId::LeafLeft), 2, 0, leaf_width,
             leaf_height, WithOpacity(230, opacity));
   DrawAsset(target, assets.Get(ThemeAssetId::LeafRight),
