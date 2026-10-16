@@ -1,0 +1,80 @@
+# Leaves & Stone fixed Rime defaults
+# encoding: utf-8
+
+config_version: "1.0"
+
+schema_list:
+  - schema: leaves_stone
+
+menu:
+  page_size: 5
+
+switcher:
+  caption: "Leaves & Stone"
+  hotkeys:
+    - Control+grave
+  save_options:
+    - ascii_mode
+  fold_options: true
+  abbreviate_options: true
+
+ascii_composer:
+  good_old_caps_lock: true
+  switch_key:
+    Caps_Lock: clear
+    Shift_L: commit_code
+    Shift_R: commit_code
+    Control_L: noop
+    Control_R: noop
+
+key_binder:
+  bindings:
+    - { when: composing, accept: Control+p, send: Up }
+    - { when: composing, accept: Control+n, send: Down }
+    - { when: paging, accept: minus, send: Page_Up }
+    - { when: has_menu, accept: equal, send: Page_Down }
+    - { when: paging, accept: bracketleft, send: Page_Up }
+    - { when: has_menu, accept: bracketright, send: Page_Down }
+
+punctuator:
+  half_shape:
+    "!": "��"
+    "\"": { pair: [ "��", "��" ] }
+    "#": "#"
+    "$": "��"
+    "%": "%"
+    "&": "&"
+    "'": { pair: [ "��", "��" ] }
+    "(": "��"
+    ")": "��"
+    "*": "*"
+    "+": "+"
+    ",": "��"
+    "-": "-"
+    ".": "��"
+    "/": "��"
+    ":": "��"
+    ";": "��"
+    "<": "��"
+    "=": "="
+    ">": "��"
+    "?": "��"
+    "@": "@"
+    "[": "��"
+    "\\": "��"
+    "]": "��"
+    "^": "����"
+    "_": "����"
+    "`": "��"
+    "{": "��"
+    "|": "��"
+    "}": "��"
+    "~": "~"
+  full_shape:
+    " ": "��"
+    ",": "��"
+    ".": "��"
+    ":": "��"
+    ";": "��"
+    "?": "��"
+    "!": "��"
