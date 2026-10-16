@@ -31,6 +31,12 @@ foreach ($guid in $productGuids) {
 
 if ($header -notmatch 'kDisplayName\[\].*Leaves & Stone') { throw 'Generated C++ header lost the display name.' }
 if ($header -notmatch 'kRegistryRoot\[\].*Software\\\\LeavesAndStone\\\\IME') { throw 'Generated C++ header lost the registry root.' }
+if (-not $header.Contains('inline constexpr wchar_t kRegistryRootWow64[] = L"Software\\WOW6432Node\\LeavesAndStone\\IME";')) {
+  throw 'Generated C++ header has an incorrectly escaped WOW64 registry root.'
+}
+if (-not $header.Contains('inline constexpr wchar_t kRegistryUpdates[] = L"Software\\LeavesAndStone\\IME\\Updates";')) {
+  throw 'Generated C++ header has an incorrectly escaped update registry path.'
+}
 if ($nsis -notmatch 'LEAVES_STONE_DISPLAY_NAME "Leaves & Stone"') { throw 'Generated NSIS constants lost the display name.' }
 if ($nsis -notmatch 'LEAVES_STONE_REGISTRY_ROOT "Software\\LeavesAndStone\\IME"') { throw 'Generated NSIS constants lost the registry root.' }
 
@@ -55,5 +61,26 @@ foreach ($resourceFile in $resourceFiles) {
   if ($resourceText -notmatch 'VALUE "ProductName", "Leaves & Stone"') { throw "$resourceFile does not expose the Leaves & Stone product name." }
 }
 
-Write-Host 'TestProductIdentity: PASS'
+$runtimeIdentityFiles = @(
+  'include\WeaselConstants.h',
+  'include\WeaselUtility.h',
+  'WeaselDeployer\SwitcherSettingsDialog.cpp',
+  'WeaselServer\WeaselServerApp.cpp',
+  'WeaselServer\WeaselServerApp.h',
+  'WeaselSetup\imesetup.cpp',
+  'WeaselSetup\WeaselSetup.cpp',
+  'WeaselTSF\LanguageBar.cpp',
+  'WeaselTSF\WeaselTSF.cpp',
+  'get-rime.ps1'
+)
+foreach ($runtimeFile in $runtimeIdentityFiles) {
+  $runtimeText = Get-Content -LiteralPath (Join-Path $repoRoot $runtimeFile) -Raw
+  if ($runtimeText -match 'Software\\+Rime\\+[Ww]easel') {
+    throw "$runtimeFile still activates the upstream Weasel registry identity."
+  }
+}
 
+$tsfResource = [System.IO.File]::ReadAllText((Join-Path $repoRoot 'WeaselTSF\WeaselTSF.rc'), [System.Text.Encoding]::Unicode)
+if ($tsfResource -match 'VALUE "ProductName", "Weasel"') { throw 'WeaselTSF.rc still exposes the upstream product name.' }
+
+Write-Host 'TestProductIdentity: PASS'
