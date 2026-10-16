@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SwitcherSettingsDialog.h"
 #include "Configurator.h"
 #include <algorithm>
@@ -114,9 +114,9 @@ LRESULT SwitcherSettingsDialog::OnGetSchemata(WORD, WORD, HWND hWndCtl, BOOL&) {
   HKEY hKey;
   std::wstring hPath;
   if (is_wow64())
-    hPath = _T("Software\\WOW6432Node\\Rime\\Weasel");
+    hPath = leaves_stone::product::kRegistryRootWow64;
   else
-    hPath = _T("Software\\Rime\\Weasel");
+    hPath = leaves_stone::product::kRegistryRoot;
   LSTATUS ret = RegOpenKey(HKEY_LOCAL_MACHINE, hPath.c_str(), &hKey);
   if (ret == ERROR_SUCCESS) {
     WCHAR value[MAX_PATH];
@@ -169,7 +169,7 @@ LRESULT SwitcherSettingsDialog::OnOK(WORD, WORD code, HWND, BOOL&) {
       }
     }
     if (count == 0) {
-      // MessageBox(_T("至少要選用一項吧。"), _T("小狼毫不是這般用法"), MB_OK |
+      // MessageBox(_T("����Ҫ�x��һ헰ɡ�"), _T("С�Ǻ������@���÷�"), MB_OK |
       // MB_ICONEXCLAMATION);
       MSG_BY_IDS(IDS_STR_ERR_AT_LEAST_ONE_SEL, IDS_STR_NOT_REGULAR,
                  MB_OK | MB_ICONEXCLAMATION);
