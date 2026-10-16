@@ -1,0 +1,60 @@
+name: Bootstrap upstream source
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/bootstrap-source.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-2022
+    steps:
+      - name: Checkout empty project
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Import Weasel 0.17.4 snapshot
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $archive = Join-Path $env:RUNNER_TEMP 'weasel-0.17.4.zip'
+          $extract = Join-Path $env:RUNNER_TEMP 'weasel-source'
+          Invoke-WebRequest 'https://github.com/rime/weasel/archive/refs/tags/0.17.4.zip' -OutFile $archive
+          Expand-Archive $archive -DestinationPath $extract
+          $source = Join-Path $extract 'weasel-0.17.4'
+
+          Get-ChildItem -LiteralPath $source -Force |
+            Where-Object { $_.Name -notin @('.github', 'librime', 'plum') } |
+            Copy-Item -Destination $env:GITHUB_WORKSPACE -Recurse -Force
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git submodule add https://github.com/rime/librime.git librime
+          git -C librime checkout 1c23358157934bd6e6d6981f0c0164f05393b497
+          git submodule add https://github.com/rime/plum.git plum
+          git -C plum checkout cab9ed35289f2022b6888503750d2dfb1851dbe0
+
+          @'
+          # Upstream source
+
+          Leaves & Stone IME began from the official Rime Weasel 0.17.4 source snapshot.
+
+          - Repository: https://github.com/rime/weasel
+          - Tag: 0.17.4
+          - Commit: 9cc96e2d33c9d6139147c137e44bde869ae24916
+          - librime: 1c23358157934bd6e6d6981f0c0164f05393b497
+          - plum: cab9ed35289f2022b6888503750d2dfb1851dbe0
+
+          The original GPL-3.0 license, copyright notices, and attribution are retained.
+          '@ | Set-Content -LiteralPath UPSTREAM.md -Encoding utf8
+
+          git add -A
+          git commit -m 'build: import Weasel 0.17.4 baseline'
+          git push origin HEAD:main
