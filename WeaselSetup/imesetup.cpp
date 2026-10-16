@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <string>
 #include <vector>
 #include <msctf.h>
@@ -8,28 +8,15 @@
 #include <WeaselUtility.h>
 #include "InstallOptionsDlg.h"
 
-// {A3F4CDED-B1E9-41EE-9CA6-7B4D0DE6CB0A}
-static const GUID c_clsidTextService = {
-    0xa3f4cded,
-    0xb1e9,
-    0x41ee,
-    {0x9c, 0xa6, 0x7b, 0x4d, 0xd, 0xe6, 0xcb, 0xa}};
-
-// {3D02CAB6-2B8E-4781-BA20-1C9267529467}
-static const GUID c_guidProfile = {
-    0x3d02cab6,
-    0x2b8e,
-    0x4781,
-    {0xba, 0x20, 0x1c, 0x92, 0x67, 0x52, 0x94, 0x67}};
+static const GUID c_clsidTextService =
+    leaves_stone::product::kTextServiceClsid;
+static const GUID c_guidProfile =
+    leaves_stone::product::kLanguageProfileGuid;
 
 // if in the future, option hant is extended, maybe a function to generate this
 // info is required
-#define PSZTITLE_HANS                                                     \
-  L"0804:{A3F4CDED-B1E9-41EE-9CA6-7B4D0DE6CB0A}{3D02CAB6-2B8E-4781-BA20-" \
-  L"1C9267529467}"
-#define PSZTITLE_HANT                                                     \
-  L"0404:{A3F4CDED-B1E9-41EE-9CA6-7B4D0DE6CB0A}{3D02CAB6-2B8E-4781-BA20-" \
-  L"1C9267529467}"
+#define PSZTITLE_HANS leaves_stone::product::kInstallLayoutHans
+#define PSZTITLE_HANT leaves_stone::product::kInstallLayoutHant
 #define ILOT_UNINSTALL 0x00000001
 typedef HRESULT(WINAPI* PTF_INSTALLLAYOUTORTIP)(LPCWSTR psz, DWORD dwFlags);
 
@@ -139,7 +126,7 @@ int install_ime_file(std::wstring& srcPath,
   std::wstring destPath = std::wstring(path) + L"\\weasel" + ext;
 
   int retval = 0;
-  // 复制 .dll/.ime 到系统目录
+  // ���� .dll/.ime ��ϵͳĿ¼
   if (!copy_file(srcPath, destPath)) {
     MSG_NOT_SILENT_ID_CAP(silent, destPath.c_str(), IDS_STR_INSTALL_FAILED,
                           MB_ICONERROR | MB_OK);
@@ -163,7 +150,7 @@ int install_ime_file(std::wstring& srcPath,
     if (is_arm64_machine()) {
       WCHAR sysarm32[MAX_PATH];
       if (get_wow_arm32_system_dir(sysarm32, _countof(sysarm32)) > 0) {
-        // Install the ARM32 version if ARM32 WOW is supported （lower than
+        // Install the ARM32 version if ARM32 WOW is supported ��lower than
         // Windows 11 24H2).
         std::wstring srcPathARM32 = srcPath;
         ireplace_last(srcPathARM32, ext, L"ARM" + ext);
@@ -271,7 +258,7 @@ int uninstall_ime_file(const std::wstring& ext,
   return retval;
 }
 
-// 注册IME输入法
+// ע��IME���뷨
 int register_ime(const std::wstring& ime_path,
                  bool register_ime,
                  bool is_wow64,
@@ -384,7 +371,7 @@ int register_ime(const std::wstring& ime_path,
     if (ret != ERROR_SUCCESS)
       break;
 
-    // 中文键盘布局?
+    // ���ļ��̲���?
     if (wcscmp(subKey + 4, L"0804") == 0 || wcscmp(subKey + 4, L"0404") == 0) {
       HKEY hSubKey;
       ret = RegOpenKey(hKey, subKey, &hSubKey);
@@ -400,7 +387,7 @@ int register_ime(const std::wstring& ime_path,
       if (ret != ERROR_SUCCESS)
         continue;
 
-      // 小狼毫?
+      // С�Ǻ�?
       if (_wcsicmp(imeFile, L"weasel.ime") == 0) {
         DWORD value;
         swscanf_s(subKey, L"%x", &value);
@@ -408,7 +395,7 @@ int register_ime(const std::wstring& ime_path,
 
         RegDeleteKey(hKey, subKey);
 
-        // 移除preload
+        // �Ƴ�preload
         HKEY hPreloadKey;
         ret = RegOpenKey(HKEY_CURRENT_USER, PRELOAD_KEY, &hPreloadKey);
         if (ret != ERROR_SUCCESS)
@@ -424,7 +411,7 @@ int register_ime(const std::wstring& ime_path,
                                 (LPBYTE)value, &len);
           if (ret != ERROR_SUCCESS) {
             if (i > preloads.size()) {
-              // 删除最大一号注册表值
+              // ɾ�����һ��ע���ֵ
               number = std::to_wstring(i - 1);
               RegDeleteValue(hPreloadKey, number.c_str());
             }
@@ -434,7 +421,7 @@ int register_ime(const std::wstring& ime_path,
             preloads.push_back(value);
           }
         }
-        // 重写preloads
+        // ��дpreloads
         for (size_t i = 0; i < preloads.size(); ++i) {
           number = std::to_wstring(i + 1);
           RegSetValueEx(hPreloadKey, number.c_str(), 0, REG_SZ,
@@ -474,7 +461,7 @@ void enable_profile(BOOL fEnable, bool hant) {
   }
 }
 
-// 注册TSF输入法
+// ע��TSF���뷨
 int register_text_service(const std::wstring& tsf_path,
                           bool register_ime,
                           bool is_wow64,
@@ -529,8 +516,8 @@ int register_text_service(const std::wstring& tsf_path,
     CString str;
     str.LoadStringW(IDS_STR_ERRREGTSF);
     StringCchPrintfW(msg, _countof(msg), str, params.c_str());
-    // StringCchPrintfW(msg, _countof(msg), L"註冊輸入法錯誤 regsvr32.exe %s",
-    // params.c_str()); if (!silent) MessageBoxW(NULL, msg, L"安装/卸載失败",
+    // StringCchPrintfW(msg, _countof(msg), L"�]��ݔ�뷨�e�` regsvr32.exe %s",
+    // params.c_str()); if (!silent) MessageBoxW(NULL, msg, L"��װ/ж�dʧ��",
     // MB_ICONERROR | MB_OK);
     MSG_NOT_SILENT_ID_CAP(silent, msg, IDS_STR_INORUN_FAILED,
                           MB_ICONERROR | MB_OK);
@@ -553,7 +540,7 @@ int install(bool hant, bool silent, bool old_ime_support) {
   retval += install_ime_file(ime_src_path, L".dll", hant, silent,
                              &register_text_service);
 
-  // 写注册表
+  // дע���
   WCHAR drive[_MAX_DRIVE];
   WCHAR dir[_MAX_DIR];
   _wsplitpath_s(ime_src_path.c_str(), drive, _countof(drive), dir,
@@ -620,12 +607,12 @@ int install(bool hant, bool silent, bool old_ime_support) {
 }
 
 int uninstall(bool silent) {
-  // 注销输入法
+  // ע�����뷨
   int retval = 0;
 
-  const WCHAR KEY[] = L"Software\\Rime\\Weasel";
   HKEY hKey;
-  LSTATUS ret = RegOpenKey(HKEY_CURRENT_USER, KEY, &hKey);
+  LSTATUS ret = RegOpenKey(HKEY_CURRENT_USER,
+                           leaves_stone::product::kRegistryRoot, &hKey);
   if (ret == ERROR_SUCCESS) {
     DWORD type = 0;
     DWORD data = 0;
@@ -652,7 +639,7 @@ int uninstall(bool silent) {
   uninstall_ime_file(L".ime", silent, &register_ime);
   retval += uninstall_ime_file(L".dll", silent, &register_text_service);
 
-  // 清除注册信息
+  // ���ע����Ϣ
   RegDeleteKey(HKEY_LOCAL_MACHINE, WEASEL_REG_KEY);
   RegDeleteKey(HKEY_LOCAL_MACHINE, RIME_REG_KEY);
 
