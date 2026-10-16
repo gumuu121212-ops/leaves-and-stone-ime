@@ -1,0 +1,83 @@
+name: Leaves & Stone Windows CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['main', 'feature/**']
+  pull_request:
+
+jobs:
+  baseline:
+    runs-on: windows-2022
+    env:
+      BOOST_ROOT: ${{ github.workspace }}\deps\boost_1_84_0
+      boost_version: 1.84.0
+
+    steps:
+      - name: Checkout source and pinned submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Cache Boost
+        id: cache-boost
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.BOOST_ROOT }}
+          key: ${{ runner.os }}-boost-${{ env.boost_version }}
+
+      - name: Install Boost
+        if: steps.cache-boost.outputs.cache-hit != 'true'
+        shell: cmd
+        run: install_boost.bat
+
+      - name: Configure upstream environment
+        shell: pwsh
+        run: Copy-Item env.vs2022.bat env.bat -Force
+
+      - name: Fetch pinned Rime build inputs
+        shell: pwsh
+        run: .\get-rime.ps1 -use dev
+
+      - name: Verify toolchain
+        shell: pwsh
+        run: .\scripts\verify-toolchain.ps1
+
+      - name: Run PowerShell contract tests
+        shell: pwsh
+        run: |
+          .\test\TestToolchain.ps1
+          .\test\TestBuildLocal.ps1
+
+      - name: Build data
+        shell: pwsh
+        run: .\build.bat data
+
+      - name: Build untouched Debug baseline
+        shell: pwsh
+        run: .\scripts\build-local.ps1 -Configuration Debug -Platform x64
+
+      - name: Run available upstream test executables
+        shell: pwsh
+        run: |
+          $tests = Get-ChildItem output -Recurse -Filter '*Test*.exe'
+          foreach ($test in $tests) {
+            & $test.FullName
+            if ($LASTEXITCODE -ne 0) { throw "$($test.Name) failed with $LASTEXITCODE" }
+          }
+
+      - name: Upload baseline binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: leaves-stone-baseline-${{ github.sha }}
+          if-no-files-found: error
+          path: |
+            output/*.exe
+            output/*.dll
+            output/Win32/*.exe
+            output/Win32/*.dll
+
