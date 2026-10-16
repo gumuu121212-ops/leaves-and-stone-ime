@@ -1,13 +1,14 @@
 #include "stdafx.h"
 #include <filesystem>
 #include <string>
+#include <LeavesStoneProduct.h>
 #include <WeaselUtility.h>
 
 fs::path WeaselUserDataPath() {
   WCHAR _path[MAX_PATH] = {0};
-  const WCHAR KEY[] = L"Software\\Rime\\Weasel";
   HKEY hKey;
-  LSTATUS ret = RegOpenKey(HKEY_CURRENT_USER, KEY, &hKey);
+  LSTATUS ret = RegOpenKey(HKEY_CURRENT_USER,
+                           leaves_stone::product::kRegistryRoot, &hKey);
   if (ret == ERROR_SUCCESS) {
     DWORD len = sizeof(_path);
     DWORD type = 0;
@@ -20,7 +21,9 @@ fs::path WeaselUserDataPath() {
     }
   }
   // default location
-  ExpandEnvironmentStringsW(L"%AppData%\\Rime", _path, _countof(_path));
+  const std::wstring default_path =
+      std::wstring(L"%AppData%\\") + leaves_stone::product::kUserDataSubdir;
+  ExpandEnvironmentStringsW(default_path.c_str(), _path, _countof(_path));
   return fs::path(_path);
 }
 
@@ -49,3 +52,4 @@ std::string GetCustomResource(const char* name, const char* type) {
 
   return std::string();
 }
+
