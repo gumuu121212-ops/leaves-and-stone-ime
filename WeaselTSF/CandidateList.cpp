@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <LeavesStoneProduct.h>
 
 #include "WeaselTSF.h"
 #include "CandidateList.h"
@@ -65,11 +66,7 @@ STDMETHODIMP CCandidateList::GetDescription(BSTR* pbstr) {
 }
 
 STDMETHODIMP CCandidateList::GetGUID(GUID* pguid) {
-  /// 36c3c795-7159-45aa-ab12-30229a51dbd3
-  *pguid = {0x36c3c795,
-            0x7159,
-            0x45aa,
-            {0xab, 0x12, 0x30, 0x22, 0x9a, 0x51, 0xdb, 0xd3}};
+  *pguid = leaves_stone::product::kCandidateUiGuid;
   return S_OK;
 }
 
@@ -440,3 +437,4 @@ void WeaselTSF::HandleUICallback(size_t* const sel,
   else if (next || scroll_next)
     _HandleMousePageEvent(next, scroll_next);
 }
+
