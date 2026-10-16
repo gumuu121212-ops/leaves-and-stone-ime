@@ -24,6 +24,8 @@ function ConvertTo-CppGuidInitializer {
 $displayName = ConvertTo-CppStringLiteral $config.display_name
 $registryRoot = ConvertTo-CppStringLiteral $config.registry_root
 $userDataSubdir = ConvertTo-CppStringLiteral $config.user_data_subdir
+$registryRootWow64 = ConvertTo-CppStringLiteral ('Software\WOW6432Node\' + $config.registry_root.Substring('Software\'.Length))
+$registryUpdates = ConvertTo-CppStringLiteral ($config.registry_root + '\Updates')
 $textServiceClsid = ConvertTo-CppGuidInitializer $config.text_service_clsid
 $languageProfileGuid = ConvertTo-CppGuidInitializer $config.language_profile_guid
 $candidateUiGuid = ConvertTo-CppGuidInitializer $config.candidate_ui_guid
@@ -36,8 +38,14 @@ $header = @"
 namespace leaves_stone::product {
 inline constexpr char kDisplayNameA[] = "$displayName";
 inline constexpr wchar_t kDisplayName[] = L"$displayName";
+inline constexpr char kRegistryRootA[] = "$registryRoot";
 inline constexpr wchar_t kRegistryRoot[] = L"$registryRoot";
+inline constexpr wchar_t kRegistryRootWow64[] = L"$registryRootWow64";
+inline constexpr char kRegistryUpdatesA[] = "$registryUpdates";
+inline constexpr wchar_t kRegistryUpdates[] = L"$registryUpdates";
 inline constexpr wchar_t kUserDataSubdir[] = L"$userDataSubdir";
+inline constexpr wchar_t kInstallLayoutHans[] = L"0804:{$($config.text_service_clsid)}{$($config.language_profile_guid)}";
+inline constexpr wchar_t kInstallLayoutHant[] = L"0404:{$($config.text_service_clsid)}{$($config.language_profile_guid)}";
 inline const GUID kTextServiceClsid = $textServiceClsid;
 inline const GUID kLanguageProfileGuid = $languageProfileGuid;
 inline const GUID kCandidateUiGuid = $candidateUiGuid;
@@ -59,4 +67,3 @@ $headerPath = Join-Path $repoRoot 'include\LeavesStoneProduct.h'
 $nsisPath = Join-Path $repoRoot 'output\LeavesStoneProduct.nsh'
 [System.IO.File]::WriteAllText($headerPath, $header, [System.Text.UTF8Encoding]::new($false))
 [System.IO.File]::WriteAllText($nsisPath, $nsis, [System.Text.UTF8Encoding]::new($false))
-
