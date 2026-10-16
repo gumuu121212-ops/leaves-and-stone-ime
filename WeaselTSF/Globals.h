@@ -2,6 +2,7 @@
 #pragma once
 
 #include "stdafx.h"
+#include <LeavesStoneProduct.h>
 #include <WeaselConstants.h>
 
 #define TEXTSERVICE_LANGID_HANT \
@@ -14,7 +15,7 @@
 #define TEXTSERVICE_LANGID_HANS \
   MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED)
 
-#define TEXTSERVICE_DESC_A WEASEL_CODE_NAME
+#define TEXTSERVICE_DESC_A leaves_stone::product::kDisplayNameA
 #define TEXTSERVICE_MODEL "Apartment"
 
 #define TEXTSERVICE_ICON_INDEX 0
@@ -52,3 +53,4 @@ extern const GUID GUID_TFCAT_TIPCAP_SYSTRAYSUPPORT;
 
 extern const GUID GUID_LBI_INPUTMODE;
 extern const GUID GUID_IME_MODE_PRESERVED_KEY;
+
