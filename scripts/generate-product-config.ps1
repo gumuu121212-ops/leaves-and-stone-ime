@@ -1,0 +1,62 @@
+[CmdletBinding()]
+param()
+
+$ErrorActionPreference = 'Stop'
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$configPath = Join-Path $repoRoot 'config\product.json'
+$config = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
+
+function ConvertTo-CppStringLiteral {
+  param([Parameter(Mandatory)] [string]$Value)
+  $Value.Replace('\', '\\').Replace('"', '\"')
+}
+
+function ConvertTo-CppGuidInitializer {
+  param([Parameter(Mandatory)] [string]$Value)
+  $bytes = ([guid]::Parse($Value)).ToByteArray()
+  $data1 = [BitConverter]::ToUInt32($bytes, 0)
+  $data2 = [BitConverter]::ToUInt16($bytes, 4)
+  $data3 = [BitConverter]::ToUInt16($bytes, 6)
+  $tail = ($bytes[8..15] | ForEach-Object { '0x{0:x2}' -f $_ }) -join ', '
+  return "{0x$($data1.ToString('x8')), 0x$($data2.ToString('x4')), 0x$($data3.ToString('x4')), {$tail}}"
+}
+
+$displayName = ConvertTo-CppStringLiteral $config.display_name
+$registryRoot = ConvertTo-CppStringLiteral $config.registry_root
+$userDataSubdir = ConvertTo-CppStringLiteral $config.user_data_subdir
+$textServiceClsid = ConvertTo-CppGuidInitializer $config.text_service_clsid
+$languageProfileGuid = ConvertTo-CppGuidInitializer $config.language_profile_guid
+$candidateUiGuid = ConvertTo-CppGuidInitializer $config.candidate_ui_guid
+
+$header = @"
+#pragma once
+
+#include <guiddef.h>
+
+namespace leaves_stone::product {
+inline constexpr char kDisplayNameA[] = "$displayName";
+inline constexpr wchar_t kDisplayName[] = L"$displayName";
+inline constexpr wchar_t kRegistryRoot[] = L"$registryRoot";
+inline constexpr wchar_t kUserDataSubdir[] = L"$userDataSubdir";
+inline const GUID kTextServiceClsid = $textServiceClsid;
+inline const GUID kLanguageProfileGuid = $languageProfileGuid;
+inline const GUID kCandidateUiGuid = $candidateUiGuid;
+}  // namespace leaves_stone::product
+"@
+
+$nsis = @"
+; Generated from config/product.json. Do not edit by hand.
+!define LEAVES_STONE_DISPLAY_NAME "$($config.display_name)"
+!define LEAVES_STONE_PRODUCT_SLUG "$($config.product_slug)"
+!define LEAVES_STONE_REGISTRY_ROOT "$($config.registry_root)"
+!define LEAVES_STONE_USER_DATA_SUBDIR "$($config.user_data_subdir)"
+!define LEAVES_STONE_TEXT_SERVICE_CLSID "{$($config.text_service_clsid)}"
+!define LEAVES_STONE_LANGUAGE_PROFILE_GUID "{$($config.language_profile_guid)}"
+!define LEAVES_STONE_CANDIDATE_UI_GUID "{$($config.candidate_ui_guid)}"
+"@
+
+$headerPath = Join-Path $repoRoot 'include\LeavesStoneProduct.h'
+$nsisPath = Join-Path $repoRoot 'output\LeavesStoneProduct.nsh'
+[System.IO.File]::WriteAllText($headerPath, $header, [System.Text.UTF8Encoding]::new($false))
+[System.IO.File]::WriteAllText($nsisPath, $nsis, [System.Text.UTF8Encoding]::new($false))
+
