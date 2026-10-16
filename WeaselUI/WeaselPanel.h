@@ -155,7 +155,9 @@ class WeaselPanel
   leaves_stone::ThemeAssets m_theme_assets;
   leaves_stone::SceneRenderer m_scene_renderer;
   leaves_stone::CandidateScene m_leaves_scene;
+  leaves_stone::ThemeConfig m_leaves_theme;
   bool m_theme_assets_ready = false;
+  bool m_leaves_scene_visible = false;
   float m_scene_opacity = 1.0f;
   ULONGLONG m_scene_animation_start = 0;
   float bar_scale_ = 1.0;

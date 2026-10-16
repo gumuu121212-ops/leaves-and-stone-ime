@@ -32,10 +32,22 @@ foreach ($marker in @('DrawRearArtwork', 'BuildingTerracotta', 'thickness', 'Dra
   }
 }
 
+$frontArtwork = $renderer.IndexOf('DrawFrontArtwork(target, scene, assets, opacity)')
+$topmostControls = $renderer.IndexOf('Independent page controls stay above the decorative foliage')
+if ($frontArtwork -lt 0 -or $topmostControls -lt 0 -or $frontArtwork -gt $topmostControls) {
+  throw 'Front foliage must render after cards and before independent page controls'
+}
+
 $tests = Get-Content -LiteralPath (Join-Path $repoRoot 'test\TestLeavesStoneUI\RendererSmokeTests.cpp') -Raw
-foreach ($marker in @('1000', 'DiscardDeviceResources', 'transparent card gaps', 'disabled page controls')) {
+foreach ($marker in @('1000', 'DiscardDeviceResources', 'transparent card gaps', 'disabled page controls', 'missing compiled artwork')) {
   if ($tests -notmatch [regex]::Escape($marker)) {
     throw "Renderer tests lost coverage marker: $marker"
+  }
+}
+
+foreach ($marker in @('ShouldAnimateAppearance(false, true', 'ShouldAnimateAppearance(true, true', 'animation_enabled = false')) {
+  if ($tests -notmatch [regex]::Escape($marker)) {
+    throw "Renderer tests lost animation-policy marker: $marker"
   }
 }
 

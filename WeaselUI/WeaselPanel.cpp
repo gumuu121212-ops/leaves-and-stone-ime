@@ -152,6 +152,7 @@ void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
       m_candidateCount <= 5 ? 5 : (m_candidateCount <= 7 ? 7 : 9);
   input.has_previous_page = m_ctx.cinfo.currentPage > 0;
   input.has_next_page = !m_ctx.cinfo.is_last_page;
+  input.theme = m_leaves_theme;
   input.candidates.reserve(m_ctx.cinfo.candies.size());
   for (size_t index = 0; index < m_ctx.cinfo.candies.size(); ++index) {
     const std::wstring comment = index < m_ctx.cinfo.comments.size()
@@ -161,10 +162,13 @@ void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
   }
   m_leaves_scene = leaves_stone::BuildCandidateScene(input);
 
-  if (restart_animation) {
+  if (restart_animation && m_leaves_theme.animation_enabled) {
     m_scene_opacity = 0.0f;
     m_scene_animation_start = GetTickCount64();
     SetTimer(LEAVES_ANIMATION_TIMER, 16, nullptr);
+  } else if (!m_leaves_theme.animation_enabled) {
+    KillTimer(LEAVES_ANIMATION_TIMER);
+    m_scene_opacity = 1.0f;
   }
 }
 
@@ -226,7 +230,15 @@ void WeaselPanel::Refresh() {
     CDCHandle dc = GetDC();
     m_layout->DoLayout(dc, pDWR);
     ReleaseDC(dc);
-    _BuildLeavesStoneScene(context_changed);
+    const bool use_leaves_scene = _UseLeavesStoneScene();
+    const bool animate_appearance = leaves_stone::ShouldAnimateAppearance(
+        m_leaves_scene_visible, use_leaves_scene, m_leaves_theme);
+    _BuildLeavesStoneScene(animate_appearance);
+    if (!use_leaves_scene) {
+      KillTimer(LEAVES_ANIMATION_TIMER);
+      m_scene_opacity = 1.0f;
+    }
+    m_leaves_scene_visible = use_leaves_scene;
     _ResizeWindow();
     _RepositionWindow();
     if (context_changed) {
@@ -1265,6 +1277,7 @@ LRESULT WeaselPanel::OnDestroy(UINT uMsg,
   m_scene_renderer.DiscardDeviceResources();
   m_theme_assets.Discard();
   m_theme_assets_ready = false;
+  m_leaves_scene_visible = false;
   delete m_layout;
   m_layout = NULL;
   return 0;

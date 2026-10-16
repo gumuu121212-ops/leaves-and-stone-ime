@@ -74,6 +74,13 @@ void TestResourceLifecycle() {
   Check(target.dc != nullptr && target.bitmap != nullptr,
         "renderer smoke test must create an ARGB target");
 
+  {
+    leaves_stone::SceneRenderer missing_asset_renderer;
+    leaves_stone::ThemeAssets missing_assets;
+    Check(!missing_asset_renderer.Render(target.dc, scene, missing_assets, 1.0f),
+          "renderer must report missing compiled artwork instead of silently "
+          "succeeding");
+  }
   leaves_stone::SceneRenderer renderer;
   const DWORD gdi_before = GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS);
   const DWORD user_before = GetGuiResources(GetCurrentProcess(), GR_USEROBJECTS);
@@ -137,12 +144,26 @@ void TestHitRouting() {
                     (left.top + left.bottom) / 2.0f}),
         "transparent card gaps must never capture input");
 }
+
+void TestAppearanceAnimationPolicy() {
+  leaves_stone::ThemeConfig theme;
+  Check(leaves_stone::ShouldAnimateAppearance(false, true, theme),
+        "a newly visible candidate scene must animate once");
+  Check(!leaves_stone::ShouldAnimateAppearance(true, true, theme),
+        "keystrokes and highlight changes must not restart appearance animation");
+  Check(!leaves_stone::ShouldAnimateAppearance(false, false, theme),
+        "a hidden candidate scene must not animate");
+  theme.animation_enabled = false;
+  Check(!leaves_stone::ShouldAnimateAppearance(false, true, theme),
+        "disabled animation must show the scene in one frame");
+}
 }  // namespace
 
 int RunRendererSmokeTests() {
   const HRESULT initialized = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
   TestResourceLifecycle();
   TestHitRouting();
+  TestAppearanceAnimationPolicy();
   if (SUCCEEDED(initialized))
     CoUninitialize();
   return failures;

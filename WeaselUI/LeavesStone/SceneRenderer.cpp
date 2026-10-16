@@ -67,6 +67,10 @@ bool DrawAsset(HDC target,
                BYTE opacity) {
   if (!target || !bitmap || !bitmap->handle || width <= 0 || height <= 0 ||
       opacity == 0) {
+    if (target && bitmap && bitmap->handle && width > 0 && height > 0 &&
+        opacity == 0) {
+      return true;
+    }
     return false;
   }
   HDC source = CreateCompatibleDC(target);
@@ -81,46 +85,52 @@ bool DrawAsset(HDC target,
   return drawn == TRUE;
 }
 
-void DrawRearArtwork(HDC target,
+bool DrawRearArtwork(HDC target,
                      const CandidateScene& scene,
                      const ThemeAssets& assets,
                      float opacity) {
   const int width = static_cast<int>(std::ceil(scene.window_bounds.Width()));
   const int height = static_cast<int>(std::ceil(scene.window_bounds.Height()));
   const BYTE rear = WithOpacity(155, opacity);
-  DrawAsset(target, assets.Get(ThemeAssetId::SkyBlue),
-            static_cast<int>(width * 0.10f), 1,
-            static_cast<int>(width * 0.22f), height - 2, rear);
-  DrawAsset(target, assets.Get(ThemeAssetId::BuildingTerracotta), 0,
-            static_cast<int>(height * 0.08f),
-            std::max(28, static_cast<int>(width * 0.10f)),
-            static_cast<int>(height * 0.82f), WithOpacity(105, opacity));
-  DrawAsset(target, assets.Get(ThemeAssetId::BuildingIvory),
-            static_cast<int>(width * 0.88f),
-            static_cast<int>(height * 0.05f),
-            std::max(26, static_cast<int>(width * 0.12f)),
-            static_cast<int>(height * 0.88f), WithOpacity(112, opacity));
-  DrawAsset(target, assets.Get(ThemeAssetId::ArchitecturalLines),
-            static_cast<int>(width * 0.28f), 0,
-            static_cast<int>(width * 0.64f), height,
-            WithOpacity(72, opacity));
+  bool drawn = true;
+  drawn &= DrawAsset(target, assets.Get(ThemeAssetId::SkyBlue),
+                     static_cast<int>(width * 0.10f), 1,
+                     static_cast<int>(width * 0.22f), height - 2, rear);
+  drawn &= DrawAsset(target, assets.Get(ThemeAssetId::BuildingTerracotta), 0,
+                     static_cast<int>(height * 0.08f),
+                     std::max(28, static_cast<int>(width * 0.10f)),
+                     static_cast<int>(height * 0.82f),
+                     WithOpacity(105, opacity));
+  drawn &= DrawAsset(target, assets.Get(ThemeAssetId::BuildingIvory),
+                     static_cast<int>(width * 0.88f),
+                     static_cast<int>(height * 0.05f),
+                     std::max(26, static_cast<int>(width * 0.12f)),
+                     static_cast<int>(height * 0.88f),
+                     WithOpacity(112, opacity));
+  drawn &= DrawAsset(target, assets.Get(ThemeAssetId::ArchitecturalLines),
+                     static_cast<int>(width * 0.28f), 0,
+                     static_cast<int>(width * 0.64f), height,
+                     WithOpacity(72, opacity));
+  return drawn;
 }
 
-void DrawFrontArtwork(HDC target,
+bool DrawFrontArtwork(HDC target,
                       const CandidateScene& scene,
                       const ThemeAssets& assets,
                       float opacity) {
   if (scene.decorations.empty())
-    return;
+    return true;
   const int width = static_cast<int>(std::ceil(scene.window_bounds.Width()));
   const int height = static_cast<int>(std::ceil(scene.window_bounds.Height()));
   const int leaf_height = std::max(18, static_cast<int>(height * 0.38f));
   const int leaf_width = std::max(22, static_cast<int>(leaf_height * 1.08f));
-  DrawAsset(target, assets.Get(ThemeAssetId::LeafLeft), 2, 0, leaf_width,
-            leaf_height, WithOpacity(230, opacity));
-  DrawAsset(target, assets.Get(ThemeAssetId::LeafRight),
-            width - leaf_width - 2, 0, leaf_width, leaf_height,
-            WithOpacity(220, opacity));
+  const bool left = DrawAsset(target, assets.Get(ThemeAssetId::LeafLeft), 2, 0,
+                              leaf_width, leaf_height,
+                              WithOpacity(230, opacity));
+  const bool right = DrawAsset(target, assets.Get(ThemeAssetId::LeafRight),
+                               width - leaf_width - 2, 0, leaf_width,
+                               leaf_height, WithOpacity(220, opacity));
+  return left && right;
 }
 
 }  // namespace
@@ -195,120 +205,137 @@ bool SceneRenderer::Render(HDC target,
     Gdiplus::SolidBrush transparent(Gdiplus::Color(0, 0, 0, 0));
     clear.FillRectangle(&transparent, 0, 0, width, height);
   }
-  DrawRearArtwork(target, scene, assets, opacity);
+  const bool rear_artwork_drawn =
+      DrawRearArtwork(target, scene, assets, opacity);
 
-  Gdiplus::Graphics graphics(target);
-  graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-  graphics.SetTextRenderingHint(Gdiplus::TextRenderingHintClearTypeGridFit);
-  graphics.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
+  {
+    Gdiplus::Graphics graphics(target);
+    graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+    graphics.SetTextRenderingHint(Gdiplus::TextRenderingHintClearTypeGridFit);
+    graphics.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
 
-  if (!scene.pinyin.text.empty()) {
-    Gdiplus::RectF plaque = LocalRect(scene, scene.pinyin.bounds);
-    Gdiplus::RectF shadow = plaque;
-    shadow.X += 1.5f * scale;
-    shadow.Y += 3.0f * scale;
-    Gdiplus::SolidBrush shadow_brush(Color(54, 39, 48, 38, opacity));
-    FillRoundedRect(&graphics, shadow, 10.0f * scale, &shadow_brush);
-    Gdiplus::SolidBrush plaque_brush(Color(248, 185, 222, 235, opacity));
-    Gdiplus::Pen plaque_edge(Color(150, 91, 133, 143, opacity), 1.0f * scale);
-    FillRoundedRect(&graphics, plaque, 10.0f * scale, &plaque_brush,
-                    &plaque_edge);
-    Gdiplus::SolidBrush text_brush(Color(255, 45, 55, 49, opacity));
-    graphics.DrawString(scene.pinyin.text.c_str(), -1, pinyin_font_, plaque,
-                        centered_format_, &text_brush);
-  }
-
-  const Gdiplus::Color thickness_colors[] = {
-      Color(255, 176, 91, 66, opacity), Color(255, 80, 111, 80, opacity),
-      Color(255, 105, 151, 167, opacity)};
-  for (size_t index = 0; index < scene.candidates.size(); ++index) {
-    const auto& candidate = scene.candidates[index];
-    const Gdiplus::RectF face = LocalRect(scene, candidate.bounds);
-    const float depth = (candidate.selected ? 6.0f : 4.0f) * scale;
-    const float radius = 10.0f * scale;
-
-    for (int ring = 3; ring >= 1; --ring) {
-      Gdiplus::RectF shadow = face;
-      shadow.X += (1.0f + ring * 0.5f) * scale;
-      shadow.Y += (depth + ring * 1.5f) * scale;
-      Gdiplus::SolidBrush shadow_brush(
-          Color(static_cast<BYTE>(18 + ring * 7), 42, 48, 38, opacity));
-      FillRoundedRect(&graphics, shadow, radius + ring * scale, &shadow_brush);
+    if (!scene.pinyin.text.empty()) {
+      Gdiplus::RectF plaque = LocalRect(scene, scene.pinyin.bounds);
+      Gdiplus::RectF shadow = plaque;
+      shadow.X += 1.5f * scale;
+      shadow.Y += 3.0f * scale;
+      Gdiplus::SolidBrush shadow_brush(Color(54, 39, 48, 38, opacity));
+      FillRoundedRect(&graphics, shadow, 10.0f * scale, &shadow_brush);
+      Gdiplus::SolidBrush plaque_brush(Color(248, 185, 222, 235, opacity));
+      Gdiplus::Pen plaque_edge(Color(150, 91, 133, 143, opacity),
+                               1.0f * scale);
+      FillRoundedRect(&graphics, plaque, 10.0f * scale, &plaque_brush,
+                      &plaque_edge);
+      Gdiplus::SolidBrush text_brush(Color(255, 45, 55, 49, opacity));
+      graphics.DrawString(scene.pinyin.text.c_str(), -1, pinyin_font_, plaque,
+                          centered_format_, &text_brush);
     }
 
-    Gdiplus::RectF thickness = face;
-    thickness.Y += depth;
-    Gdiplus::SolidBrush thickness_brush(thickness_colors[index % 3]);
-    FillRoundedRect(&graphics, thickness, radius, &thickness_brush);
+    const Gdiplus::Color thickness_colors[] = {
+        Color(255, 176, 91, 66, opacity), Color(255, 80, 111, 80, opacity),
+        Color(255, 105, 151, 167, opacity)};
+    for (size_t index = 0; index < scene.candidates.size(); ++index) {
+      const auto& candidate = scene.candidates[index];
+      const Gdiplus::RectF face = LocalRect(scene, candidate.bounds);
+      const float depth = (candidate.selected ? 6.0f : 4.0f) * scale;
+      const float radius = 10.0f * scale;
 
-    const Gdiplus::Color face_color =
-        candidate.selected ? Color(255, 224, 239, 235, opacity)
-                           : Color(255, 249, 244, 230, opacity);
-    Gdiplus::SolidBrush face_brush(face_color);
-    Gdiplus::Pen paper_edge(Color(175, 198, 188, 163, opacity),
-                            0.8f * scale);
-    FillRoundedRect(&graphics, face, radius, &face_brush, &paper_edge);
+      for (int ring = 3; ring >= 1; --ring) {
+        Gdiplus::RectF shadow = face;
+        shadow.X += (1.0f + ring * 0.5f) * scale;
+        shadow.Y += (depth + ring * 1.5f) * scale;
+        Gdiplus::SolidBrush shadow_brush(
+            Color(static_cast<BYTE>(18 + ring * 7), 42, 48, 38, opacity));
+        FillRoundedRect(&graphics, shadow, radius + ring * scale,
+                        &shadow_brush);
+      }
 
-    Gdiplus::RectF highlight = face;
-    highlight.Inflate(-2.0f * scale, -2.0f * scale);
-    highlight.Height = std::max(1.0f, 2.0f * scale);
-    Gdiplus::SolidBrush highlight_brush(Color(120, 255, 255, 250, opacity));
-    FillRoundedRect(&graphics, highlight, 2.0f * scale, &highlight_brush);
+      Gdiplus::RectF thickness = face;
+      thickness.Y += depth;
+      Gdiplus::SolidBrush thickness_brush(thickness_colors[index % 3]);
+      FillRoundedRect(&graphics, thickness, radius, &thickness_brush);
 
-    Gdiplus::RectF label(face.X + 7.0f * scale,
-                         face.Y + (face.Height - 18.0f * scale) / 2.0f,
-                         18.0f * scale, 18.0f * scale);
-    Gdiplus::SolidBrush label_brush(
-        candidate.selected ? Color(255, 64, 95, 70, opacity)
-                           : Color(236, 184, 101, 74, opacity));
-    graphics.FillEllipse(&label_brush, label);
-    const std::wstring label_text = std::to_wstring(candidate.candidate_index + 1);
-    Gdiplus::SolidBrush label_text_brush(Color(255, 255, 250, 237, opacity));
-    graphics.DrawString(label_text.c_str(), -1, label_font_, label,
-                        centered_format_, &label_text_brush);
+      const Gdiplus::Color face_color =
+          candidate.selected ? Color(255, 224, 239, 235, opacity)
+                             : Color(255, 249, 244, 230, opacity);
+      Gdiplus::SolidBrush face_brush(face_color);
+      Gdiplus::Pen paper_edge(Color(175, 198, 188, 163, opacity),
+                              0.8f * scale);
+      FillRoundedRect(&graphics, face, radius, &face_brush, &paper_edge);
 
-    Gdiplus::RectF text_rect(face.X + 29.0f * scale, face.Y,
-                             face.Width - 35.0f * scale, face.Height);
-    Gdiplus::SolidBrush candidate_text(Color(255, 43, 52, 44, opacity));
-    graphics.DrawString(candidate.display_text.c_str(), -1, candidate_font_,
-                        text_rect, centered_format_, &candidate_text);
+      Gdiplus::RectF highlight = face;
+      highlight.Inflate(-2.0f * scale, -2.0f * scale);
+      highlight.Height = std::max(1.0f, 2.0f * scale);
+      Gdiplus::SolidBrush highlight_brush(Color(120, 255, 255, 250, opacity));
+      FillRoundedRect(&graphics, highlight, 2.0f * scale, &highlight_brush);
+
+      Gdiplus::RectF label(face.X + 7.0f * scale,
+                           face.Y + (face.Height - 18.0f * scale) / 2.0f,
+                           18.0f * scale, 18.0f * scale);
+      Gdiplus::SolidBrush label_brush(
+          candidate.selected ? Color(255, 64, 95, 70, opacity)
+                             : Color(236, 184, 101, 74, opacity));
+      graphics.FillEllipse(&label_brush, label);
+      const std::wstring label_text =
+          std::to_wstring(candidate.candidate_index + 1);
+      Gdiplus::SolidBrush label_text_brush(Color(255, 255, 250, 237, opacity));
+      graphics.DrawString(label_text.c_str(), -1, label_font_, label,
+                          centered_format_, &label_text_brush);
+
+      Gdiplus::RectF text_rect(face.X + 29.0f * scale, face.Y,
+                               face.Width - 35.0f * scale, face.Height);
+      Gdiplus::SolidBrush candidate_text(Color(255, 43, 52, 44, opacity));
+      graphics.DrawString(candidate.display_text.c_str(), -1, candidate_font_,
+                          text_rect, centered_format_, &candidate_text);
+    }
+
+    graphics.Flush(Gdiplus::FlushIntentionSync);
   }
 
-  for (const auto& control : scene.controls) {
-    const Gdiplus::RectF circle = LocalRect(scene, control.bounds);
-    Gdiplus::RectF shadow = circle;
-    shadow.Y += 3.0f * scale;
-    Gdiplus::SolidBrush shadow_brush(Color(45, 40, 47, 38, opacity));
-    graphics.FillEllipse(&shadow_brush, shadow);
-    Gdiplus::SolidBrush circle_brush(
-        control.enabled ? Color(250, 247, 240, 220, opacity)
-                        : Color(185, 230, 226, 211, opacity));
-    Gdiplus::Pen circle_edge(Color(165, 113, 121, 96, opacity), 1.0f * scale);
-    graphics.FillEllipse(&circle_brush, circle);
-    graphics.DrawEllipse(&circle_edge, circle);
+  const bool front_artwork_drawn =
+      DrawFrontArtwork(target, scene, assets, opacity);
 
-    const float direction =
-        control.kind == ControlKind::PreviousPage ? -1.0f : 1.0f;
-    const float center_x = circle.X + circle.Width / 2.0f;
-    const float center_y = circle.Y + circle.Height / 2.0f;
-    Gdiplus::Pen arrow(
-        control.enabled ? Color(255, 62, 78, 61, opacity)
-                        : Color(150, 131, 135, 121, opacity),
-        2.0f * scale);
-    arrow.SetStartCap(Gdiplus::LineCapRound);
-    arrow.SetEndCap(Gdiplus::LineCapRound);
-    const Gdiplus::PointF points[3] = {
-        {center_x - direction * 3.0f * scale,
-         center_y - 4.0f * scale},
-        {center_x + direction * 2.0f * scale, center_y},
-        {center_x - direction * 3.0f * scale,
-         center_y + 4.0f * scale}};
-    graphics.DrawLines(&arrow, points, 3);
+  // Independent page controls stay above the decorative foliage.
+  {
+    Gdiplus::Graphics graphics(target);
+    graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+    graphics.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
+    for (const auto& control : scene.controls) {
+      const Gdiplus::RectF circle = LocalRect(scene, control.bounds);
+      Gdiplus::RectF shadow = circle;
+      shadow.Y += 3.0f * scale;
+      Gdiplus::SolidBrush shadow_brush(Color(45, 40, 47, 38, opacity));
+      graphics.FillEllipse(&shadow_brush, shadow);
+      Gdiplus::SolidBrush circle_brush(
+          control.enabled ? Color(250, 247, 240, 220, opacity)
+                          : Color(185, 230, 226, 211, opacity));
+      Gdiplus::Pen circle_edge(Color(165, 113, 121, 96, opacity),
+                               1.0f * scale);
+      graphics.FillEllipse(&circle_brush, circle);
+      graphics.DrawEllipse(&circle_edge, circle);
+
+      const float direction =
+          control.kind == ControlKind::PreviousPage ? -1.0f : 1.0f;
+      const float center_x = circle.X + circle.Width / 2.0f;
+      const float center_y = circle.Y + circle.Height / 2.0f;
+      Gdiplus::Pen arrow(
+          control.enabled ? Color(255, 62, 78, 61, opacity)
+                          : Color(150, 131, 135, 121, opacity),
+          2.0f * scale);
+      arrow.SetStartCap(Gdiplus::LineCapRound);
+      arrow.SetEndCap(Gdiplus::LineCapRound);
+      const Gdiplus::PointF points[3] = {
+          {center_x - direction * 3.0f * scale,
+           center_y - 4.0f * scale},
+          {center_x + direction * 2.0f * scale, center_y},
+          {center_x - direction * 3.0f * scale,
+           center_y + 4.0f * scale}};
+      graphics.DrawLines(&arrow, points, 3);
+    }
+
+    graphics.Flush(Gdiplus::FlushIntentionSync);
   }
-
-  graphics.Flush(Gdiplus::FlushIntentionSync);
-  DrawFrontArtwork(target, scene, assets, opacity);
-  return true;
+  return rear_artwork_drawn && front_artwork_drawn;
 }
 
 void SceneRenderer::DiscardDeviceResources() {

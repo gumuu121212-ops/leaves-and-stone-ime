@@ -40,4 +40,10 @@ int NormalizeCandidateCount(int requested, const ThemeConfig& raw_config) {
              : config.default_candidate_count;
 }
 
+bool ShouldAnimateAppearance(bool was_visible,
+                             bool is_visible,
+                             const ThemeConfig& config) {
+  return config.animation_enabled && is_visible && !was_visible;
+}
+
 }  // namespace leaves_stone

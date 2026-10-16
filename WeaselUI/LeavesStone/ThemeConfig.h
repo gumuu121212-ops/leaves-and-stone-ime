@@ -18,5 +18,8 @@ struct ThemeConfig {
 
 ThemeConfig ValidateThemeConfig(ThemeConfig config);
 int NormalizeCandidateCount(int requested, const ThemeConfig& config);
+bool ShouldAnimateAppearance(bool was_visible,
+                             bool is_visible,
+                             const ThemeConfig& config);
 
 }  // namespace leaves_stone
