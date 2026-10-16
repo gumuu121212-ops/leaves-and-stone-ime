@@ -1,0 +1,8 @@
+#include "../include/resource.h"
+
+IDR_LS_LEAF_LEFT            RCDATA "../resource/leaves-stone/leaf-left.png"
+IDR_LS_LEAF_RIGHT           RCDATA "../resource/leaves-stone/leaf-right.png"
+IDR_LS_BUILDING_TERRACOTTA  RCDATA "../resource/leaves-stone/building-terracotta.png"
+IDR_LS_BUILDING_IVORY       RCDATA "../resource/leaves-stone/building-ivory.png"
+IDR_LS_SKY_BLUE             RCDATA "../resource/leaves-stone/sky-blue.png"
+IDR_LS_ARCHITECTURAL_LINES  RCDATA "../resource/leaves-stone/architectural-lines.png"

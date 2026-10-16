@@ -155,7 +155,7 @@ std::optional<HitTarget> HitTest(const CandidateScene& scene, PointF point) {
       return HitTarget{HitKind::Candidate, candidate.candidate_index};
   }
   for (const auto& control : scene.controls) {
-    if (!control.bounds.Contains(point))
+    if (!control.enabled || !control.bounds.Contains(point))
       continue;
     return HitTarget{control.kind == ControlKind::PreviousPage
                          ? HitKind::PreviousPage

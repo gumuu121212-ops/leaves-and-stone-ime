@@ -63,6 +63,9 @@ jobs:
         run: |
           .\test\TestToolchain.ps1
           .\test\TestBuildLocal.ps1
+          .\test\TestConfigContract.ps1
+          .\test\TestSceneContract.ps1
+          .\test\TestRendererContract.ps1
 
       - name: Build data
         shell: pwsh
@@ -91,4 +94,3 @@ jobs:
             output/*.dll
             output/Win32/*.exe
             output/Win32/*.dll
-

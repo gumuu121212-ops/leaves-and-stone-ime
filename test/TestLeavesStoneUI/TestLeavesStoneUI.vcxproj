@@ -42,16 +42,22 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>rime.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rime.lib;windowscodecs.lib;msimg32.lib;gdiplus.lib;ole32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories Condition="'$(Platform)'=='x64'">$(SolutionDir)lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalLibraryDirectories Condition="'$(Platform)'=='Win32'">$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ConfigTests.cpp" />
+    <ClCompile Include="RendererSmokeTests.cpp" />
     <ClCompile Include="SceneLayoutTests.cpp" />
     <ClCompile Include="..\..\WeaselUI\LeavesStone\SceneLayout.cpp" />
+    <ClCompile Include="..\..\WeaselUI\LeavesStone\SceneRenderer.cpp" />
+    <ClCompile Include="..\..\WeaselUI\LeavesStone\ThemeAssets.cpp" />
     <ClCompile Include="..\..\WeaselUI\LeavesStone\ThemeConfig.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="TestLeavesStoneUI.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

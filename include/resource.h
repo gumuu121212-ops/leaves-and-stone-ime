@@ -12,6 +12,12 @@
 #define IDR_MENU_POPUP_HANT             108
 #define IDR_MENU_POPUP_HANS             109
 #define IDS_STR_UNDER_MAINTENANCE       302
+#define IDR_LS_LEAF_LEFT                501
+#define IDR_LS_LEAF_RIGHT               502
+#define IDR_LS_BUILDING_TERRACOTTA      503
+#define IDR_LS_BUILDING_IVORY           504
+#define IDR_LS_SKY_BLUE                 505
+#define IDR_LS_ARCHITECTURAL_LINES      506
 #define ID_WEASELTRAY_QUIT              40001
 #define ID_WEASELTRAY_DEPLOY            40002
 #define ID_WEASELTRAY_CHECKUPDATE       40003

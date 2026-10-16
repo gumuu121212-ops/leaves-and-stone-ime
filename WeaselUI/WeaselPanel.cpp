@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "WeaselPanel.h"
 
+#include <cmath>
 #include <utility>
 #include <ShellScalingApi.h>
 #include <VersionHelpers.hpp>
@@ -23,6 +24,9 @@
   ((((color & 0xff000000) >> 25) & 0xff) << 24) | (color & 0x00ffffff)
 
 #pragma comment(lib, "Shcore.lib")
+#pragma comment(lib, "windowscodecs.lib")
+#pragma comment(lib, "msimg32.lib")
+#pragma comment(lib, "ole32.lib")
 
 template <class t0, class t1, class t2>
 inline void LoadIconNecessary(t0& a, t1& b, t2& c, int d) {
@@ -98,10 +102,70 @@ WeaselPanel::~WeaselPanel() {
 
 void WeaselPanel::_ResizeWindow() {
   CDCHandle dc = GetDC();
-  CSize m_size = m_layout->GetContentSize();
+  CSize m_size;
+  if (_UseLeavesStoneScene()) {
+    m_size.cx =
+        static_cast<LONG>(std::ceil(m_leaves_scene.window_bounds.Width()));
+    m_size.cy =
+        static_cast<LONG>(std::ceil(m_leaves_scene.window_bounds.Height()));
+  } else {
+    m_size = m_layout->GetContentSize();
+  }
   SetWindowPos(NULL, 0, 0, m_size.cx, m_size.cy,
                SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOREDRAW);
   ReleaseDC(dc);
+}
+
+bool WeaselPanel::_UseLeavesStoneScene() const {
+  return m_theme_assets_ready && !m_style.inline_preedit &&
+         !m_status.ascii_mode && m_status.schema_id == L"leaves_stone" &&
+         (!m_ctx.preedit.str.empty() || !m_ctx.cinfo.candies.empty());
+}
+
+void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
+  if (!_UseLeavesStoneScene())
+    return;
+
+  RECT work_area = {0, 0, 1920, 1080};
+  const HMONITOR monitor =
+      MonitorFromRect(m_inputPos, MONITOR_DEFAULTTONEAREST);
+  if (monitor) {
+    MONITORINFO info = {};
+    info.cbSize = sizeof(info);
+    if (GetMonitorInfo(monitor, &info))
+      work_area = info.rcWork;
+  }
+
+  leaves_stone::SceneInput input;
+  input.anchor = {static_cast<float>(m_inputPos.left),
+                  static_cast<float>(m_inputPos.top),
+                  static_cast<float>(m_inputPos.right),
+                  static_cast<float>(m_inputPos.bottom)};
+  input.work_area = {static_cast<float>(work_area.left),
+                     static_cast<float>(work_area.top),
+                     static_cast<float>(work_area.right),
+                     static_cast<float>(work_area.bottom)};
+  input.dpi_scale = dpiScaleLayout;
+  input.preedit = m_ctx.preedit.str;
+  input.selected_index = static_cast<size_t>(m_ctx.cinfo.highlighted);
+  input.requested_candidate_count =
+      m_candidateCount <= 5 ? 5 : (m_candidateCount <= 7 ? 7 : 9);
+  input.has_previous_page = m_ctx.cinfo.currentPage > 0;
+  input.has_next_page = !m_ctx.cinfo.is_last_page;
+  input.candidates.reserve(m_ctx.cinfo.candies.size());
+  for (size_t index = 0; index < m_ctx.cinfo.candies.size(); ++index) {
+    const std::wstring comment = index < m_ctx.cinfo.comments.size()
+                                     ? m_ctx.cinfo.comments[index].str
+                                     : L"";
+    input.candidates.push_back({m_ctx.cinfo.candies[index].str, comment});
+  }
+  m_leaves_scene = leaves_stone::BuildCandidateScene(input);
+
+  if (restart_animation) {
+    m_scene_opacity = 0.0f;
+    m_scene_animation_start = GetTickCount64();
+    SetTimer(LEAVES_ANIMATION_TIMER, 16, nullptr);
+  }
 }
 
 void WeaselPanel::_CreateLayout() {
@@ -155,15 +219,17 @@ void WeaselPanel::Refresh() {
   // only RedrawWindow if no need to hide candidates window, or
   // inline_no_candidates
   if (!hide_candidates || inline_no_candidates) {
+    const bool context_changed = m_ctx != m_octx;
     _InitFontRes();
     _CreateLayout();
 
     CDCHandle dc = GetDC();
     m_layout->DoLayout(dc, pDWR);
     ReleaseDC(dc);
+    _BuildLeavesStoneScene(context_changed);
     _ResizeWindow();
     _RepositionWindow();
-    if (m_ctx != m_octx) {
+    if (context_changed) {
       m_octx = m_ctx;
       RedrawWindow();
     }
@@ -266,6 +332,22 @@ LRESULT WeaselPanel::OnLeftClickedUp(UINT uMsg,
   point.x = GET_X_LPARAM(lParam);
   point.y = GET_Y_LPARAM(lParam);
 
+  if (_UseLeavesStoneScene()) {
+    const auto hit = leaves_stone::HitTest(
+        m_leaves_scene,
+        {point.x + m_leaves_scene.window_bounds.left,
+         point.y + m_leaves_scene.window_bounds.top});
+    if (hit && hit->kind == leaves_stone::HitKind::Candidate && _UICallback) {
+      size_t index = hit->candidate_index;
+      m_mouse_entry = false;
+      _UICallback(&index, nullptr, nullptr, nullptr);
+      if (!m_status.composing)
+        DestroyWindow();
+    }
+    bHandled = true;
+    return 0;
+  }
+
   ::KillTimer(m_hWnd, AUTOREV_TIMER);
   bar_scale_ = 1.0;
   ptimer = 0;
@@ -303,6 +385,28 @@ LRESULT WeaselPanel::OnLeftClickedDown(UINT uMsg,
   CPoint point;
   point.x = GET_X_LPARAM(lParam);
   point.y = GET_Y_LPARAM(lParam);
+
+  if (_UseLeavesStoneScene()) {
+    const auto hit = leaves_stone::HitTest(
+        m_leaves_scene,
+        {point.x + m_leaves_scene.window_bounds.left,
+         point.y + m_leaves_scene.window_bounds.top});
+    if (hit && _UICallback) {
+      if (hit->kind == leaves_stone::HitKind::PreviousPage) {
+        bool next_page = false;
+        _UICallback(nullptr, nullptr, &next_page, nullptr);
+      } else if (hit->kind == leaves_stone::HitKind::NextPage) {
+        bool next_page = true;
+        _UICallback(nullptr, nullptr, &next_page, nullptr);
+      } else if (hit->candidate_index !=
+                 static_cast<size_t>(m_ctx.cinfo.highlighted)) {
+        size_t index = hit->candidate_index;
+        _UICallback(nullptr, &index, nullptr, nullptr);
+      }
+    }
+    bHandled = true;
+    return 0;
+  }
 
   // capture
   if (m_style.click_to_capture) {
@@ -438,6 +542,27 @@ LRESULT WeaselPanel::OnMouseMove(UINT uMsg,
   CPoint point;
   point.x = GET_X_LPARAM(lParam);
   point.y = GET_Y_LPARAM(lParam);
+
+  if (_UseLeavesStoneScene()) {
+    const auto hit = leaves_stone::HitTest(
+        m_leaves_scene,
+        {point.x + m_leaves_scene.window_bounds.left,
+         point.y + m_leaves_scene.window_bounds.top});
+    int hover_index = -1;
+    if (hit && hit->kind == leaves_stone::HitKind::Candidate) {
+      hover_index = static_cast<int>(hit->candidate_index);
+      if (m_style.hover_type == UIStyle::HoverType::HILITE && _UICallback &&
+          hover_index != m_ctx.cinfo.highlighted) {
+        size_t index = hit->candidate_index;
+        _UICallback(nullptr, &index, nullptr, nullptr);
+      }
+    }
+    if (hover_index != m_hoverIndex) {
+      m_hoverIndex = hover_index;
+      InvalidateRect(&rcw, true);
+    }
+    return 0;
+  }
 
   for (size_t i = 0; i < m_candidateCount && i < MAX_CANDIDATES_COUNT; ++i) {
     CRect rect = m_layout->GetCandidateRect((int)i);
@@ -938,6 +1063,37 @@ void WeaselPanel::DoPaint(CDCHandle dc) {
   // turn off WS_EX_TRANSPARENT, for better resp performance
   ModifyStyleEx(WS_EX_TRANSPARENT, WS_EX_LAYERED);
   GetClientRect(&rcw);
+  if (_UseLeavesStoneScene()) {
+    HDC screen_dc = ::GetDC(m_hWnd);
+    HDC memory_dc = ::CreateCompatibleDC(screen_dc);
+    BITMAPINFO info = {};
+    info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    info.bmiHeader.biWidth = rcw.Width();
+    info.bmiHeader.biHeight = -rcw.Height();
+    info.bmiHeader.biPlanes = 1;
+    info.bmiHeader.biBitCount = 32;
+    info.bmiHeader.biCompression = BI_RGB;
+    void* pixels = nullptr;
+    HBITMAP bitmap = ::CreateDIBSection(memory_dc, &info, DIB_RGB_COLORS,
+                                        &pixels, nullptr, 0);
+    HGDIOBJ previous = bitmap ? ::SelectObject(memory_dc, bitmap) : nullptr;
+    ::ReleaseDC(m_hWnd, screen_dc);
+
+    const bool drawn = bitmap && m_scene_renderer.Render(
+                                      memory_dc, m_leaves_scene,
+                                      m_theme_assets, m_scene_opacity);
+    if (drawn)
+      _LayerUpdate(rcw, memory_dc);
+    else
+      ShowWindow(SW_HIDE);
+    if (previous)
+      ::SelectObject(memory_dc, previous);
+    if (bitmap)
+      ::DeleteObject(bitmap);
+    if (memory_dc)
+      ::DeleteDC(memory_dc);
+    return;
+  }
   // prepare memDC
   CDCHandle hdc = ::GetDC(m_hWnd);
   CDCHandle memDC = ::CreateCompatibleDC(hdc);
@@ -1094,6 +1250,7 @@ LRESULT WeaselPanel::OnCreate(UINT uMsg,
                               BOOL& bHandled) {
   m_mouse_entry = false;
   m_hoverIndex = -1;
+  m_theme_assets_ready = m_theme_assets.Load(GetModuleHandleW(nullptr));
   Refresh();
   return TRUE;
 }
@@ -1104,6 +1261,10 @@ LRESULT WeaselPanel::OnDestroy(UINT uMsg,
                                BOOL& bHandled) {
   m_hoverIndex = -1;
   m_sticky = false;
+  KillTimer(LEAVES_ANIMATION_TIMER);
+  m_scene_renderer.DiscardDeviceResources();
+  m_theme_assets.Discard();
+  m_theme_assets_ready = false;
   delete m_layout;
   m_layout = NULL;
   return 0;
@@ -1113,8 +1274,31 @@ LRESULT WeaselPanel::OnDpiChanged(UINT uMsg,
                                   WPARAM wParam,
                                   LPARAM lParam,
                                   BOOL& bHandled) {
+  m_scene_renderer.DiscardDeviceResources();
   Refresh();
   return LRESULT();
+}
+
+LRESULT WeaselPanel::OnAnimationTimer(UINT uMsg,
+                                      WPARAM wParam,
+                                      LPARAM lParam,
+                                      BOOL& bHandled) {
+  if (wParam != LEAVES_ANIMATION_TIMER) {
+    bHandled = FALSE;
+    return 0;
+  }
+  const ULONGLONG elapsed = GetTickCount64() - m_scene_animation_start;
+  const float progress =
+      std::min(1.0f, static_cast<float>(elapsed) / 140.0f);
+  const float remaining = 1.0f - progress;
+  m_scene_opacity = 1.0f - remaining * remaining * remaining;
+  if (progress >= 1.0f) {
+    m_scene_opacity = 1.0f;
+    KillTimer(LEAVES_ANIMATION_TIMER);
+  }
+  RedrawWindow();
+  bHandled = TRUE;
+  return 0;
 }
 
 void WeaselPanel::MoveTo(RECT const& rc) {
@@ -1164,6 +1348,16 @@ void WeaselPanel::_RepositionWindow(const bool& adj) {
       m_hMonitor = hMonitor;
       m_redraw_by_monitor_change = true;
     }
+  }
+  if (_UseLeavesStoneScene()) {
+    _BuildLeavesStoneScene(false);
+    _ResizeWindow();
+    SetWindowPos(
+        HWND_TOPMOST,
+        static_cast<int>(std::floor(m_leaves_scene.window_bounds.left)),
+        static_cast<int>(std::floor(m_leaves_scene.window_bounds.top)), 0, 0,
+        SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOREDRAW);
+    return;
   }
   RECT rcWindow;
   GetWindowRect(&rcWindow);

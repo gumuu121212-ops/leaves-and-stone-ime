@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM">
@@ -285,6 +285,12 @@
     <ClCompile Include="LeavesStone\SceneLayout.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="LeavesStone\SceneRenderer.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="LeavesStone\ThemeAssets.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="LeavesStone\ThemeConfig.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -311,7 +317,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LeavesStone\SceneLayout.h" />
+    <ClInclude Include="LeavesStone\SceneRenderer.h" />
     <ClInclude Include="LeavesStone\SceneTypes.h" />
+    <ClInclude Include="LeavesStone\ThemeAssets.h" />
     <ClInclude Include="LeavesStone\ThemeConfig.h" />
     <ClInclude Include="FullScreenLayout.h" />
     <ClInclude Include="GdiplusBlur.h" />

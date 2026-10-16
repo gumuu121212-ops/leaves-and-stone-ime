@@ -1,0 +1,178 @@
+#include "ThemeAssets.h"
+
+#include <objidl.h>
+#include <wincodec.h>
+
+#include <cstring>
+
+#include "resource.h"
+
+namespace leaves_stone {
+namespace {
+constexpr std::array<int, static_cast<size_t>(ThemeAssetId::Count)>
+    kResourceIds = {IDR_LS_LEAF_LEFT, IDR_LS_LEAF_RIGHT,
+                    IDR_LS_BUILDING_TERRACOTTA, IDR_LS_BUILDING_IVORY,
+                    IDR_LS_SKY_BLUE, IDR_LS_ARCHITECTURAL_LINES};
+}
+
+ThemeAssets::~ThemeAssets() {
+  Discard();
+}
+
+bool ThemeAssets::Load(HMODULE module) {
+  Discard();
+  if (!module)
+    module = GetModuleHandleW(nullptr);
+
+  HRESULT result = CoCreateInstance(CLSID_WICImagingFactory, nullptr,
+                                    CLSCTX_INPROC_SERVER,
+                                    IID_PPV_ARGS(&factory_));
+  if (result == CO_E_NOTINITIALIZED) {
+    const HRESULT initialized =
+        CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    owns_com_initialization_ = SUCCEEDED(initialized);
+    result = CoCreateInstance(CLSID_WICImagingFactory, nullptr,
+                              CLSCTX_INPROC_SERVER,
+                              IID_PPV_ARGS(&factory_));
+  }
+  if (FAILED(result) || !factory_) {
+    Discard();
+    return false;
+  }
+
+  for (size_t index = 0; index < kResourceIds.size(); ++index) {
+    if (!DecodeResource(module, kResourceIds[index], &bitmaps_[index])) {
+      Discard();
+      return false;
+    }
+  }
+  return true;
+}
+
+void ThemeAssets::Discard() {
+  for (auto& bitmap : bitmaps_) {
+    if (bitmap.handle)
+      DeleteObject(bitmap.handle);
+    bitmap = {};
+  }
+  if (factory_) {
+    factory_->Release();
+    factory_ = nullptr;
+  }
+  if (owns_com_initialization_) {
+    CoUninitialize();
+    owns_com_initialization_ = false;
+  }
+}
+
+const ThemeBitmap* ThemeAssets::Get(ThemeAssetId id) const {
+  const size_t index = static_cast<size_t>(id);
+  if (index >= bitmaps_.size() || !bitmaps_[index].handle)
+    return nullptr;
+  return &bitmaps_[index];
+}
+
+size_t ThemeAssets::LoadedBitmapCount() const {
+  size_t count = 0;
+  for (const auto& bitmap : bitmaps_) {
+    if (bitmap.handle)
+      ++count;
+  }
+  return count;
+}
+
+bool ThemeAssets::DecodeResource(HMODULE module,
+                                 int resource_id,
+                                 ThemeBitmap* destination) {
+  if (!module || !destination || !factory_)
+    return false;
+
+  const HRSRC resource =
+      FindResourceW(module, MAKEINTRESOURCEW(resource_id), RT_RCDATA);
+  if (!resource)
+    return false;
+  const DWORD resource_size = SizeofResource(module, resource);
+  const HGLOBAL loaded_resource = LoadResource(module, resource);
+  const void* resource_bytes = LockResource(loaded_resource);
+  if (!resource_bytes || resource_size == 0)
+    return false;
+
+  HGLOBAL stream_memory = GlobalAlloc(GMEM_MOVEABLE, resource_size);
+  if (!stream_memory)
+    return false;
+  void* stream_bytes = GlobalLock(stream_memory);
+  if (!stream_bytes) {
+    GlobalFree(stream_memory);
+    return false;
+  }
+  std::memcpy(stream_bytes, resource_bytes, resource_size);
+  GlobalUnlock(stream_memory);
+
+  IStream* stream = nullptr;
+  HRESULT result = CreateStreamOnHGlobal(stream_memory, TRUE, &stream);
+  if (FAILED(result)) {
+    GlobalFree(stream_memory);
+    return false;
+  }
+
+  IWICBitmapDecoder* decoder = nullptr;
+  IWICBitmapFrameDecode* frame = nullptr;
+  IWICFormatConverter* converter = nullptr;
+  result = factory_->CreateDecoderFromStream(
+      stream, nullptr, WICDecodeMetadataCacheOnLoad, &decoder);
+  if (SUCCEEDED(result))
+    result = decoder->GetFrame(0, &frame);
+  if (SUCCEEDED(result))
+    result = factory_->CreateFormatConverter(&converter);
+  if (SUCCEEDED(result)) {
+    result = converter->Initialize(
+        frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr,
+        0.0, WICBitmapPaletteTypeCustom);
+  }
+
+  UINT width = 0;
+  UINT height = 0;
+  if (SUCCEEDED(result))
+    result = converter->GetSize(&width, &height);
+
+  void* pixels = nullptr;
+  HBITMAP bitmap = nullptr;
+  if (SUCCEEDED(result) && width > 0 && height > 0) {
+    BITMAPINFO info = {};
+    info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    info.bmiHeader.biWidth = static_cast<LONG>(width);
+    info.bmiHeader.biHeight = -static_cast<LONG>(height);
+    info.bmiHeader.biPlanes = 1;
+    info.bmiHeader.biBitCount = 32;
+    info.bmiHeader.biCompression = BI_RGB;
+    bitmap = CreateDIBSection(nullptr, &info, DIB_RGB_COLORS, &pixels, nullptr,
+                              0);
+    if (!bitmap || !pixels)
+      result = E_OUTOFMEMORY;
+  }
+  if (SUCCEEDED(result)) {
+    const UINT stride = width * 4;
+    result = converter->CopyPixels(nullptr, stride, stride * height,
+                                   static_cast<BYTE*>(pixels));
+  }
+
+  if (converter)
+    converter->Release();
+  if (frame)
+    frame->Release();
+  if (decoder)
+    decoder->Release();
+  stream->Release();
+
+  if (FAILED(result)) {
+    if (bitmap)
+      DeleteObject(bitmap);
+    return false;
+  }
+  destination->handle = bitmap;
+  destination->width = width;
+  destination->height = height;
+  return true;
+}
+
+}  // namespace leaves_stone

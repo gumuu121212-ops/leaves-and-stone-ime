@@ -156,7 +156,7 @@ void RunRimeIntegrationTest() {
     if (rime->candidate_list_begin(session, &iterator)) {
       while (rime->candidate_list_next(&iterator)) {
         if (iterator.candidate.text &&
-            std::string(iterator.candidate.text) == u8"���������ܺ�") {
+            std::string(iterator.candidate.text) == u8"今天天气很好") {
           found_simplified_sentence = true;
           break;
         }
@@ -165,7 +165,7 @@ void RunRimeIntegrationTest() {
     }
     Expect(found_simplified_sentence,
            "jintiantianqihenhao must produce the Simplified Chinese candidate "
-           "���������ܺ�");
+           "今天天气很好");
     rime->destroy_session(session);
   }
 
@@ -176,6 +176,7 @@ void RunRimeIntegrationTest() {
 }  // namespace
 
 int RunSceneLayoutTests();
+int RunRendererSmokeTests();
 
 int main(int argc, char* argv[]) {
   const std::string filter =
@@ -186,6 +187,8 @@ int main(int argc, char* argv[]) {
   }
   if (filter.empty() || filter == "SceneLayout")
     failures += RunSceneLayoutTests();
+  if (filter.empty() || filter == "Renderer")
+    failures += RunRendererSmokeTests();
   if (failures == 0)
     std::cout << "TestLeavesStoneUI: PASS\n";
   return failures == 0 ? 0 : 1;
