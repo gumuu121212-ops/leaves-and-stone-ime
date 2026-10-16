@@ -1,8 +1,9 @@
-﻿#pragma once
+#pragma once
 #include <filesystem>
 #include <string>
 #include <sstream>
 #include <wrl/client.h>
+#include <LeavesStoneProduct.h>
 using namespace Microsoft::WRL;
 
 namespace fs = std::filesystem;
@@ -194,7 +195,7 @@ inline std::wstring get_weasel_ime_name() {
       langId == MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_HONGKONG) ||
       langId == MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_SINGAPORE) ||
       langId == MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_MACAU)) {
-    return L"小狼毫";
+    return L"С�Ǻ�";
   } else {
     return L"Weasel";
   }
@@ -217,7 +218,7 @@ inline LONG RegGetStringValue(HKEY key,
 
 inline LANGID get_language_id() {
   std::wstring lang{};
-  if (RegGetStringValue(HKEY_CURRENT_USER, L"Software\\Rime\\Weasel",
+  if (RegGetStringValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryRoot,
                         L"Language", lang) == ERROR_SUCCESS) {
     if (lang == L"chs")
       return MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED);
@@ -275,13 +276,13 @@ inline std::string current_time() {
   using namespace std::chrono;
   auto now = system_clock::now();
   auto time_point = system_clock::to_time_t(now);
-  auto ns = duration_cast<microseconds>(now.time_since_epoch());  // 转换为微秒
+  auto ns = duration_cast<microseconds>(now.time_since_epoch());  // ת��Ϊ΢��
   std::tm tm = *std::localtime(&time_point);
   std::ostringstream oss;
   oss << std::put_time(&tm,
-                       "%Y%m%d %H:%M:%S");  // 日期时间格式：20241113 08:54:34
+                       "%Y%m%d %H:%M:%S");  // ����ʱ���ʽ��20241113 08:54:34
   oss << "." << std::setw(6) << std::setfill('0')
-      << ns.count() % 1000000;  // 微秒部分
+      << ns.count() % 1000000;  // ΢�벿��
   return oss.str();
 }
 #define DEBUG                                                       \
