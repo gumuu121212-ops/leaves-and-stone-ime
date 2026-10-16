@@ -8,6 +8,10 @@ if exist env.bat call env.bat
 
 if not defined WEASEL_ROOT set WEASEL_ROOT=%CD%
 
+rem Leaves & Stone ships only the full-pinyin table and local language model.
+rem Product-owned default.yaml and schema files remain authoritative.
+if not defined WEASEL_BUNDLED_RECIPES set WEASEL_BUNDLED_RECIPES=essay luna-pinyin
+
 if not defined VERSION_MAJOR set VERSION_MAJOR=0
 if not defined VERSION_MINOR set VERSION_MINOR=17
 if not defined VERSION_PATCH set VERSION_PATCH=4
