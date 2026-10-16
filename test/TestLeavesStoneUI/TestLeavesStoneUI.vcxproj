@@ -49,8 +49,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ConfigTests.cpp" />
+    <ClCompile Include="InputStateTests.cpp" />
     <ClCompile Include="RendererSmokeTests.cpp" />
     <ClCompile Include="SceneLayoutTests.cpp" />
+    <ClCompile Include="SettingsStoreTests.cpp" />
+    <ClCompile Include="..\..\LeavesStoneSettings\SettingsStore.cpp" />
+    <ClCompile Include="..\..\WeaselTSF\LeavesStoneInputState.cpp" />
     <ClCompile Include="..\..\WeaselUI\LeavesStone\SceneLayout.cpp" />
     <ClCompile Include="..\..\WeaselUI\LeavesStone\SceneRenderer.cpp" />
     <ClCompile Include="..\..\WeaselUI\LeavesStone\ThemeAssets.cpp" />

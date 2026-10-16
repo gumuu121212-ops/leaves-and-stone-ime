@@ -294,6 +294,9 @@
     <ClCompile Include="LeavesStone\ThemeConfig.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\LeavesStoneSettings\SettingsStore.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="DirectWriteResources.cpp" />
     <ClCompile Include="FullScreenLayout.cpp" />
     <ClCompile Include="GdiplusBlur.cpp" />
@@ -321,6 +324,7 @@
     <ClInclude Include="LeavesStone\SceneTypes.h" />
     <ClInclude Include="LeavesStone\ThemeAssets.h" />
     <ClInclude Include="LeavesStone\ThemeConfig.h" />
+    <ClInclude Include="..\LeavesStoneSettings\SettingsStore.h" />
     <ClInclude Include="FullScreenLayout.h" />
     <ClInclude Include="GdiplusBlur.h" />
     <ClInclude Include="HorizontalLayout.h" />

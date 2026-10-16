@@ -95,6 +95,10 @@ void RunConfigTests() {
          "theme animation must default on");
   Expect(Matches(theme, R"(decoration_enabled:\s*true\s*$)"),
          "theme decoration must default on");
+  Expect(Matches(theme, R"(file:\s*leaves_stone_settings\.yaml\s*$)"),
+         "theme must declare the product-owned user settings file");
+  Expect(Matches(theme, R"(reload:\s*next_candidate_frame\s*$)"),
+         "settings changes must apply on the next candidate frame");
   Expect(Matches(weasel, R"(horizontal:\s*true\s*$)"),
          "Weasel host layout must be horizontal");
   Expect(Matches(weasel, R"(inline_preedit:\s*false\s*$)"),
@@ -177,6 +181,8 @@ void RunRimeIntegrationTest() {
 
 int RunSceneLayoutTests();
 int RunRendererSmokeTests();
+int RunSettingsStoreTests();
+int RunInputStateTests();
 
 int main(int argc, char* argv[]) {
   const std::string filter =
@@ -189,6 +195,10 @@ int main(int argc, char* argv[]) {
     failures += RunSceneLayoutTests();
   if (filter.empty() || filter == "Renderer")
     failures += RunRendererSmokeTests();
+  if (filter.empty() || filter.find("Settings") != std::string::npos)
+    failures += RunSettingsStoreTests();
+  if (filter.empty() || filter.find("InputState") != std::string::npos)
+    failures += RunInputStateTests();
   if (failures == 0)
     std::cout << "TestLeavesStoneUI: PASS\n";
   return failures == 0 ? 0 : 1;

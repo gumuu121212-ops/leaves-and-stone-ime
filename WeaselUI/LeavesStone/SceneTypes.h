@@ -70,6 +70,7 @@ struct CandidateScene {
   std::vector<ControlCard> controls;
   std::vector<DecorationLayer> decorations;
   float dpi_scale = 1.0f;
+  float text_scale = 1.0f;
   bool placed_above = false;
   bool has_visible_shared_background = false;
 };

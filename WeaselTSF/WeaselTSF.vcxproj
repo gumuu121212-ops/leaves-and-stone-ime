@@ -426,6 +426,7 @@
   <ItemGroup>
     <ClCompile Include="CandidateList.cpp" />
     <ClCompile Include="Compartment.cpp" />
+    <ClCompile Include="LeavesStoneInputState.cpp" />
     <ClCompile Include="Composition.cpp" />
     <ClCompile Include="DisplayAttribute.cpp" />
     <ClCompile Include="DisplayAttributeInfo.cpp" />
@@ -481,6 +482,7 @@
   <ItemGroup>
     <ClInclude Include="CandidateList.h" />
     <ClInclude Include="Compartment.h" />
+    <ClInclude Include="LeavesStoneInputState.h" />
     <ClInclude Include="ctffunc.h" />
     <ClInclude Include="DisplayAttributeInfo.h" />
     <ClInclude Include="EditSession.h" />

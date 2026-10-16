@@ -66,6 +66,7 @@ jobs:
           .\test\TestConfigContract.ps1
           .\test\TestSceneContract.ps1
           .\test\TestRendererContract.ps1
+          .\test\TestSettingsContract.ps1
 
       - name: Build data
         shell: pwsh

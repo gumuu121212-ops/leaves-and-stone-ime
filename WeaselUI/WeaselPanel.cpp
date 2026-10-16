@@ -122,6 +122,28 @@ bool WeaselPanel::_UseLeavesStoneScene() const {
          (!m_ctx.preedit.str.empty() || !m_ctx.cinfo.candies.empty());
 }
 
+void WeaselPanel::_ApplyLeavesStoneSettings() {
+  m_leaves_theme.default_candidate_count = m_leaves_settings.candidate_count;
+  m_leaves_theme.animation_enabled = m_leaves_settings.animation_enabled;
+  m_leaves_theme.decoration_enabled = m_leaves_settings.decoration_enabled;
+  m_leaves_theme.orientation =
+      m_leaves_settings.orientation ==
+              leaves_stone::settings::Orientation::Vertical
+          ? leaves_stone::Orientation::Vertical
+          : leaves_stone::Orientation::Horizontal;
+  switch (m_leaves_settings.text_size) {
+    case leaves_stone::settings::TextSize::Small:
+      m_leaves_theme.text_size = leaves_stone::TextSize::Small;
+      break;
+    case leaves_stone::settings::TextSize::Large:
+      m_leaves_theme.text_size = leaves_stone::TextSize::Large;
+      break;
+    default:
+      m_leaves_theme.text_size = leaves_stone::TextSize::Medium;
+      break;
+  }
+}
+
 void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
   if (!_UseLeavesStoneScene())
     return;
@@ -148,8 +170,7 @@ void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
   input.dpi_scale = dpiScaleLayout;
   input.preedit = m_ctx.preedit.str;
   input.selected_index = static_cast<size_t>(m_ctx.cinfo.highlighted);
-  input.requested_candidate_count =
-      m_candidateCount <= 5 ? 5 : (m_candidateCount <= 7 ? 7 : 9);
+  input.requested_candidate_count = m_leaves_settings.candidate_count;
   input.has_previous_page = m_ctx.cinfo.currentPage > 0;
   input.has_next_page = !m_ctx.cinfo.is_last_page;
   input.theme = m_leaves_theme;
@@ -198,6 +219,10 @@ void WeaselPanel::_CreateLayout() {
 
 // 更新界面
 void WeaselPanel::Refresh() {
+  if (m_leaves_settings_store.ReloadIfChanged(&m_leaves_settings)) {
+    _ApplyLeavesStoneSettings();
+    m_scene_renderer.DiscardDeviceResources();
+  }
   bool should_show_icon =
       (m_status.ascii_mode || !m_status.composing || !m_ctx.aux.empty());
   m_candidateCount = (BYTE)m_ctx.cinfo.candies.size();
@@ -1262,6 +1287,8 @@ LRESULT WeaselPanel::OnCreate(UINT uMsg,
                               BOOL& bHandled) {
   m_mouse_entry = false;
   m_hoverIndex = -1;
+  m_leaves_settings = m_leaves_settings_store.Load();
+  _ApplyLeavesStoneSettings();
   m_theme_assets_ready = m_theme_assets.Load(GetModuleHandleW(nullptr));
   Refresh();
   return TRUE;

@@ -34,7 +34,7 @@ leaves_stone::SceneInput MakeInput(size_t count,
   input.requested_candidate_count = static_cast<int>(count);
   input.preedit = L"jintian";
   for (size_t i = 0; i < count; ++i)
-    input.candidates.push_back({L"��ѡ" + std::to_wstring(i + 1), L""});
+    input.candidates.push_back({L"候选" + std::to_wstring(i + 1), L""});
   return input;
 }
 
@@ -103,7 +103,7 @@ void TestPlacementAndElevation() {
 
 void TestHitRegionsAndTruncation() {
   auto input = MakeInput(5);
-  input.candidates[0].text = L"����һ���ǳ��ǳ����ĺ�ѡ�ı�";
+  input.candidates[0].text = L"这是一个非常非常长的候选文本";
   const auto scene = leaves_stone::BuildCandidateScene(input);
   Check(scene.candidates[0].full_text == input.candidates[0].text,
         "full candidate text must survive visual truncation");
@@ -142,11 +142,38 @@ void TestHitRegionsAndTruncation() {
           "decorations must remain click-through");
   }
 }
+
+void TestUserLayoutPreferences() {
+  auto vertical = MakeInput(5);
+  vertical.theme.orientation = leaves_stone::Orientation::Vertical;
+  const auto vertical_scene = leaves_stone::BuildCandidateScene(vertical);
+  for (size_t index = 1; index < vertical_scene.candidates.size(); ++index) {
+    Check(vertical_scene.candidates[index].bounds.top >
+              vertical_scene.candidates[index - 1].bounds.bottom,
+          "vertical orientation must stack independent candidate cards");
+  }
+
+  auto small = MakeInput(5);
+  small.theme.text_size = leaves_stone::TextSize::Small;
+  auto large = small;
+  large.theme.text_size = leaves_stone::TextSize::Large;
+  const auto small_scene = leaves_stone::BuildCandidateScene(small);
+  const auto large_scene = leaves_stone::BuildCandidateScene(large);
+  Check(large_scene.candidates.front().bounds.Height() >
+            small_scene.candidates.front().bounds.Height(),
+        "large text preference must enlarge card and font metrics together");
+
+  auto undecorated = MakeInput(5);
+  undecorated.theme.decoration_enabled = false;
+  Check(leaves_stone::BuildCandidateScene(undecorated).decorations.empty(),
+        "disabled decoration preference must remove ornamental layers");
+}
 }  // namespace
 
 int RunSceneLayoutTests() {
   TestCountsAndDpi();
   TestPlacementAndElevation();
   TestHitRegionsAndTruncation();
+  TestUserLayoutPreferences();
   return failures;
 }

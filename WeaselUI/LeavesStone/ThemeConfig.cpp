@@ -46,4 +46,15 @@ bool ShouldAnimateAppearance(bool was_visible,
   return config.animation_enabled && is_visible && !was_visible;
 }
 
+float TextScale(const ThemeConfig& config) {
+  switch (config.text_size) {
+    case TextSize::Small:
+      return 0.88f;
+    case TextSize::Large:
+      return 1.18f;
+    default:
+      return 1.0f;
+  }
+}
+
 }  // namespace leaves_stone

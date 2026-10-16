@@ -7,6 +7,7 @@
 #include "LeavesStone/SceneLayout.h"
 #include "LeavesStone/SceneRenderer.h"
 #include "LeavesStone/ThemeAssets.h"
+#include "../LeavesStoneSettings/SettingsStore.h"
 
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "dwrite.lib")
@@ -92,6 +93,7 @@ class WeaselPanel
   bool m_mouse_entry = false;
   void _CreateLayout();
   bool _UseLeavesStoneScene() const;
+  void _ApplyLeavesStoneSettings();
   void _BuildLeavesStoneScene(bool restart_animation);
   void _ResizeWindow();
   void _RepositionWindow(const bool& adj = false);
@@ -156,6 +158,8 @@ class WeaselPanel
   leaves_stone::SceneRenderer m_scene_renderer;
   leaves_stone::CandidateScene m_leaves_scene;
   leaves_stone::ThemeConfig m_leaves_theme;
+  leaves_stone::settings::SettingsStore m_leaves_settings_store;
+  leaves_stone::settings::UserSettings m_leaves_settings;
   bool m_theme_assets_ready = false;
   bool m_leaves_scene_visible = false;
   float m_scene_opacity = 1.0f;

@@ -7,6 +7,11 @@ theme:
   orientation: horizontal
   animation_enabled: true
   decoration_enabled: true
+  user_settings:
+    file: leaves_stone_settings.yaml
+    reload: next_candidate_frame
+    text_sizes: [small, medium, large]
+    orientations: [horizontal, vertical]
   candidate_page:
     default_count: 5
     allowed_counts: [5, 7, 9]

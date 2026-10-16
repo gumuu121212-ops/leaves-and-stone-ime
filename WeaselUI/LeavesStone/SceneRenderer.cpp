@@ -191,7 +191,7 @@ bool SceneRenderer::Render(HDC target,
                            float opacity) {
   if (!target || scene.window_bounds.Width() <= 0.0f ||
       scene.window_bounds.Height() <= 0.0f ||
-      !EnsureDeviceResources(scene.dpi_scale)) {
+      !EnsureDeviceResources(scene.dpi_scale * scene.text_scale)) {
     return false;
   }
   opacity = std::clamp(opacity, 0.0f, 1.0f);

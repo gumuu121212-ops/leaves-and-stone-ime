@@ -4,10 +4,12 @@
 
 namespace leaves_stone {
 
-enum class Orientation { Horizontal };
+enum class Orientation { Horizontal, Vertical };
+enum class TextSize { Small, Medium, Large };
 
 struct ThemeConfig {
   Orientation orientation = Orientation::Horizontal;
+  TextSize text_size = TextSize::Medium;
   bool animation_enabled = true;
   bool decoration_enabled = true;
   int default_candidate_count = 5;
@@ -21,5 +23,6 @@ int NormalizeCandidateCount(int requested, const ThemeConfig& config);
 bool ShouldAnimateAppearance(bool was_visible,
                              bool is_visible,
                              const ThemeConfig& config);
+float TextScale(const ThemeConfig& config);
 
 }  // namespace leaves_stone
