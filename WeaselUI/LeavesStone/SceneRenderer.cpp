@@ -134,12 +134,41 @@ bool DrawFrontArtwork(HDC target,
   const int height = static_cast<int>(std::ceil(scene.window_bounds.Height()));
   const int leaf_height = std::max(18, static_cast<int>(height * 0.38f));
   const int leaf_width = std::max(22, static_cast<int>(leaf_height * 1.08f));
-  const bool left = DrawAsset(target, assets.Get(ThemeAssetId::LeafLeft), 2, 0,
-                              leaf_width, leaf_height,
-                              WithOpacity(230, opacity));
-  const bool right = DrawAsset(target, assets.Get(ThemeAssetId::LeafRight),
-                               width - leaf_width - 2, 0, leaf_width,
-                               leaf_height, WithOpacity(220, opacity));
+
+  // Decoration must never cover candidate text. The leaves are taller than the
+  // first card once the layout stacks candidates vertically, so bound each leaf
+  // to the empty gap on its own side of the candidate column instead of relying
+  // on the window being short.
+  int column_left = width;
+  int column_right = 0;
+  for (const auto& candidate : scene.candidates) {
+    const Gdiplus::RectF face = LocalRect(scene, candidate.bounds);
+    column_left =
+        std::min(column_left, static_cast<int>(std::floor(face.X)));
+    column_right =
+        std::max(column_right, static_cast<int>(std::ceil(face.GetRight())));
+  }
+
+  auto draw_in_gap = [&](ThemeAssetId id, int x, int y, int w, int h,
+                         BYTE alpha, int clip_left, int clip_right) {
+    if (clip_right <= clip_left)
+      return true;
+    const int saved = SaveDC(target);
+    if (saved != 0)
+      IntersectClipRect(target, clip_left, 0, clip_right, height);
+    const bool drawn = DrawAsset(target, assets.Get(id), x, y, w, h, alpha);
+    if (saved != 0)
+      RestoreDC(target, saved);
+    return drawn;
+  };
+
+  const bool left = draw_in_gap(ThemeAssetId::LeafLeft, 2, 0, leaf_width,
+                                leaf_height, WithOpacity(230, opacity), 0,
+                                column_left);
+  const bool right =
+      draw_in_gap(ThemeAssetId::LeafRight, width - leaf_width - 2, 0,
+                  leaf_width, leaf_height, WithOpacity(220, opacity),
+                  column_right, width);
   return left && right;
 }
 

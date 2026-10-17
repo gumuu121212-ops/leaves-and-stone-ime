@@ -192,8 +192,26 @@ bool SettingsStore::Save(const UserSettings& raw_settings) {
     std::filesystem::remove(temporary, error);
     return false;
   }
+  // Rime pages candidates with menu/page_size, which lives in the deployed
+  // schema. Without this patch the 7 and 9 options would keep showing five
+  // candidates because the engine never returns more than one page.
+  WriteCandidatePagePatch(settings.candidate_count);
   RememberWriteTime();
   return true;
+}
+
+bool SettingsStore::WriteCandidatePagePatch(int candidate_count) const {
+  if (path_.parent_path().empty())
+    return false;
+  std::filesystem::path patch = path_.parent_path() / L"leaves_stone.custom.yaml";
+  std::ofstream stream(patch, std::ios::binary | std::ios::trunc);
+  if (!stream)
+    return false;
+  stream << "# Generated from Leaves & Stone settings; do not edit.\n"
+         << "patch:\n"
+         << "  menu/page_size: " << candidate_count << "\n";
+  stream.flush();
+  return static_cast<bool>(stream);
 }
 
 bool SettingsStore::ReloadIfChanged(UserSettings* settings) {

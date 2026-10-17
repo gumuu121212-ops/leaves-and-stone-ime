@@ -35,6 +35,7 @@ class SettingsStore {
   bool Read(UserSettings* settings, bool* corrupt) const;
   void RememberWriteTime();
   void BackupCorruptFile() const;
+  bool WriteCandidatePagePatch(int candidate_count) const;
 
   std::filesystem::path path_;
   std::filesystem::file_time_type last_write_time_{};
