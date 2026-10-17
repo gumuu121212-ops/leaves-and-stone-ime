@@ -1,4 +1,4 @@
-?// Microsoft Visual C++ generated resource script.
+// Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -90,22 +90,22 @@ IDR_MENU_POPUP_HANT MENU
 BEGIN
     POPUP "WeaselTray"
     BEGIN
-        MENUITEM "ݔ�뷨�O�� (&S)",                  ID_WEASELTRAY_SETTINGS
-        MENUITEM "�Ñ��~����� (&D)",                 ID_WEASELTRAY_DICT_MANAGEMENT
-        MENUITEM "�Ñ��Y��ͬ�� (&N)",                 ID_WEASELTRAY_SYNC
+        MENUITEM "輸入法設定 (&S)",                  ID_WEASELTRAY_SETTINGS
+        MENUITEM "用戶詞典管理 (&D)",                 ID_WEASELTRAY_DICT_MANAGEMENT
+        MENUITEM "用戶資料同步 (&N)",                 ID_WEASELTRAY_SYNC
         MENUITEM SEPARATOR
-        MENUITEM "�Ñ��ļ��A (&C)",                  ID_WEASELTRAY_USERCONFIG
-        MENUITEM "�����ļ��A (&P)",                  ID_WEASELTRAY_INSTALLDIR
-        MENUITEM "���I�ļ��A (&L)",                  ID_WEASELTRAY_LOGDIR
+        MENUITEM "用戶文件夾 (&C)",                  ID_WEASELTRAY_USERCONFIG
+        MENUITEM "程序文件夾 (&P)",                  ID_WEASELTRAY_INSTALLDIR
+        MENUITEM "日誌文件夾 (&L)",                  ID_WEASELTRAY_LOGDIR
         MENUITEM SEPARATOR
-        MENUITEM "�����ęn (&H)",                   ID_WEASELTRAY_WIKI
-        MENUITEM "����ӑՓ (&J)",                   ID_WEASELTRAY_FORUM
+        MENUITEM "幫助文檔 (&H)",                   ID_WEASELTRAY_WIKI
+        MENUITEM "參加討論 (&J)",                   ID_WEASELTRAY_FORUM
         MENUITEM SEPARATOR
-        MENUITEM "�z���°汾 (&U)",                  ID_WEASELTRAY_CHECKUPDATE
-        MENUITEM "���²��� (&R)",                   ID_WEASELTRAY_DEPLOY
+        MENUITEM "檢查新版本 (&U)",                  ID_WEASELTRAY_CHECKUPDATE
+        MENUITEM "重新部署 (&R)",                   ID_WEASELTRAY_DEPLOY
         MENUITEM SEPARATOR
-        MENUITEM "�؆��㷨���� (&E)",                 ID_WEASELTRAY_RERUN_SERVICE
-        MENUITEM "�˳��㷨���� (&Q)",                 ID_WEASELTRAY_QUIT
+        MENUITEM "重啓算法服務 (&E)",                 ID_WEASELTRAY_RERUN_SERVICE
+        MENUITEM "退出算法服務 (&Q)",                 ID_WEASELTRAY_QUIT
     END
 END
 
@@ -113,22 +113,22 @@ IDR_MENU_POPUP_HANS MENU
 BEGIN
     POPUP "WeaselTray"
     BEGIN
-        MENUITEM "���뷨�趨 (&S)",                  ID_WEASELTRAY_SETTINGS
-        MENUITEM "�û��ʵ���� (&D)",                 ID_WEASELTRAY_DICT_MANAGEMENT
-        MENUITEM "�û�����ͬ�� (&N)",                 ID_WEASELTRAY_SYNC
+        MENUITEM "输入法设定 (&S)",                  ID_WEASELTRAY_SETTINGS
+        MENUITEM "用户词典管理 (&D)",                 ID_WEASELTRAY_DICT_MANAGEMENT
+        MENUITEM "用户资料同步 (&N)",                 ID_WEASELTRAY_SYNC
         MENUITEM SEPARATOR
-        MENUITEM "�û��ļ��� (&C)",                  ID_WEASELTRAY_USERCONFIG
-        MENUITEM "�����ļ��� (&P)",                  ID_WEASELTRAY_INSTALLDIR
-        MENUITEM "��־�ļ��� (&L)",                  ID_WEASELTRAY_LOGDIR
+        MENUITEM "用户文件夹 (&C)",                  ID_WEASELTRAY_USERCONFIG
+        MENUITEM "程序文件夹 (&P)",                  ID_WEASELTRAY_INSTALLDIR
+        MENUITEM "日志文件夹 (&L)",                  ID_WEASELTRAY_LOGDIR
         MENUITEM SEPARATOR
-        MENUITEM "�����ĵ� (&H)",                   ID_WEASELTRAY_WIKI
-        MENUITEM "�μ����� (&J)",                   ID_WEASELTRAY_FORUM
+        MENUITEM "帮助文档 (&H)",                   ID_WEASELTRAY_WIKI
+        MENUITEM "参加讨论 (&J)",                   ID_WEASELTRAY_FORUM
         MENUITEM SEPARATOR
-        MENUITEM "����°汾 (&U)",                  ID_WEASELTRAY_CHECKUPDATE
-        MENUITEM "���²��� (&R)",                   ID_WEASELTRAY_DEPLOY
+        MENUITEM "检查新版本 (&U)",                  ID_WEASELTRAY_CHECKUPDATE
+        MENUITEM "重新部署 (&R)",                   ID_WEASELTRAY_DEPLOY
         MENUITEM SEPARATOR
-        MENUITEM "�����㷨���� (&E)",                 ID_WEASELTRAY_RERUN_SERVICE
-        MENUITEM "�˳��㷨���� (&Q)",                 ID_WEASELTRAY_QUIT
+        MENUITEM "重启算法服务 (&E)",                 ID_WEASELTRAY_RERUN_SERVICE
+        MENUITEM "退出算法服务 (&Q)",                 ID_WEASELTRAY_QUIT
     END
 END
 
@@ -150,26 +150,26 @@ BEGIN
     BEGIN
         BLOCK "080404b0"
         BEGIN
-            VALUE "Comments", "Powered by RIME | ���������뷨����"
-            VALUE "CompanyName", "ʽˡ��"
-            VALUE "FileDescription", "С�Ǻ�TSF"
+            VALUE "Comments", "Powered by RIME | 中州韵输入法引擎"
+            VALUE "CompanyName", "式恕堂"
+            VALUE "FileDescription", "小狼毫TSF"
             VALUE "FileVersion", FILE_VERSION
             VALUE "InternalName", "WeaselTSF"
-            VALUE "LegalCopyright", "ʽˡ�� ��Ȩ����"
+            VALUE "LegalCopyright", "式恕堂 版权所无"
             VALUE "OriginalFilename", FILE_NAME
-            VALUE "ProductName", "С�Ǻ�"
+            VALUE "ProductName", "小狼毫"
             VALUE "ProductVersion", STRZ(PRODUCT_VERSION)
         END
         BLOCK "040404b0"
         BEGIN
-            VALUE "Comments", "Powered by RIME | �����ݔ�뷨����"
-            VALUE "CompanyName", "ʽˡ��"
-            VALUE "FileDescription", "С�Ǻ�TSF"
+            VALUE "Comments", "Powered by RIME | 中州韻輸入法引擎"
+            VALUE "CompanyName", "式恕堂"
+            VALUE "FileDescription", "小狼毫TSF"
             VALUE "FileVersion", FILE_VERSION
             VALUE "InternalName", "WeaselTSF"
-            VALUE "LegalCopyright", "ʽˡ�� ������o"
+            VALUE "LegalCopyright", "式恕堂 版權所無"
             VALUE "OriginalFilename", FILE_NAME
-            VALUE "ProductName", "С�Ǻ�"
+            VALUE "ProductName", "小狼毫"
             VALUE "ProductVersion", STRZ(PRODUCT_VERSION)
         END
         BLOCK "040904b0"
