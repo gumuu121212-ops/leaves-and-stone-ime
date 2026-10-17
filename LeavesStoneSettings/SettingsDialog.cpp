@@ -100,9 +100,10 @@ void DrawPreview(HWND window, HDC dc, const UserSettings& settings) {
   RECT title = {40, 258, 480, 280};
   DrawTextW(dc, L"实时预览", -1, &title, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 
+  // Parenthesised so the windows.h max/min macros cannot swallow the call.
   const int count = settings.orientation == Orientation::Vertical
                         ? 3
-                        : std::min(settings.candidate_count, 5);
+                        : (std::min)(settings.candidate_count, 5);
   const int card_height = settings.text_size == TextSize::Large
                               ? 38
                               : settings.text_size == TextSize::Small ? 28 : 32;

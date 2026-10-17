@@ -81,7 +81,7 @@ struct SceneInput {
   float dpi_scale = 1.0f;
   std::wstring preedit;
   std::vector<CandidateInput> candidates;
-  size_t selected_index = std::numeric_limits<size_t>::max();
+  size_t selected_index = (std::numeric_limits<size_t>::max)();
   int requested_candidate_count = 5;
   bool has_previous_page = false;
   bool has_next_page = false;
@@ -90,7 +90,7 @@ struct SceneInput {
 
 struct HitTarget {
   HitKind kind = HitKind::Candidate;
-  size_t candidate_index = std::numeric_limits<size_t>::max();
+  size_t candidate_index = (std::numeric_limits<size_t>::max)();
 };
 
 }  // namespace leaves_stone

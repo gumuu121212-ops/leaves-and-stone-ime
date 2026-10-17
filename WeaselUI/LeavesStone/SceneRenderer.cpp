@@ -4,6 +4,16 @@
 #include <cmath>
 #include <string>
 
+// windows.h defines min and max as macros unless NOMINMAX is set, which turns
+// every std::min/std::max below into a syntax error. Other Weasel code relies on
+// those macros, so opt out only in this translation unit.
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
 namespace leaves_stone {
 namespace {
 

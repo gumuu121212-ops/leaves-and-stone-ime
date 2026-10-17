@@ -375,6 +375,10 @@ rem ---------------------------------------------------------------------------
 :error
 
 echo error building weasel...
+rem Without an explicit exit code the script falls through to :end, where cd
+rem resets errorlevel to 0, so callers saw a successful build after a failure.
+exit /b 1
 
 :end
 cd %WEASEL_ROOT%
+exit /b 0

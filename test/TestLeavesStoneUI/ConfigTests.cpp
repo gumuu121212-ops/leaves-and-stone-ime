@@ -48,17 +48,29 @@ std::string ReadRequired(const fs::path& path) {
 }
 
 bool Matches(const std::string& value, const std::string& pattern) {
-  return std::regex_search(
-      value, std::regex(pattern, std::regex_constants::icase |
-                                    std::regex_constants::multiline));
+  // std::regex_constants::multiline is a search flag, not a constructor option,
+  // so it cannot be combined with icase here. These patterns anchor with ^ and $
+  // per line, so match each line instead.
+  const std::regex expression(pattern, std::regex_constants::icase);
+  std::istringstream lines(value);
+  std::string line;
+  while (std::getline(lines, line)) {
+    if (std::regex_search(line, expression))
+      return true;
+  }
+  return false;
 }
 
 size_t MatchCount(const std::string& value, const std::string& pattern) {
-  const std::regex expression(pattern, std::regex_constants::icase |
-                                           std::regex_constants::multiline);
-  return static_cast<size_t>(
-      std::distance(std::sregex_iterator(value.begin(), value.end(), expression),
-                    std::sregex_iterator()));
+  const std::regex expression(pattern, std::regex_constants::icase);
+  size_t count = 0;
+  std::istringstream lines(value);
+  std::string line;
+  while (std::getline(lines, line)) {
+    if (std::regex_search(line, expression))
+      ++count;
+  }
+  return count;
 }
 
 void RunConfigTests() {
