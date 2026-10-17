@@ -195,7 +195,7 @@ inline std::wstring get_weasel_ime_name() {
       langId == MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_HONGKONG) ||
       langId == MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_SINGAPORE) ||
       langId == MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_MACAU)) {
-    return L"小狼毫";
+    return L"Leaves & Stone";
   } else {
     return L"Weasel";
   }

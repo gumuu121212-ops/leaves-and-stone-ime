@@ -151,25 +151,25 @@ BEGIN
         BLOCK "080404b0"
         BEGIN
             VALUE "Comments", "Powered by RIME | 中州韵输入法引擎"
-            VALUE "CompanyName", "式恕堂"
-            VALUE "FileDescription", "小狼毫TSF"
+            VALUE "CompanyName", "Leaves & Stone"
+            VALUE "FileDescription", "Leaves & StoneTSF"
             VALUE "FileVersion", FILE_VERSION
             VALUE "InternalName", "WeaselTSF"
             VALUE "LegalCopyright", "式恕堂 版权所无"
             VALUE "OriginalFilename", FILE_NAME
-            VALUE "ProductName", "小狼毫"
+            VALUE "ProductName", "Leaves & Stone"
             VALUE "ProductVersion", STRZ(PRODUCT_VERSION)
         END
         BLOCK "040404b0"
         BEGIN
             VALUE "Comments", "Powered by RIME | 中州韻輸入法引擎"
-            VALUE "CompanyName", "式恕堂"
-            VALUE "FileDescription", "小狼毫TSF"
+            VALUE "CompanyName", "Leaves & Stone"
+            VALUE "FileDescription", "Leaves & StoneTSF"
             VALUE "FileVersion", FILE_VERSION
             VALUE "InternalName", "WeaselTSF"
             VALUE "LegalCopyright", "式恕堂 版權所無"
             VALUE "OriginalFilename", FILE_NAME
-            VALUE "ProductName", "小狼毫"
+            VALUE "ProductName", "Leaves & Stone"
             VALUE "ProductVersion", STRZ(PRODUCT_VERSION)
         END
         BLOCK "040904b0"

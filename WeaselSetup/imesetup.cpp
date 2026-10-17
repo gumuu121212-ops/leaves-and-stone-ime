@@ -387,7 +387,7 @@ int register_ime(const std::wstring& ime_path,
       if (ret != ERROR_SUCCESS)
         continue;
 
-      // 小狼毫?
+      // Leaves & Stone?
       if (_wcsicmp(imeFile, L"weasel.ime") == 0) {
         DWORD value;
         swscanf_s(subKey, L"%x", &value);
