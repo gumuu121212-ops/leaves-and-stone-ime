@@ -2,6 +2,8 @@
 #include "WeaselPanel.h"
 
 #include <cmath>
+#include <fstream>
+#include <string>
 #include <utility>
 #include <ShellScalingApi.h>
 #include <VersionHelpers.hpp>
@@ -116,10 +118,56 @@ void WeaselPanel::_ResizeWindow() {
   ReleaseDC(dc);
 }
 
+namespace {
+// One-time diagnostic for the candidate window. Nothing else exposes why the
+// Leaves & Stone scene was or was not used, so record the gate inputs once per
+// process in %TEMP%\leaves-stone-ui.log.
+void LogLeavesStoneGateOnce(bool assets_ready,
+                            bool inline_preedit,
+                            bool ascii_mode,
+                            const std::wstring& schema_id,
+                            size_t candidate_count,
+                            bool has_preedit) {
+  static bool logged = false;
+  if (logged)
+    return;
+  logged = true;
+  wchar_t temp_path[MAX_PATH] = {0};
+  if (GetTempPathW(MAX_PATH, temp_path) == 0)
+    return;
+  std::wstring path = std::wstring(temp_path) + L"leaves-stone-ui.log";
+  std::ofstream out(path.c_str(), std::ios::app | std::ios::binary);
+  if (!out)
+    return;
+  std::string schema;
+  if (!schema_id.empty()) {
+    const int size = WideCharToMultiByte(CP_UTF8, 0, schema_id.c_str(), -1,
+                                         nullptr, 0, nullptr, nullptr);
+    if (size > 1) {
+      schema.resize(static_cast<size_t>(size - 1));
+      WideCharToMultiByte(CP_UTF8, 0, schema_id.c_str(), -1, &schema[0], size,
+                          nullptr, nullptr);
+    }
+  }
+  out << "assets_ready=" << (assets_ready ? 1 : 0)
+      << " inline_preedit=" << (inline_preedit ? 1 : 0)
+      << " ascii_mode=" << (ascii_mode ? 1 : 0)
+      << " schema_id=" << (schema.empty() ? "<empty>" : schema)
+      << " candidates=" << candidate_count
+      << " has_preedit=" << (has_preedit ? 1 : 0) << "\n";
+}
+}  // namespace
+
 bool WeaselPanel::_UseLeavesStoneScene() const {
-  return m_theme_assets_ready && !m_style.inline_preedit &&
-         !m_status.ascii_mode && m_status.schema_id == L"leaves_stone" &&
-         (!m_ctx.preedit.str.empty() || !m_ctx.cinfo.candies.empty());
+  const bool use_scene =
+      m_theme_assets_ready && !m_style.inline_preedit &&
+      !m_status.ascii_mode && m_status.schema_id == L"leaves_stone" &&
+      (!m_ctx.preedit.str.empty() || !m_ctx.cinfo.candies.empty());
+  LogLeavesStoneGateOnce(m_theme_assets_ready, m_style.inline_preedit,
+                         m_status.ascii_mode, m_status.schema_id,
+                         m_ctx.cinfo.candies.size(),
+                         !m_ctx.preedit.str.empty());
+  return use_scene;
 }
 
 void WeaselPanel::_ApplyLeavesStoneSettings() {
@@ -255,6 +303,11 @@ void WeaselPanel::Refresh() {
     CDCHandle dc = GetDC();
     m_layout->DoLayout(dc, pDWR);
     ReleaseDC(dc);
+    // The scene needs its artwork, and OnCreate can run before the imaging
+    // component is usable in this process, so retry on refresh instead of
+    // staying on the classic layout for the life of the window.
+    if (!m_theme_assets_ready)
+      m_theme_assets_ready = m_theme_assets.Load(GetModuleHandleW(nullptr));
     const bool use_leaves_scene = _UseLeavesStoneScene();
     const bool animate_appearance = leaves_stone::ShouldAnimateAppearance(
         m_leaves_scene_visible, use_leaves_scene, m_leaves_theme);

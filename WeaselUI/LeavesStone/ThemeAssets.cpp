@@ -4,6 +4,8 @@
 #include <wincodec.h>
 
 #include <cstring>
+#include <fstream>
+#include <string>
 
 #include "resource.h"
 
@@ -42,6 +44,17 @@ bool ThemeAssets::Load(HMODULE module) {
 
   for (size_t index = 0; index < kResourceIds.size(); ++index) {
     if (!DecodeResource(module, kResourceIds[index], &bitmaps_[index])) {
+      // Record which layer failed so the runtime log explains a classic-layout
+      // fallback instead of leaving it a mystery.
+      wchar_t temp_path[MAX_PATH] = {0};
+      if (GetTempPathW(MAX_PATH, temp_path) != 0) {
+        std::wstring path = std::wstring(temp_path) + L"leaves-stone-ui.log";
+        std::ofstream out(path.c_str(), std::ios::app | std::ios::binary);
+        if (out) {
+          out << "asset_load_failed index=" << index
+              << " resource_id=" << kResourceIds[index] << "\n";
+        }
+      }
       Discard();
       return false;
     }
