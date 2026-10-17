@@ -1,3 +1,6 @@
+// WeaselTSF compiles with a precompiled header, so every source in this project
+// has to start with stdafx.h or the build fails with C1010.
+#include "stdafx.h"
 #include "LeavesStoneInputState.h"
 
 namespace leaves_stone::input_state {
