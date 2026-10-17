@@ -154,7 +154,7 @@ class TestRequestHandler : public weasel::RequestHandler {
     std::cerr << "ProcessKeyEvent: " << session_id
               << " keycode: " << keyEvent.keycode << " mask: " << keyEvent.mask
               << std::endl;
-    eat(std::wstring(L"Greeting=Hello, 小狼毫.\n"));
+    eat(std::wstring(L"Greeting=Hello, Leaves & Stone.\n"));
     return TRUE;
   }
 
