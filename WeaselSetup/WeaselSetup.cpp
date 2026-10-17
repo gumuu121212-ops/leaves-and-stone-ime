@@ -108,15 +108,18 @@ static int CustomInstall(bool installing) {
     ExpandEnvironmentStringsW(L"%APPDATA%\\Rime", _path, _countof(_path));
     user_dir = std::wstring(_path);
   }
-  ret = SetRegKeyValue(HKEY_CURRENT_USER, KEY, L"RimeUserDir", user_dir.c_str(),
-                       REG_SZ, false);
+  // The product-identity refactor replaced KEY with the product registry root
+  // everywhere in this file except these two calls, which still referenced the
+  // upstream macro and therefore did not compile.
+  ret = SetRegKeyValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryRoot,
+                       L"RimeUserDir", user_dir.c_str(), REG_SZ, false);
   if (FAILED(HRESULT_FROM_WIN32(ret))) {
     MSG_BY_IDS(IDS_STR_ERR_WRITE_USER_DIR, IDS_STR_INSTALL_FAILED,
                MB_ICONERROR | MB_OK);
     return 1;
   }
-  ret = SetRegKeyValue(HKEY_CURRENT_USER, KEY, L"Hant", (hant ? 1 : 0),
-                       REG_DWORD, false);
+  ret = SetRegKeyValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryRoot,
+                       L"Hant", (hant ? 1 : 0), REG_DWORD, false);
   if (FAILED(HRESULT_FROM_WIN32(ret))) {
     MSG_BY_IDS(IDS_STR_ERR_WRITE_HANT, IDS_STR_INSTALL_FAILED,
                MB_ICONERROR | MB_OK);
