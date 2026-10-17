@@ -66,4 +66,9 @@ $nsis = @"
 $headerPath = Join-Path $repoRoot 'include\LeavesStoneProduct.h'
 $nsisPath = Join-Path $repoRoot 'output\LeavesStoneProduct.nsh'
 [System.IO.File]::WriteAllText($headerPath, $header, [System.Text.UTF8Encoding]::new($false))
-[System.IO.File]::WriteAllText($nsisPath, $nsis, [System.Text.UTF8Encoding]::new($false))
+# Normalise the generated include to LF with a trailing newline and no BOM.
+# A here-string inherited CRLF from this script and dropped the final newline,
+# so every regeneration used to dirty the tree right after the contract test
+# ran. Deriving the bytes from one canonical string keeps runs idempotent.
+$nsisNormalized = ($nsis -replace "`r`n", "`n").TrimEnd("`n") + "`n"
+[System.IO.File]::WriteAllText($nsisPath, $nsisNormalized, [System.Text.UTF8Encoding]::new($false))
