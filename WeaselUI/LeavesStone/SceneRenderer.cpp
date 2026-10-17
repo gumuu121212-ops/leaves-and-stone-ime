@@ -211,7 +211,10 @@ bool SceneRenderer::Render(HDC target,
   {
     Gdiplus::Graphics graphics(target);
     graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-    graphics.SetTextRenderingHint(Gdiplus::TextRenderingHintClearTypeGridFit);
+    // The candidate window is a per-pixel-alpha surface. ClearType blends
+    // subpixel coverage against transparent black and leaves coloured fringes
+    // around every glyph, so render grayscale antialiased text instead.
+    graphics.SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
     graphics.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
 
     if (!scene.pinyin.text.empty()) {
@@ -237,7 +240,10 @@ bool SceneRenderer::Render(HDC target,
     for (size_t index = 0; index < scene.candidates.size(); ++index) {
       const auto& candidate = scene.candidates[index];
       const Gdiplus::RectF face = LocalRect(scene, candidate.bounds);
-      const float depth = (candidate.selected ? 6.0f : 4.0f) * scale;
+      // The layout already lifts a selected card by selected_elevation. Grow
+      // the paper thickness by that same amount so the lift reads as depth
+      // instead of a second, unrelated number.
+      const float depth = 4.0f * scale + candidate.elevation;
       const float radius = 10.0f * scale;
 
       for (int ring = 3; ring >= 1; --ring) {
@@ -255,8 +261,11 @@ bool SceneRenderer::Render(HDC target,
       Gdiplus::SolidBrush thickness_brush(thickness_colors[index % 3]);
       FillRoundedRect(&graphics, thickness, radius, &thickness_brush);
 
+      // The approved brief is explicit: the selected card is light blue and is
+      // lifted. Derive it from the theme's sky blue (#8CC9DF) instead of a
+      // green tint, which reads as a different product.
       const Gdiplus::Color face_color =
-          candidate.selected ? Color(255, 224, 239, 235, opacity)
+          candidate.selected ? Color(255, 214, 235, 242, opacity)
                              : Color(255, 249, 244, 230, opacity);
       Gdiplus::SolidBrush face_brush(face_color);
       Gdiplus::Pen paper_edge(Color(175, 198, 188, 163, opacity),
@@ -273,7 +282,7 @@ bool SceneRenderer::Render(HDC target,
                            face.Y + (face.Height - 18.0f * scale) / 2.0f,
                            18.0f * scale, 18.0f * scale);
       Gdiplus::SolidBrush label_brush(
-          candidate.selected ? Color(255, 64, 95, 70, opacity)
+          candidate.selected ? Color(255, 52, 96, 112, opacity)
                              : Color(236, 184, 101, 74, opacity));
       graphics.FillEllipse(&label_brush, label);
       const std::wstring label_text =
