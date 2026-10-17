@@ -21,12 +21,13 @@ $archivesDirectory = Join-Path $repoRoot 'output\archives'
 $artifactsDirectory = Join-Path $repoRoot $OutDirectory
 
 # A release folder that ships a private key has leaked it, so refuse to pack.
-# Vendored submodules are skipped: their upstream test fixtures are not ours
-# and must not block every package run.
+# Only our own source tree is scanned: vendored submodules, downloaded dependency
+# archives (deps/boost) and build intermediates carry upstream test fixtures that
+# are not ours and must not block every package run.
 $secretPatterns = @('*.pfx', '*.p12', '*.key', '*.pem', '*.snk')
 $leaked = foreach ($pattern in $secretPatterns) {
   Get-ChildItem -Path $repoRoot -Filter $pattern -Recurse -File -ErrorAction SilentlyContinue |
-    Where-Object { $_.FullName -notmatch '\\\.git\\|\\librime\\|\\plum\\' }
+    Where-Object { $_.FullName -notmatch '\\\.git\\|\\librime\\|\\plum\\|\\deps\\|\\msbuild\\' }
 }
 $leaked = @($leaked)
 if ($leaked.Count -gt 0) {
