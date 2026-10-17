@@ -36,7 +36,11 @@ compile_commands.json
 !/output/data/weasel.yaml
 /output/archives
 /include/glog
-/include/rime*.h
+# Only librime's generated headers (rime_api.h, rime_levers_api.h). The old
+# /include/rime*.h pattern also matched RimeWithWeasel.h on Windows, where git
+# matches paths case-insensitively, so the project's own header was silently
+# never committed and the solution could not build.
+/include/rime_*.h
 /ipch
 env.bat
 weasel.props
