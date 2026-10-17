@@ -27,7 +27,8 @@ ThemeConfig ValidateThemeConfig(ThemeConfig config) {
     config.gap_dip = 12.0f;
   if (config.selected_elevation_dip < 0.0f)
     config.selected_elevation_dip = 4.0f;
-  config.orientation = Orientation::Horizontal;
+  // Orientation used to be forced back to Horizontal here, which silently made
+  // the vertical layout unreachable and the layout setting a no-op.
   return config;
 }
 
