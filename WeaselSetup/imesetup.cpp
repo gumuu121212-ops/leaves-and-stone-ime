@@ -126,7 +126,7 @@ int install_ime_file(std::wstring& srcPath,
   std::wstring destPath = std::wstring(path) + L"\\weasel" + ext;
 
   int retval = 0;
-  // ���� .dll/.ime ��ϵͳĿ¼
+  // 复制 .dll/.ime 到系统目录
   if (!copy_file(srcPath, destPath)) {
     MSG_NOT_SILENT_ID_CAP(silent, destPath.c_str(), IDS_STR_INSTALL_FAILED,
                           MB_ICONERROR | MB_OK);
@@ -150,7 +150,7 @@ int install_ime_file(std::wstring& srcPath,
     if (is_arm64_machine()) {
       WCHAR sysarm32[MAX_PATH];
       if (get_wow_arm32_system_dir(sysarm32, _countof(sysarm32)) > 0) {
-        // Install the ARM32 version if ARM32 WOW is supported ��lower than
+        // Install the ARM32 version if ARM32 WOW is supported （lower than
         // Windows 11 24H2).
         std::wstring srcPathARM32 = srcPath;
         ireplace_last(srcPathARM32, ext, L"ARM" + ext);
@@ -258,7 +258,7 @@ int uninstall_ime_file(const std::wstring& ext,
   return retval;
 }
 
-// ע��IME���뷨
+// 注册IME输入法
 int register_ime(const std::wstring& ime_path,
                  bool register_ime,
                  bool is_wow64,
@@ -371,7 +371,7 @@ int register_ime(const std::wstring& ime_path,
     if (ret != ERROR_SUCCESS)
       break;
 
-    // ���ļ��̲���?
+    // 中文键盘布局?
     if (wcscmp(subKey + 4, L"0804") == 0 || wcscmp(subKey + 4, L"0404") == 0) {
       HKEY hSubKey;
       ret = RegOpenKey(hKey, subKey, &hSubKey);
@@ -387,7 +387,7 @@ int register_ime(const std::wstring& ime_path,
       if (ret != ERROR_SUCCESS)
         continue;
 
-      // С�Ǻ�?
+      // 小狼毫?
       if (_wcsicmp(imeFile, L"weasel.ime") == 0) {
         DWORD value;
         swscanf_s(subKey, L"%x", &value);
@@ -395,7 +395,7 @@ int register_ime(const std::wstring& ime_path,
 
         RegDeleteKey(hKey, subKey);
 
-        // �Ƴ�preload
+        // 移除preload
         HKEY hPreloadKey;
         ret = RegOpenKey(HKEY_CURRENT_USER, PRELOAD_KEY, &hPreloadKey);
         if (ret != ERROR_SUCCESS)
@@ -411,7 +411,7 @@ int register_ime(const std::wstring& ime_path,
                                 (LPBYTE)value, &len);
           if (ret != ERROR_SUCCESS) {
             if (i > preloads.size()) {
-              // ɾ�����һ��ע���ֵ
+              // 删除最大一号注册表值
               number = std::to_wstring(i - 1);
               RegDeleteValue(hPreloadKey, number.c_str());
             }
@@ -421,7 +421,7 @@ int register_ime(const std::wstring& ime_path,
             preloads.push_back(value);
           }
         }
-        // ��дpreloads
+        // 重写preloads
         for (size_t i = 0; i < preloads.size(); ++i) {
           number = std::to_wstring(i + 1);
           RegSetValueEx(hPreloadKey, number.c_str(), 0, REG_SZ,
@@ -461,7 +461,7 @@ void enable_profile(BOOL fEnable, bool hant) {
   }
 }
 
-// ע��TSF���뷨
+// 注册TSF输入法
 int register_text_service(const std::wstring& tsf_path,
                           bool register_ime,
                           bool is_wow64,
@@ -516,8 +516,8 @@ int register_text_service(const std::wstring& tsf_path,
     CString str;
     str.LoadStringW(IDS_STR_ERRREGTSF);
     StringCchPrintfW(msg, _countof(msg), str, params.c_str());
-    // StringCchPrintfW(msg, _countof(msg), L"�]��ݔ�뷨�e�` regsvr32.exe %s",
-    // params.c_str()); if (!silent) MessageBoxW(NULL, msg, L"��װ/ж�dʧ��",
+    // StringCchPrintfW(msg, _countof(msg), L"註冊輸入法錯誤 regsvr32.exe %s",
+    // params.c_str()); if (!silent) MessageBoxW(NULL, msg, L"安装/卸載失败",
     // MB_ICONERROR | MB_OK);
     MSG_NOT_SILENT_ID_CAP(silent, msg, IDS_STR_INORUN_FAILED,
                           MB_ICONERROR | MB_OK);
@@ -540,7 +540,7 @@ int install(bool hant, bool silent, bool old_ime_support) {
   retval += install_ime_file(ime_src_path, L".dll", hant, silent,
                              &register_text_service);
 
-  // дע���
+  // 写注册表
   WCHAR drive[_MAX_DRIVE];
   WCHAR dir[_MAX_DIR];
   _wsplitpath_s(ime_src_path.c_str(), drive, _countof(drive), dir,
@@ -607,7 +607,7 @@ int install(bool hant, bool silent, bool old_ime_support) {
 }
 
 int uninstall(bool silent) {
-  // ע�����뷨
+  // 注销输入法
   int retval = 0;
 
   HKEY hKey;
@@ -639,7 +639,7 @@ int uninstall(bool silent) {
   uninstall_ime_file(L".ime", silent, &register_ime);
   retval += uninstall_ime_file(L".dll", silent, &register_text_service);
 
-  // ���ע����Ϣ
+  // 清除注册信息
   RegDeleteKey(HKEY_LOCAL_MACHINE, WEASEL_REG_KEY);
   RegDeleteKey(HKEY_LOCAL_MACHINE, RIME_REG_KEY);
 

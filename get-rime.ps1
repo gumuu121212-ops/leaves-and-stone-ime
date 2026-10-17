@@ -164,7 +164,7 @@ try {
 function Is64Bit {
   function IsWin11OrGreater {
     $osVersion = (Get-CimInstance Win32_OperatingSystem).Version
-    # Windows 11 �İ汾�Ŵ� 10.0.22000.0 ��ʼ
+    # Windows 11 的版本号从 10.0.22000.0 开始
     if ([Version]$osVersion -ge [Version]"10.0.22000.0") {
         return $true
     } else {
@@ -176,7 +176,7 @@ function Is64Bit {
   switch ($processorArchitecture) {
       9 { $arch = "x64" }
       12 { $arch = "ARM64" }
-      Default { $arch = "����" }
+      Default { $arch = "其他" }
   }
   if (IsWin11OrGreater) {
     if ($arch -eq "ARM64" -and $is64BitOs) { #ARM64

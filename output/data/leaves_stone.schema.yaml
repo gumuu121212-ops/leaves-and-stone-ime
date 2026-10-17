@@ -4,7 +4,7 @@
 
 schema:
   schema_id: leaves_stone
-  name: "Leaves & Stone ƴ��"
+  name: "Leaves & Stone 拼音"
   version: "1.0"
   author:
     - "Leaves & Stone contributors"
@@ -14,16 +14,16 @@ schema:
 switches:
   - name: ascii_mode
     reset: 0
-    states: [ ����, English ]
+    states: [ 中文, English ]
   - name: simplification
     reset: 1
-    states: [ �h��, ���� ]
+    states: [ 繁体, 简体 ]
   - name: full_shape
     reset: 0
-    states: [ ���, ȫ�� ]
+    states: [ 半角, 全角 ]
   - name: ascii_punct
     reset: 0
-    states: [ ���ı��, English Punctuation ]
+    states: [ 中文标点, English Punctuation ]
 
 engine:
   processors:
@@ -69,8 +69,8 @@ translator:
   enable_user_dict: true
   spelling_hints: 0
   preedit_format:
-    - xform/([nl])v/$1��/
-    - xform/([nl])ue/$1��e/
+    - xform/([nl])v/$1ü/
+    - xform/([nl])ue/$1üe/
     - xform/([jqxy])v/$1u/
 
 simplifier:

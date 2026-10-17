@@ -195,7 +195,7 @@ inline std::wstring get_weasel_ime_name() {
       langId == MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_HONGKONG) ||
       langId == MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_SINGAPORE) ||
       langId == MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_MACAU)) {
-    return L"С�Ǻ�";
+    return L"小狼毫";
   } else {
     return L"Weasel";
   }
@@ -276,13 +276,13 @@ inline std::string current_time() {
   using namespace std::chrono;
   auto now = system_clock::now();
   auto time_point = system_clock::to_time_t(now);
-  auto ns = duration_cast<microseconds>(now.time_since_epoch());  // ת��Ϊ΢��
+  auto ns = duration_cast<microseconds>(now.time_since_epoch());  // 转换为微秒
   std::tm tm = *std::localtime(&time_point);
   std::ostringstream oss;
   oss << std::put_time(&tm,
-                       "%Y%m%d %H:%M:%S");  // ����ʱ���ʽ��20241113 08:54:34
+                       "%Y%m%d %H:%M:%S");  // 日期时间格式：20241113 08:54:34
   oss << "." << std::setw(6) << std::setfill('0')
-      << ns.count() % 1000000;  // ΢�벿��
+      << ns.count() % 1000000;  // 微秒部分
   return oss.str();
 }
 #define DEBUG                                                       \

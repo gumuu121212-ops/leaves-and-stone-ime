@@ -143,9 +143,9 @@ static LANGID GetActiveProfileLangId() {
 STDAPI CLangBarItemButton::GetTooltipString(BSTR* pbstrToolTip) {
   LANGID langid = get_language_id();
   if (langid == TEXTSERVICE_LANGID_HANS) {
-    *pbstrToolTip = SysAllocString(L"����л�ģʽ���Ҽ��򿪲˵�");
+    *pbstrToolTip = SysAllocString(L"左键切换模式，右键打开菜单");
   } else if (langid == TEXTSERVICE_LANGID_HANT) {
-    *pbstrToolTip = SysAllocString(L"���I�ГQģʽ�����I���_�ˆ�");
+    *pbstrToolTip = SysAllocString(L"左鍵切換模式，右鍵打開菜單");
   } else {
     *pbstrToolTip = SysAllocString(
         L"Left-click to switch modes\n\nRight-click for more options");
