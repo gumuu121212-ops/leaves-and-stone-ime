@@ -316,7 +316,7 @@ void WeaselPanel::Refresh() {
     // component is usable in this process, so retry on refresh instead of
     // staying on the classic layout for the life of the window.
     if (!m_theme_assets_ready)
-      m_theme_assets_ready = m_theme_assets.Load(GetModuleHandleW(nullptr));
+      m_theme_assets_ready = m_theme_assets.Load(nullptr);
     const bool use_leaves_scene = _UseLeavesStoneScene();
     const bool animate_appearance = leaves_stone::ShouldAnimateAppearance(
         m_leaves_scene_visible, use_leaves_scene, m_leaves_theme);
@@ -1351,7 +1351,7 @@ LRESULT WeaselPanel::OnCreate(UINT uMsg,
   m_hoverIndex = -1;
   m_leaves_settings = m_leaves_settings_store.Load();
   _ApplyLeavesStoneSettings();
-  m_theme_assets_ready = m_theme_assets.Load(GetModuleHandleW(nullptr));
+  m_theme_assets_ready = m_theme_assets.Load(nullptr);
   Refresh();
   return TRUE;
 }

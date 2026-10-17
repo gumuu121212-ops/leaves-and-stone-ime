@@ -15,7 +15,22 @@ constexpr std::array<int, static_cast<size_t>(ThemeAssetId::Count)>
     kResourceIds = {IDR_LS_LEAF_LEFT, IDR_LS_LEAF_RIGHT,
                     IDR_LS_BUILDING_TERRACOTTA, IDR_LS_BUILDING_IVORY,
                     IDR_LS_SKY_BLUE, IDR_LS_ARCHITECTURAL_LINES};
+
+// The candidate window is drawn both by WeaselServer.exe and, in this build, by
+// the text service inside the client process. GetModuleHandleW(nullptr) returns
+// the host executable, which holds no artwork, so resolve the module that
+// actually contains this code instead.
+HMODULE ResolveAssetModule() {
+  HMODULE module = nullptr;
+  if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                         reinterpret_cast<LPCWSTR>(&ResolveAssetModule),
+                         &module)) {
+    return module;
+  }
+  return GetModuleHandleW(nullptr);
 }
+}  // namespace
 
 ThemeAssets::~ThemeAssets() {
   Discard();
@@ -24,7 +39,7 @@ ThemeAssets::~ThemeAssets() {
 bool ThemeAssets::Load(HMODULE module) {
   Discard();
   if (!module)
-    module = GetModuleHandleW(nullptr);
+    module = ResolveAssetModule();
 
   HRESULT result = CoCreateInstance(CLSID_WICImagingFactory, nullptr,
                                     CLSCTX_INPROC_SERVER,

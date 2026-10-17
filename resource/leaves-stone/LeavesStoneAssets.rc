@@ -1,0 +1,11 @@
+// Theme artwork embedded into whichever module draws the candidate window.
+// Paths are relative to this file, so every project can compile the same
+// resource script regardless of where its .vcxproj lives.
+#include "../../include/resource.h"
+
+IDR_LS_LEAF_LEFT            RCDATA "leaf-left.png"
+IDR_LS_LEAF_RIGHT           RCDATA "leaf-right.png"
+IDR_LS_BUILDING_TERRACOTTA  RCDATA "building-terracotta.png"
+IDR_LS_BUILDING_IVORY       RCDATA "building-ivory.png"
+IDR_LS_SKY_BLUE             RCDATA "sky-blue.png"
+IDR_LS_ARCHITECTURAL_LINES  RCDATA "architectural-lines.png"
