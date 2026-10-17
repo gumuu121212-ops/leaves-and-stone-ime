@@ -14,10 +14,14 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 
 . (Join-Path $PSScriptRoot 'verify-toolchain.ps1') -NoExit
 $toolchain = Get-LeavesStoneToolchainStatus
-if (-not $toolchain.WindowsSdk.Found) {
-  throw 'SignTool was not found. Install the Windows 10/11 SDK before signing.'
-}
+# SignTool ships with the Windows SDK, but Authenticode signing over the same
+# APIs is built into PowerShell, so a machine without the SDK can still sign
+# with a certificate from its own store.
 $signTool = $toolchain.WindowsSdk.Path
+$useBuiltInSigning = -not $signTool
+if ($useBuiltInSigning -and $PfxPath) {
+  throw 'The built-in signing path only accepts -Thumbprint. Install the Windows SDK to sign from a PFX file.'
+}
 
 if (-not $Thumbprint -and -not $PfxPath) {
   throw 'Provide either -Thumbprint (certificate in the current user store) or -PfxPath (certificate file kept outside this repository).'
@@ -82,6 +86,24 @@ foreach ($target in $targets) {
   $relative = $target.Replace($repoRoot + '\', '')
   if ($DryRun) {
     Write-Output ('sign ' + $relative)
+    continue
+  }
+
+  if ($useBuiltInSigning) {
+    $signature = Set-AuthenticodeSignature -FilePath $target `
+      -Certificate $certificate -TimestampServer $TimestampUrl -HashAlgorithm SHA256
+    if ($signature.Status -ne 'Valid' -and $signature.Status -ne 'UnknownError') {
+      $failures += "$relative (status $($signature.Status): $($signature.StatusMessage))"
+      continue
+    }
+    if (-not $SkipVerify) {
+      $check = Get-AuthenticodeSignature -FilePath $target
+      if ($check.Status -ne 'Valid' -and $check.Status -ne 'UnknownError') {
+        $failures += "$relative (verify status $($check.Status))"
+        continue
+      }
+    }
+    Write-Output ('signed ' + $relative + ' (' + $signature.Status + ')')
     continue
   }
 

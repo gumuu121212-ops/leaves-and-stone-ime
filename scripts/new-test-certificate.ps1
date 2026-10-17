@@ -33,6 +33,10 @@ if ((Test-Path -LiteralPath $pfxFile) -and -not $Force) {
 }
 
 $notAfter = (Get-Date).AddYears($ValidYears)
+# -Type CodeSigningCert already sets the code-signing EKU. The Microsoft
+# SPC-indirect-data extension that some guides add is rejected by
+# New-SelfSignedCertificate on current Windows builds, so only the standard EKU
+# is spelled out here.
 $certificate = New-SelfSignedCertificate `
   -Type CodeSigningCert `
   -Subject $Subject `
@@ -40,10 +44,7 @@ $certificate = New-SelfSignedCertificate `
   -KeyUsage DigitalSignature `
   -KeyExportPolicy Exportable `
   -NotAfter $notAfter `
-  -TextExtension @(
-    '2.5.29.37={text}1.3.6.1.5.5.7.3.3',
-    '1.3.6.1.4.1.311.2.1.22={text}'
-  )
+  -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3')
 
 New-Item -ItemType Directory -Force -Path $pfxFull, $cerFull | Out-Null
 
