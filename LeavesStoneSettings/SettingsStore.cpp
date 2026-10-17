@@ -199,13 +199,24 @@ bool SettingsStore::Save(const UserSettings& raw_settings) {
 bool SettingsStore::ReloadIfChanged(UserSettings* settings) {
   if (!settings)
     return false;
-  std::error_code error;
-  const auto current = std::filesystem::last_write_time(path_, error);
-  if (error || (has_write_time_ && current == last_write_time_))
+  // Compare content instead of relying on last_write_time alone: Windows
+  // updates file times on a ~15.6 ms clock, so a save landing in the same tick
+  // as the previous one leaves the timestamp unchanged and the edit would be
+  // ignored. The file is a few hundred bytes, so reading it per candidate frame
+  // is cheaper than losing a user's change.
+  UserSettings loaded;
+  bool corrupt = false;
+  if (!Read(&loaded, &corrupt)) {
+    // Missing or unreadable: keep the settings already in use rather than
+    // snapping back to defaults on a transient read failure.
+    if (corrupt)
+      BackupCorruptFile();
     return false;
-  const UserSettings loaded = Load();
-  const bool changed = loaded != *settings;
-  *settings = loaded;
+  }
+  const UserSettings validated = Validate(loaded);
+  const bool changed = validated != *settings;
+  *settings = validated;
+  RememberWriteTime();
   return changed;
 }
 
