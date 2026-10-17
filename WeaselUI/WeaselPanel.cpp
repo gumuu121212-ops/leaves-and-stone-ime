@@ -1328,8 +1328,9 @@ LRESULT WeaselPanel::OnAnimationTimer(UINT uMsg,
     return 0;
   }
   const ULONGLONG elapsed = GetTickCount64() - m_scene_animation_start;
+  // Parenthesised so the windows.h min macro cannot rewrite the call.
   const float progress =
-      std::min(1.0f, static_cast<float>(elapsed) / 140.0f);
+      (std::min)(1.0f, static_cast<float>(elapsed) / 140.0f);
   const float remaining = 1.0f - progress;
   m_scene_opacity = 1.0f - remaining * remaining * remaining;
   if (progress >= 1.0f) {
