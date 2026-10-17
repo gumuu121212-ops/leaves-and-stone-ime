@@ -34,3 +34,34 @@ powershell -ExecutionPolicy Bypass -File scripts/build-local.ps1 -Configuration 
 
 Weasel's upstream build wrapper emits runtime binaries under `output/` and installers under `output/archives/`. GitHub Actions uses the same wrapper, so local and CI builds follow the same path.
 
+## Package, sign and smoke test
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/package.ps1 -SkipBuild
+powershell -ExecutionPolicy Bypass -File scripts/new-test-certificate.ps1
+powershell -ExecutionPolicy Bypass -File scripts/package.ps1 -Sign -Thumbprint <thumbprint>
+powershell -ExecutionPolicy Bypass -File scripts/smoke-install.ps1
+```
+
+`package.ps1` refuses to pack when a `.pfx`, `.p12`, `.key` or `.pem` file exists anywhere in the
+repository, and writes `SHA256SUMS.txt` plus `manifest.json` next to the installer copy in
+`output/artifacts/`. `smoke-install.ps1` installs, repairs and uninstalls, then checks that the
+user dictionary under `%APPDATA%\LeavesAndStone\Rime` survives; it must run from an elevated
+shell because the installer writes to HKLM and Program Files.
+
+Signing never uses a key stored in this repository. The generated test certificate keeps its
+private key outside the tree; see [testing-certificate.md](testing-certificate.md) for trust and
+removal steps.
+
+## Contract tests are shallow
+
+`test/Test*Contract.ps1` only assert that files exist and that a few marker strings survive in the
+sources. They catch accidental deletions, not regressions: a gutted renderer still passes as long
+as the strings remain. Behaviour is covered by the C++ tests in `test/TestLeavesStoneUI/`, which
+require a real build.
+
+If the machine policy is AllSigned, run these scripts through
+`powershell -ExecutionPolicy Bypass -File <script>`. This host runs Windows PowerShell 5.1 and has
+no `pwsh`, so the `pwsh` command line in other documents will not work here.
+
+

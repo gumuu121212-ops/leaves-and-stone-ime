@@ -6,12 +6,14 @@ on:
     branches: ['main']
   pull_request:
 
+env:
+  BOOST_ROOT: ${{ github.workspace }}\deps\boost_1_84_0
+  boost_version: 1.84.0
+
 jobs:
   baseline:
+    name: Debug x64 baseline and tests
     runs-on: windows-2022
-    env:
-      BOOST_ROOT: ${{ github.workspace }}\deps\boost_1_84_0
-      boost_version: 1.84.0
 
     steps:
       - name: Checkout source and pinned submodules
@@ -67,6 +69,7 @@ jobs:
           .\test\TestSceneContract.ps1
           .\test\TestRendererContract.ps1
           .\test\TestSettingsContract.ps1
+          .\test\TestProductIdentity.ps1
 
       - name: Build data
         shell: pwsh
@@ -79,10 +82,26 @@ jobs:
       - name: Run available upstream test executables
         shell: pwsh
         run: |
-          $tests = Get-ChildItem output -Recurse -Filter '*Test*.exe'
+          # A passing step with no test binary has proved nothing, so treat an
+          # empty discovery result as a failure instead of an empty loop.
+          $ErrorActionPreference = 'Stop'
+          $tests = @(Get-ChildItem output -Recurse -Filter '*Test*.exe' -File)
+          if ($tests.Count -eq 0) {
+            throw 'No test executable was produced under output\. Refusing to report a pass.'
+          }
+          if (-not ($tests | Where-Object { $_.Name -eq 'TestLeavesStoneUI.exe' })) {
+            throw 'TestLeavesStoneUI.exe was not produced; the Leaves & Stone test project did not build.'
+          }
+          Write-Host "Discovered $($tests.Count) test executable(s):"
+          $tests | ForEach-Object { Write-Host "  $($_.FullName)" }
+          $failed = @()
           foreach ($test in $tests) {
+            Write-Host "==> $($test.Name)"
             & $test.FullName
-            if ($LASTEXITCODE -ne 0) { throw "$($test.Name) failed with $LASTEXITCODE" }
+            if ($LASTEXITCODE -ne 0) { $failed += "$($test.Name) (exit $LASTEXITCODE)" }
+          }
+          if ($failed.Count -gt 0) {
+            throw "Test failures: $($failed -join '; ')"
           }
 
       - name: Upload baseline binaries
@@ -95,3 +114,82 @@ jobs:
             output/*.dll
             output/Win32/*.exe
             output/Win32/*.dll
+
+  release:
+    name: Release Win32/x64 installer
+    runs-on: windows-2022
+    needs: baseline
+
+    steps:
+      - name: Checkout source and pinned submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Configure upstream environment
+        shell: pwsh
+        run: Copy-Item env.vs2022.bat env.bat -Force
+
+      - name: Cache Boost
+        id: cache-boost
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.BOOST_ROOT }}
+          key: ${{ runner.os }}-boost-${{ env.boost_version }}
+
+      - name: Install and build Boost
+        if: steps.cache-boost.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $boostParent = Split-Path $env:BOOST_ROOT -Parent
+          $archive = Join-Path $boostParent 'boost_1_84_0.7z'
+          New-Item -ItemType Directory -Path $boostParent -Force | Out-Null
+          aria2c 'https://archives.boost.io/release/1.84.0/source/boost_1_84_0.7z' -d $boostParent
+          7z x $archive "-o$boostParent" -y
+          if (-not (Test-Path -LiteralPath (Join-Path $env:BOOST_ROOT 'boost'))) {
+            throw "Boost extraction did not create $env:BOOST_ROOT\boost"
+          }
+          .\build.bat boost
+          if ($LASTEXITCODE -ne 0) { throw "Boost build failed with $LASTEXITCODE" }
+
+      - name: Fetch pinned Rime build inputs
+        shell: pwsh
+        run: .\get-rime.ps1 -use dev
+
+      - name: Verify toolchain
+        shell: pwsh
+        run: .\scripts\verify-toolchain.ps1
+
+      - name: Build data
+        shell: pwsh
+        run: .\build.bat data
+
+      - name: Build Release Win32 and x64 with installer
+        shell: pwsh
+        run: .\scripts\build-local.ps1 -Configuration Release -Platform All
+
+      - name: Package installer with checksums
+        shell: pwsh
+        run: .\scripts\package.ps1 -SkipBuild
+
+      - name: Upload installer and checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: leaves-stone-release-${{ github.sha }}
+          if-no-files-found: error
+          path: |
+            output/archives/*
+            output/artifacts/*
+
+      - name: Report unsigned build status
+        shell: pwsh
+        run: |
+          # This job publishes an unsigned test build on purpose. Signed
+          # release candidates must come from scripts/package.ps1 -Sign with a
+          # certificate that is not stored in this repository.
+          Write-Host 'Release binaries are unsigned test builds; see docs/testing-certificate.md.'
