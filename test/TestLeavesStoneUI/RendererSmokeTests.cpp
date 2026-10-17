@@ -82,6 +82,12 @@ void TestResourceLifecycle() {
           "succeeding");
   }
   leaves_stone::SceneRenderer renderer;
+  // GDI+ creates its hook window and caches font data the first time it draws
+  // text, so the leak baseline has to be taken after one warm frame. Measuring
+  // from before the first frame reported that one-time work as a leak.
+  Check(renderer.Render(target.dc, scene, assets, 1.0f),
+        "renderer must draw one warm-up frame before the baseline is measured");
+  const size_t generation_before = renderer.ResourceGeneration();
   const DWORD gdi_before = GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS);
   const DWORD user_before = GetGuiResources(GetCurrentProcess(), GR_USEROBJECTS);
   for (int cycle = 0; cycle < 1000; ++cycle) {
@@ -89,7 +95,7 @@ void TestResourceLifecycle() {
     Check(renderer.Render(target.dc, scene, assets, 1.0f),
           "renderer must recreate resources after a forced discard");
   }
-  Check(renderer.ResourceGeneration() == 1000,
+  Check(renderer.ResourceGeneration() == generation_before + 1000,
         "each forced discard must result in one resource recreation");
   renderer.DiscardDeviceResources();
   Check(!renderer.HasDeviceResources(),
@@ -97,9 +103,13 @@ void TestResourceLifecycle() {
   const DWORD gdi_after = GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS);
   const DWORD user_after = GetGuiResources(GetCurrentProcess(), GR_USEROBJECTS);
   Check(gdi_after <= gdi_before + 2,
-        "repeated render/discard must keep the GDI handle count stable");
+        "repeated render/discard must keep the GDI handle count stable (" +
+            std::to_string(gdi_before) + " -> " + std::to_string(gdi_after) +
+            ")");
   Check(user_after <= user_before + 1,
-        "repeated render/discard must keep the USER handle count stable");
+        "repeated render/discard must keep the USER handle count stable (" +
+            std::to_string(user_before) + " -> " + std::to_string(user_after) +
+            ")");
 
   assets.Discard();
   Check(assets.LoadedBitmapCount() == 0,
