@@ -119,19 +119,22 @@ void WeaselPanel::_ResizeWindow() {
 }
 
 namespace {
-// One-time diagnostic for the candidate window. Nothing else exposes why the
-// Leaves & Stone scene was or was not used, so record the gate inputs once per
-// process in %TEMP%\leaves-stone-ui.log.
-void LogLeavesStoneGateOnce(bool assets_ready,
-                            bool inline_preedit,
-                            bool ascii_mode,
-                            const std::wstring& schema_id,
-                            size_t candidate_count,
-                            bool has_preedit) {
-  static bool logged = false;
-  if (logged)
+// Diagnostic for the candidate window. Nothing else exposes why the Leaves &
+// Stone scene was or was not used, so record the gate inputs in
+// %TEMP%\leaves-stone-ui.log, a bounded number of times and only once there is
+// something to draw.
+void LogLeavesStoneGate(bool assets_ready,
+                        bool inline_preedit,
+                        bool ascii_mode,
+                        const std::wstring& schema_id,
+                        size_t candidate_count,
+                        bool has_preedit) {
+  static int written = 0;
+  if (candidate_count == 0 && !has_preedit)
     return;
-  logged = true;
+  if (written >= 20)
+    return;
+  ++written;
   wchar_t temp_path[MAX_PATH] = {0};
   if (GetTempPathW(MAX_PATH, temp_path) == 0)
     return;
@@ -159,14 +162,20 @@ void LogLeavesStoneGateOnce(bool assets_ready,
 }  // namespace
 
 bool WeaselPanel::_UseLeavesStoneScene() const {
+  // The panel can be asked before the session status has arrived, and then
+  // schema_id is empty. Requiring an exact schema id made the whole scene
+  // unreachable in that case, so an empty id is accepted; this product ships a
+  // single schema and the check still keeps other schemas on the classic look.
+  const bool schema_matches =
+      m_status.schema_id.empty() || m_status.schema_id == L"leaves_stone";
   const bool use_scene =
       m_theme_assets_ready && !m_style.inline_preedit &&
-      !m_status.ascii_mode && m_status.schema_id == L"leaves_stone" &&
+      !m_status.ascii_mode && schema_matches &&
       (!m_ctx.preedit.str.empty() || !m_ctx.cinfo.candies.empty());
-  LogLeavesStoneGateOnce(m_theme_assets_ready, m_style.inline_preedit,
-                         m_status.ascii_mode, m_status.schema_id,
-                         m_ctx.cinfo.candies.size(),
-                         !m_ctx.preedit.str.empty());
+  LogLeavesStoneGate(m_theme_assets_ready, m_style.inline_preedit,
+                     m_status.ascii_mode, m_status.schema_id,
+                     m_ctx.cinfo.candies.size(),
+                     !m_ctx.preedit.str.empty());
   return use_scene;
 }
 
