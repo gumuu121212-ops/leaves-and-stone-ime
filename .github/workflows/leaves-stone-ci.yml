@@ -54,7 +54,19 @@ jobs:
 
       - name: Fetch pinned Rime build inputs
         shell: pwsh
-        run: .\get-rime.ps1 -use dev
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # get-rime.ps1 resolves the librime release through the GitHub API. On
+          # a shared runner the unauthenticated quota is easy to exhaust, and the
+          # script only prints the 403 and carries on, so the build later fails
+          # with a confusing "cannot open rime_api.h". Authenticate, and stop
+          # here if the headers did not arrive.
+          $global:authorization = $env:GITHUB_TOKEN
+          .\get-rime.ps1 -use dev
+          if (-not (Test-Path include/rime_api.h)) {
+            throw 'get-rime.ps1 did not produce include/rime_api.h; the build cannot proceed.'
+          }
 
       - name: Verify toolchain
         shell: pwsh
@@ -159,7 +171,14 @@ jobs:
 
       - name: Fetch pinned Rime build inputs
         shell: pwsh
-        run: .\get-rime.ps1 -use dev
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $global:authorization = $env:GITHUB_TOKEN
+          .\get-rime.ps1 -use dev
+          if (-not (Test-Path include/rime_api.h)) {
+            throw 'get-rime.ps1 did not produce include/rime_api.h; the build cannot proceed.'
+          }
 
       - name: Verify toolchain
         shell: pwsh
