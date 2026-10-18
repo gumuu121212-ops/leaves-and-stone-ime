@@ -1,4 +1,4 @@
-#include "SceneLayout.h"
+﻿#include "SceneLayout.h"
 
 #include <algorithm>
 #include <numeric>
@@ -101,7 +101,10 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   const float window_width = window_right - window_left;
   const float window_height = overhang + bar_height;
 
-  float left = Clamp(input.anchor.left - window_width * 0.605f,
+  // Start the window just to the right of the caret instead of centring it on
+  // the caret: centred, it covered the whole input box, including the text
+  // being typed. Clamping keeps it on screen near the right edge.
+  float left = Clamp(input.anchor.left + 24.0f * scale,
                      input.work_area.left,
                      input.work_area.right - window_width);
   // Start the whole window below the caret. The mascot occupies the top of the
