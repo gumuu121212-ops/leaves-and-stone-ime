@@ -101,15 +101,18 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   const float window_width = window_right - window_left;
   const float window_height = overhang + bar_height;
 
-  // Align the bar's left edge with the caret and drop it just under the line,
-  // which is where the eye expects the candidates: the first candidate sits
-  // immediately beneath the text being typed.
+  // Anchor the visible bar, not the top of the mascot's window, to the caret.
+  // The mascot overhang extends upward; adding it below the caret leaves a
+  // large empty gap between inline preedit and the actual candidates.
+  const float caret_gap = 4.0f * scale;
   float left = input.anchor.left + window_left;
-  float top = input.anchor.bottom + 4.0f * scale;
+  float top = input.anchor.bottom + caret_gap - overhang;
   if (left + window_width > input.work_area.right)
     left = input.work_area.right - window_width;
-  if (top + window_height > input.work_area.bottom)
-    top = input.anchor.top - 4.0f * scale - window_height;
+  if (top + window_height > input.work_area.bottom) {
+    top = input.anchor.top - caret_gap - window_height;
+    scene.placed_above = true;
+  }
   left = Clamp(left, input.work_area.left, input.work_area.right - window_width);
   top = Clamp(top, input.work_area.top,
               input.work_area.bottom - window_height);

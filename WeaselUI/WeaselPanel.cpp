@@ -261,7 +261,10 @@ void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
           out << "caret " << m_inputPos.left << "," << m_inputPos.top << ","
               << m_inputPos.right << "," << m_inputPos.bottom << "  window "
               << static_cast<int>(m_leaves_scene.window_bounds.left) << ","
-              << static_cast<int>(m_leaves_scene.window_bounds.top) << "  len "
+              << static_cast<int>(m_leaves_scene.window_bounds.top) << "  bar "
+              << static_cast<int>(m_leaves_scene.bar.left) << ","
+              << static_cast<int>(m_leaves_scene.bar.top) << " above "
+              << m_leaves_scene.placed_above << "  len "
               << m_ctx.preedit.str.size() << " drawn_len "
               << input.preedit.size() << " inline " << m_style.inline_preedit
               << "\n";

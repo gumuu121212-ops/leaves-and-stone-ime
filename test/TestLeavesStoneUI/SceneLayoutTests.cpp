@@ -77,15 +77,18 @@ void TestCountsAndDpi() {
 }
 
 void TestPlacementAndElevation() {
-  // The window now sits beside the caret rather than above or below it, so a
-  // caret at the bottom edge must still get a window fully inside the work area
-  // and clear of the caret row.
+  // The candidate bar sits below the caret; near the bottom of the monitor the
+  // whole scene must flip above the input line and remain inside the work area.
   auto lower_edge = MakeInput(5, 1.5f);
   lower_edge.anchor = {1600.0f, 1030.0f, 1602.0f, 1050.0f};
   const auto beside = leaves_stone::BuildCandidateScene(lower_edge);
   Check(beside.window_bounds.top >= lower_edge.work_area.top &&
             beside.window_bounds.bottom <= lower_edge.work_area.bottom,
         "scene must stay inside the work area at a lower-edge caret");
+  Check(beside.placed_above &&
+            NearlyEqual(beside.bar.bottom,
+                        lower_edge.anchor.top - 4.0f * lower_edge.dpi_scale),
+        "a lower-edge caret must place the bar just above the input line");
 
   auto left = MakeInput(5);
   left.anchor = {-200.0f, 300.0f, -198.0f, 326.0f};
@@ -102,6 +105,55 @@ void TestPlacementAndElevation() {
         "selected elevation must be four logical pixels");
   Check(scene.candidates[2].selected && !scene.candidates[1].selected,
         "the selected candidate must be the only one marked");
+}
+
+void TestBarTracksCaretWithoutMascotGap() {
+  for (const float scale : {1.0f, 1.25f, 1.5f, 2.0f}) {
+    for (const bool inline_preedit : {false, true}) {
+      auto input = MakeInput(5, scale);
+      if (inline_preedit)
+        input.preedit.clear();
+      const auto scene = leaves_stone::BuildCandidateScene(input);
+      Check(NearlyEqual(scene.bar.top,
+                        input.anchor.bottom + 4.0f * scale),
+            "the visible bar must start four dip below the caret, independent "
+            "of the mascot's height or inline preedit");
+      Check(!scene.placed_above,
+            "the bar must stay below the input line when there is room");
+      Check(scene.window_bounds.top < input.anchor.bottom,
+            "the mascot's window must extend above the bar without adding "
+            "distance from the caret");
+      Check(NearlyEqual(scene.bar.top - scene.mascot.top, 102.0f * scale),
+            "moving the scene must preserve the mascot's paw baseline");
+      CheckInsideWorkArea(scene, input.work_area);
+
+      // There is enough room for the bar below this line, even though there
+      // would not be room for the mascot if it were added below the caret.
+      input.anchor.bottom = input.work_area.bottom - 100.0f * scale;
+      input.anchor.top = input.anchor.bottom - 26.0f * scale;
+      const auto near_bottom = leaves_stone::BuildCandidateScene(input);
+      Check(!near_bottom.placed_above &&
+                NearlyEqual(near_bottom.bar.top,
+                            input.anchor.bottom + 4.0f * scale),
+            "the mascot overhang must not cause an unnecessary flip above");
+      CheckInsideWorkArea(near_bottom, input.work_area);
+    }
+  }
+
+  auto upper_edge = MakeInput(5);
+  upper_edge.anchor = {480.0f, 0.0f, 482.0f, 26.0f};
+  CheckInsideWorkArea(leaves_stone::BuildCandidateScene(upper_edge),
+                      upper_edge.work_area);
+
+  auto secondary_monitor = MakeInput(5);
+  secondary_monitor.work_area = {-1920.0f, -1080.0f, 0.0f, 0.0f};
+  secondary_monitor.anchor = {-1440.0f, -660.0f, -1438.0f, -634.0f};
+  const auto negative_scene =
+      leaves_stone::BuildCandidateScene(secondary_monitor);
+  Check(NearlyEqual(negative_scene.bar.top,
+                    secondary_monitor.anchor.bottom + 4.0f),
+        "bar-to-caret spacing must also work on a negative-coordinate monitor");
+  CheckInsideWorkArea(negative_scene, secondary_monitor.work_area);
 }
 
 void TestHitRegionsAndTruncation() {
@@ -181,6 +233,7 @@ void TestUserLayoutPreferences() {
 int RunSceneLayoutTests() {
   TestCountsAndDpi();
   TestPlacementAndElevation();
+  TestBarTracksCaretWithoutMascotGap();
   TestHitRegionsAndTruncation();
   TestUserLayoutPreferences();
   return failures;
