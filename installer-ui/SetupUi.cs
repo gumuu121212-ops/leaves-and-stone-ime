@@ -38,7 +38,7 @@ namespace LeavesStoneSetup
         private const int ContentX = 300;
         // The wizard is drawn on a 980x660 canvas and scaled up so the window
         // matches the size of the reference design.
-        private const float K = 1.3f;
+        private const float K = 1.38f;
 
         private readonly Image _dogCrop;
 
@@ -489,7 +489,7 @@ namespace LeavesStoneSetup
                 using (Microsoft.Win32.RegistryKey key = Microsoft.Win32.Registry.LocalMachine
                            .OpenSubKey(@"Software\WOW6432Node\LeavesAndStone\IME"))
                 {
-                    object value = key == null ? null : key.GetValue("WeaselRoot");
+                    object value = key == null ? null : key.GetValue("InstallDir");
                     if (value is string && ((string)value).Length > 0)
                         return (string)value;
                 }
