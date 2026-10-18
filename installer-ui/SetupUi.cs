@@ -36,6 +36,9 @@ namespace LeavesStoneSetup
         private const int CardY = 18;
         private const int CardW = 250;
         private const int ContentX = 300;
+        // The wizard is drawn on a 980x660 canvas and scaled up so the window
+        // matches the size of the reference design.
+        private const float K = 1.3f;
 
         private readonly Image _dogCrop;
 
@@ -56,7 +59,7 @@ namespace LeavesStoneSetup
         {
             _dogCrop = CropMascot(dog);
             Text = "Leaves & Stone 安装";
-            ClientSize = new Size(W, H);
+            ClientSize = new Size((int)(W * K), (int)(H * K));
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
@@ -72,8 +75,10 @@ namespace LeavesStoneSetup
                 BackColor = Palette.Field,
                 ForeColor = Palette.Ink,
                 Font = new Font("Microsoft YaHei UI", 15f, FontStyle.Regular, GraphicsUnit.Pixel),
-                Bounds = new Rectangle(_fieldRect.X + 14, _fieldRect.Y + 12,
-                                       _fieldRect.Width - 28, 20)
+                Bounds = new Rectangle((int)((_fieldRect.X + 14) * K),
+                                       (int)((_fieldRect.Y + 12) * K),
+                                       (int)((_fieldRect.Width - 28) * K),
+                                       (int)(20 * K))
             };
             _dirBox.TextChanged += delegate { Invalidate(); };
             Controls.Add(_dirBox);
@@ -198,6 +203,7 @@ namespace LeavesStoneSetup
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
             g.Clear(Palette.Background);
+            g.ScaleTransform(K, K);
 
             DrawCard(g);
             DrawHeader(g);
@@ -411,11 +417,13 @@ namespace LeavesStoneSetup
                 }
             }
             using (Font f = new Font("Microsoft YaHei UI", 14f, FontStyle.Regular, GraphicsUnit.Pixel))
+            using (SolidBrush brush = new SolidBrush(
+                       primary ? Color.FromArgb(58, 44, 34) : Palette.Ink))
+            using (StringFormat format = new StringFormat())
             {
-                Color ink = primary ? Color.FromArgb(58, 44, 34) : Palette.Ink;
-                TextRenderer.DrawText(g, text, f, rect, ink,
-                                      TextFormatFlags.HorizontalCenter |
-                                          TextFormatFlags.VerticalCenter);
+                format.Alignment = StringAlignment.Center;
+                format.LineAlignment = StringAlignment.Center;
+                g.DrawString(text, f, brush, rect, format);
             }
         }
 
