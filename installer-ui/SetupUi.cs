@@ -455,6 +455,9 @@ namespace LeavesStoneSetup
             DrawFrame(g);
         }
 
+        // GDI+ starts a new sub-path on every AddArc, so mixing arcs and lines
+        // produced several disconnected figures and the outline came out as a
+        // doubled, diagonally cut ring. Build one closed polygon instead.
         private static GraphicsPath Rounded(RectangleF rect, float radius,
                                             float[] corners = null)
         {
@@ -474,25 +477,33 @@ namespace LeavesStoneSetup
                 path.AddRectangle(rect);
                 return path;
             }
-            // Always emit four arcs, however small: with fewer, CloseFigure joins
-            // the last arc straight back and the shape collapses (a box with only
-            // top corners became 28 px tall).
-            const float kMin = 0.02f;
+
             float x = rect.X, y = rect.Y, w = rect.Width, h = rect.Height;
-            path.AddArc(x, y, Math.Max(tl, kMin) * 2, Math.Max(tl, kMin) * 2, 180, 90);
-            path.AddLine(x, y + tl, x, y + h - bl);
-            path.AddArc(x, y + h - Math.Max(bl, kMin) * 2,
-                        Math.Max(bl, kMin) * 2, Math.Max(bl, kMin) * 2, 90, 90);
-            path.AddLine(x + bl, y + h, x + w - br, y + h);
-            path.AddArc(x + w - Math.Max(br, kMin) * 2,
-                        y + h - Math.Max(br, kMin) * 2,
-                        Math.Max(br, kMin) * 2, Math.Max(br, kMin) * 2, 0, 90);
-            path.AddLine(x + w, y + h - br, x + w, y + tr);
-            path.AddArc(x + w - Math.Max(tr, kMin) * 2, y,
-                        Math.Max(tr, kMin) * 2, Math.Max(tr, kMin) * 2, 270, 90);
-            path.AddLine(x + w - tr, y, x + tl, y);
-            path.CloseFigure();
+            List<PointF> points = new List<PointF>(40);
+            AddCorner(points, x + tl, y + tl, tl, 180f, 270f);
+            AddCorner(points, x + w - tr, y + tr, tr, 270f, 360f);
+            AddCorner(points, x + w - br, y + h - br, br, 0f, 90f);
+            AddCorner(points, x + bl, y + h - bl, bl, 90f, 180f);
+            path.AddPolygon(points.ToArray());
             return path;
+        }
+
+        private static void AddCorner(List<PointF> points, float cx, float cy,
+                                      float radius, float fromDeg, float toDeg)
+        {
+            if (radius < 0.5f)
+            {
+                points.Add(new PointF(cx, cy));
+                return;
+            }
+            int steps = Math.Max(2, (int)Math.Ceiling(radius / 2f));
+            for (int i = 0; i <= steps; ++i)
+            {
+                double angle = (fromDeg + (toDeg - fromDeg) * i / steps) *
+                               Math.PI / 180.0;
+                points.Add(new PointF(cx + radius * (float)Math.Cos(angle),
+                                      cy + radius * (float)Math.Sin(angle)));
+            }
         }
         private void DrawBox(Graphics g, Dictionary<string, object> element)
         {
