@@ -93,33 +93,21 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   bar_width = std::min(bar_width, std::max(0.0f, work_width - 8.0f * scale));
   bar_width = std::max(bar_width, std::min(320.0f * scale, work_width));
 
-  // Put the mascot beside the bar instead of on top of it. Stacked above, the
-  // mascot pushed the candidates a whole head height below the caret, which is
-  // what made the bar look detached from the words being typed.
-  const float mascot_width = content_width * mascot_scale;
-  // The bar and the mascot share the screen, so the bar has to give way: clamp
-  // it so that the two together still fit the work area.
-  const float max_bar_width =
-      std::max(200.0f * scale, work_width - mascot_width - 4.0f * scale);
-  if (bar_width > max_bar_width)
-    bar_width = max_bar_width;
-  const float mascot_top_pad = 0.0f;
-  const float mascot_left = bar_width + 4.0f * scale;
-  const float mascot_right = mascot_left + mascot_width;
-  const float window_left = 0.0f;
-  const float window_right = mascot_right;
+  const float anchor_x = bar_width * 0.605f;
+  const float mascot_left = anchor_x - content_offset_x;
+  const float mascot_right = mascot_left + content_width * mascot_scale;
+  const float window_left = std::min(0.0f, mascot_left);
+  const float window_right = std::max(bar_width, mascot_right);
   const float window_width = window_right - window_left;
-  const float window_height =
-      std::max(bar_height, content_height * mascot_scale + mascot_top_pad);
+  const float window_height = overhang + bar_height;
 
   // Align the bar's left edge with the caret and drop it just under the line,
   // which is where the eye expects the candidates: the first candidate sits
   // immediately beneath the text being typed.
   float left = input.anchor.left + window_left;
   float top = input.anchor.bottom + 4.0f * scale;
-  left = Clamp(left, input.work_area.left,
-               std::max(input.work_area.left,
-                        input.work_area.right - window_width));
+  if (left + window_width > input.work_area.right)
+    left = input.work_area.right - window_width;
   if (top + window_height > input.work_area.bottom)
     top = input.anchor.top - 4.0f * scale - window_height;
   left = Clamp(left, input.work_area.left, input.work_area.right - window_width);
@@ -128,12 +116,12 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   scene.window_bounds = {left, top, left + window_width, top + window_height};
 
   const float bar_left = left - window_left;
-  const float bar_top = top + window_height - bar_height;
+  const float bar_top = top + overhang;
   scene.bar = {bar_left, bar_top, bar_left + bar_width, bar_top + bar_height};
   scene.has_bar = true;
-  scene.mascot = {bar_left + mascot_left, bar_top + bar_height - content_height * mascot_scale,
+  scene.mascot = {bar_left + mascot_left, bar_top - overhang,
                   bar_left + mascot_left + content_width * mascot_scale,
-                  bar_top + bar_height};
+                  bar_top - overhang + content_height * mascot_scale};
 
   if (has_plaque) {
     const float available = std::max(0.0f, bar_width - pinyin_left - 20.0f);
