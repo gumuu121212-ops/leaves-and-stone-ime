@@ -148,7 +148,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -162,7 +162,7 @@
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>imm32.lib;usp10.lib;rime.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -195,7 +195,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -209,7 +209,7 @@
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>imm32.lib;usp10.lib;rime.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -238,7 +238,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -252,7 +252,7 @@
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>imm32.lib;usp10.lib;rime.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -280,7 +280,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -294,7 +294,7 @@
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>imm32.lib;usp10.lib;rime.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -318,7 +318,7 @@
       <ProxyFileName>WeaselServer_p.c</ProxyFileName>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -330,7 +330,7 @@
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>imm32.lib;usp10.lib;rime.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -367,7 +367,7 @@
       <ProxyFileName>WeaselServer_p.c</ProxyFileName>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -379,7 +379,7 @@
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>imm32.lib;usp10.lib;rime.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -415,7 +415,7 @@
       <ProxyFileName>WeaselServer_p.c</ProxyFileName>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -427,7 +427,7 @@
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>imm32.lib;usp10.lib;rime.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -458,7 +458,7 @@
       <ProxyFileName>WeaselServer_p.c</ProxyFileName>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(SolutionDir)\include;$(BOOST_ROOT);$(SolutionDir)\librime\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -470,7 +470,7 @@
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WeaselUI;$(IntDir);$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>imm32.lib;usp10.lib;rime.lib;%(AdditionalDependencies)</AdditionalDependencies>
