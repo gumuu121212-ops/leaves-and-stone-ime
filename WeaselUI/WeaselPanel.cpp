@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "WeaselPanel.h"
 
 #include <cmath>
@@ -224,7 +224,9 @@ void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
                      static_cast<float>(work_area.top),
                      static_cast<float>(work_area.right),
                      static_cast<float>(work_area.bottom)};
-  input.dpi_scale = dpiScaleLayout;
+  // Draw the whole scene a little smaller than the raw scale: the arrow window
+  // is large and used to dominate the screen next to the caret.
+  input.dpi_scale = dpiScaleLayout * 0.85f;
   input.preedit = m_ctx.preedit.str;
   input.selected_index = static_cast<size_t>(m_ctx.cinfo.highlighted);
   input.requested_candidate_count = m_leaves_settings.candidate_count;

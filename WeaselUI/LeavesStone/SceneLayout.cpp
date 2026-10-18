@@ -101,27 +101,20 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   const float window_width = window_right - window_left;
   const float window_height = overhang + bar_height;
 
-  // Start the window just to the right of the caret instead of centring it on
-  // the caret: centred, it covered the whole input box, including the text
-  // being typed. Clamping keeps it on screen near the right edge.
-  float left = Clamp(input.anchor.left + 24.0f * scale,
-                     input.work_area.left,
-                     input.work_area.right - window_width);
-  // Prefer the space above the caret. Chat inputs sit at the bottom of their
-  // window, so hanging the bar underneath puts it straight onto the field being
-  // typed in; above the caret it only covers content that is already read.
-  const float below = input.anchor.bottom + 6.0f * scale;
-  const float above =
-      input.anchor.top - 8.0f * scale - window_height;
-  float top = below;
-  if (above >= input.work_area.top) {
-    top = above;
-    scene.placed_above = true;
-  } else if (below + window_height > input.work_area.bottom) {
-    // No room above and none below: fall back to just above the caret.
-    top = above;
-    scene.placed_above = true;
-  }
+  // Sit beside the caret instead of over the text: the window starts to the
+  // right of the insertion point and lines up with the caret row, so neither
+  // the input field nor the line above it is covered. It flips to the left of
+  // the caret only when there is no room on the right.
+  const float right_of_caret = input.anchor.right + 10.0f * scale;
+  const float left_of_caret =
+      input.anchor.left - 10.0f * scale - window_width;
+  const bool fits_right =
+      right_of_caret + window_width <= input.work_area.right;
+  float left = fits_right ? right_of_caret : left_of_caret;
+  // Vertically centre the bar on the caret row.
+  const float caret_middle = input.anchor.top + input.anchor.Height() * 0.5f;
+  float top = caret_middle - overhang - bar_height * 0.5f;
+  left = Clamp(left, input.work_area.left, input.work_area.right - window_width);
   top = Clamp(top, input.work_area.top,
               input.work_area.bottom - window_height);
   scene.window_bounds = {left, top, left + window_width, top + window_height};
