@@ -467,6 +467,15 @@ namespace LeavesStoneSetup
             float limit = Math.Min(rect.Width, rect.Height) / 2f;
             tl = Math.Min(tl, limit); tr = Math.Min(tr, limit);
             br = Math.Min(br, limit); bl = Math.Min(bl, limit);
+            if (tl <= 0.5f && tr <= 0.5f && br <= 0.5f && bl <= 0.5f)
+            {
+                // A plain rectangle has no arcs; without this branch the path
+                // stayed empty and flat boxes such as the footer divider never
+                // painted at all.
+                path.AddRectangle(rect);
+                path.CloseFigure();
+                return path;
+            }
             if (tl > 0.5f) path.AddArc(rect.X, rect.Y, tl * 2, tl * 2, 180, 90);
             if (tr > 0.5f) path.AddArc(rect.Right - tr * 2, rect.Y, tr * 2, tr * 2, 270, 90);
             if (br > 0.5f) path.AddArc(rect.Right - br * 2, rect.Bottom - br * 2,
