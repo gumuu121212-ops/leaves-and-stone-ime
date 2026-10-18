@@ -39,6 +39,14 @@ namespace LeavesStoneSetup
         private string _result;
         private double _progress = 0.37;
 
+        // Optional keys must not throw: the indexer raises KeyNotFoundException,
+        // which used to be swallowed together with the whole element.
+        private static object Obj(Dictionary<string, object> d, string key)
+        {
+            object value;
+            return d != null && d.TryGetValue(key, out value) ? value : null;
+        }
+
         private static Dictionary<string, object> Dict(object value)
         {
             return value as Dictionary<string, object>;
@@ -83,7 +91,7 @@ namespace LeavesStoneSetup
 
         private static RectangleF RectOf(Dictionary<string, object> element)
         {
-            List<object> r = element != null ? Seq(element["rect"]) : null;
+            List<object> r = element != null ? Seq(Obj(element, "rect")) : null;
             if (r == null || r.Count < 4) return RectangleF.Empty;
             try
             {
@@ -148,6 +156,7 @@ namespace LeavesStoneSetup
             ClientSize = new Size((int)(_canvasWidth * _scale),
                                   (int)(_canvasHeight * _scale));
             DoubleBuffered = true;
+            ApplyRoundedRegion();
 
             LoadImages();
             _field = BuildField();
@@ -158,6 +167,35 @@ namespace LeavesStoneSetup
                 if (_progress < 0.94) _progress += 0.01;
                 Invalidate();
             };
+        }
+
+        // The design has a 30 px rounded frame. Clip the window to that shape so
+        // the corners are real, then paint the border just inside it because a
+        // stroke on the exact edge is half clipped.
+        private void ApplyRoundedRegion()
+        {
+            int width = ClientSize.Width;
+            int height = ClientSize.Height;
+            if (width < 8 || height < 8) return;
+            float radius = Math.Min(30f * _scale, Math.Min(width, height) / 2f);
+            using (GraphicsPath path = new GraphicsPath())
+            {
+                path.AddArc(0, 0, radius * 2, radius * 2, 180, 90);
+                path.AddArc(width - radius * 2, 0, radius * 2, radius * 2, 270, 90);
+                path.AddArc(width - radius * 2, height - radius * 2,
+                            radius * 2, radius * 2, 0, 90);
+                path.AddArc(0, height - radius * 2, radius * 2, radius * 2, 90, 90);
+                path.CloseFigure();
+                Region = new Region(path);
+            }
+        }
+
+        private void DrawFrame(Graphics g)
+        {
+            using (Pen pen = new Pen(Color.FromArgb(0xCD, 0xBE, 0xAA), 2f))
+            using (GraphicsPath path = Rounded(
+                       new RectangleF(1, 1, _canvasWidth - 2, _canvasHeight - 2), 29f))
+                g.DrawPath(pen, path);
         }
 
         private void LoadImages()
@@ -182,7 +220,7 @@ namespace LeavesStoneSetup
             {
                 if (Str(element, "type") != "input") continue;
                 RectangleF rect = RectOf(element);
-                List<object> padding = Seq(element["padding"]);
+                List<object> padding = Seq(Obj(element, "padding"));
                 float left = padding != null && padding.Count >= 4
                                  ? Convert.ToSingle(padding[3]) : 20f;
                 return new TextBox
@@ -414,6 +452,7 @@ namespace LeavesStoneSetup
                     // A malformed element must not take the whole window down.
                 }
             }
+            DrawFrame(g);
         }
 
         private static GraphicsPath Rounded(RectangleF rect, float radius,
@@ -443,19 +482,39 @@ namespace LeavesStoneSetup
             if (rect.IsEmpty) return;
             float radius = (float)Num(element, "radius", 0);
             float[] corners = null;
-            List<object> list = Seq(element["cornerRadii"]);
+            List<object> list = Seq(Obj(element, "cornerRadii"));
             if (list != null && list.Count == 4)
                 corners = new[] { Convert.ToSingle(list[0]), Convert.ToSingle(list[1]),
                                   Convert.ToSingle(list[2]), Convert.ToSingle(list[3]) };
             using (GraphicsPath path = Rounded(rect, radius, corners))
             {
-                Color fill = Hex(Str(element, "background"), Color.Transparent);
-                if (fill.A > 0)
+                Dictionary<string, object> gradient =
+                    Obj(element, "background") as Dictionary<string, object>;
+                List<object> stops = gradient != null ? Seq(Obj(gradient, "stops")) : null;
+                if (stops != null && stops.Count >= 2)
                 {
-                    using (SolidBrush brush = new SolidBrush(fill))
+                    Color from = Hex(Str(Dict(stops[0]), "color"), Color.White);
+                    Color to = Hex(Str(Dict(stops[stops.Count - 1]), "color"), from);
+                    double angle = Num(gradient, "angle", 180);
+                    bool vertical = Math.Abs(angle - 180) < 1 || Math.Abs(angle) < 1;
+                    PointF start = vertical ? new PointF(rect.X, rect.Y)
+                                            : new PointF(rect.X, rect.Y);
+                    PointF end = vertical ? new PointF(rect.X, rect.Bottom)
+                                          : new PointF(rect.Right, rect.Y);
+                    using (LinearGradientBrush brush =
+                               new LinearGradientBrush(start, end, from, to))
                         g.FillPath(brush, path);
                 }
-                Dictionary<string, object> border = Dict(element["border"]);
+                else
+                {
+                    Color fill = Hex(Str(element, "background"), Color.Transparent);
+                    if (fill.A > 0)
+                    {
+                        using (SolidBrush brush = new SolidBrush(fill))
+                            g.FillPath(brush, path);
+                    }
+                }
+                Dictionary<string, object> border = Dict(Obj(element, "border"));
                 float width = (float)Num(border, "width", 0);
                 if (width > 0)
                 {
@@ -513,7 +572,7 @@ namespace LeavesStoneSetup
                 using (SolidBrush brush = new SolidBrush(
                            Hex(Str(element, "background"), Color.White)))
                     g.FillPath(brush, path);
-                Dictionary<string, object> border = Dict(element["border"]);
+                Dictionary<string, object> border = Dict(Obj(element, "border"));
                 float width = (float)Num(border, "width", 2);
                 if (width > 0)
                 {
@@ -530,7 +589,7 @@ namespace LeavesStoneSetup
             if (rect.IsEmpty) return;
             string id = Str(element, "id");
             bool enabled = Flag(element, "enabled", true);
-            Dictionary<string, object> states = Dict(element["states"]);
+            Dictionary<string, object> states = Dict(Obj(element, "states"));
             string state = !enabled ? "disabled"
                          : (_hover == id && _pressed) ? "pressed"
                          : _hover == id ? "hover" : "normal";
@@ -540,7 +599,7 @@ namespace LeavesStoneSetup
             float radius = (float)Num(element, "radius", rect.Height / 2);
             Color fill = Hex(look != null ? Str(look, "background") : "", Color.Transparent);
             string borderColor = look != null ? Str(look, "borderColor") : "";
-            float borderWidth = (float)Num(Dict(element["border"]), "width", 0);
+            float borderWidth = (float)Num(Dict(Obj(element, "border")), "width", 0);
             if (borderColor.Length > 0 && borderWidth <= 0) borderWidth = 2f;
 
             using (GraphicsPath path = Rounded(rect, radius))
@@ -560,7 +619,7 @@ namespace LeavesStoneSetup
             Color ink = Hex(look != null ? Str(look, "color") : "", Color.Black);
             if (iconOnly)
             {
-                List<object> paths = Seq(element["paths"]);
+                List<object> paths = Seq(Obj(element, "paths"));
                 float stroke = (float)Num(element, "strokeWidth", 2);
                 using (Pen pen = new Pen(ink, stroke))
                 {
@@ -658,6 +717,17 @@ namespace LeavesStoneSetup
                 try
                 {
                     mark("json-parsed pages=" + (layout.ContainsKey("pages")));
+                    Dictionary<string, object> pagesProbe = layout["pages"] as Dictionary<string, object>;
+                    Dictionary<string, object> dirProbe = pagesProbe["directory"] as Dictionary<string, object>;
+                    System.Collections.IEnumerable rawProbe = dirProbe["elements"] as System.Collections.IEnumerable;
+                    int countProbe = 0;
+                    foreach (object probe in rawProbe)
+                    {
+                        Dictionary<string, object> el = probe as Dictionary<string, object>;
+                        mark("  " + countProbe + " " + el["id"] + " type=" + el["type"] +
+                             " bgtype=" + (el.ContainsKey("background") ? el["background"].GetType().Name : "none"));
+                        ++countProbe;
+                    }
                     using (SetupWindow window = new SetupWindow(layout, "C:\\tmp"))
                     {
                         mark("window-created");
