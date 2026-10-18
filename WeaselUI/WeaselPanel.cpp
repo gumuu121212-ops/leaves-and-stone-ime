@@ -229,7 +229,9 @@ void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
   // Draw the whole scene a little smaller than the raw scale: the arrow window
   // is large and used to dominate the screen next to the caret.
   input.dpi_scale = dpiScaleLayout * 0.85f;
-  input.preedit = m_ctx.preedit.str;
+  // With inline preedit the host draws the pinyin in its own text field, so the
+  // bar must not repeat it: show candidates only.
+  input.preedit = m_style.inline_preedit ? std::wstring() : m_ctx.preedit.str;
   input.selected_index = static_cast<size_t>(m_ctx.cinfo.highlighted);
   input.requested_candidate_count = m_leaves_settings.candidate_count;
   input.has_previous_page = m_ctx.cinfo.currentPage > 0;
