@@ -111,8 +111,9 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   // immediately beneath the text being typed.
   float left = input.anchor.left + window_left;
   float top = input.anchor.bottom + 4.0f * scale;
-  if (left + window_width > input.work_area.right)
-    left = input.work_area.right - window_width;
+  left = Clamp(left, input.work_area.left,
+               std::max(input.work_area.left,
+                        input.work_area.right - window_width));
   if (top + window_height > input.work_area.bottom)
     top = input.anchor.top - 4.0f * scale - window_height;
   left = Clamp(left, input.work_area.left, input.work_area.right - window_width);
