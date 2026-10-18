@@ -1,4 +1,4 @@
-#include "DoggyToolbar.h"
+﻿#include "DoggyToolbar.h"
 
 #include <algorithm>
 #include <cmath>
@@ -32,8 +32,6 @@ constexpr wchar_t kWindowClass[] = L"LeavesStoneDoggyToolbar";
 constexpr int kCanvasPxWidth = 896;
 constexpr int kCanvasPxHeight = 480;
 constexpr float kSourceToDip = 0.5f;   // assetScale = 2
-constexpr int kAnchorPxX = 448;
-constexpr int kAnchorPxY = 296;
 constexpr int kDogLeft = 248, kDogTop = 96, kDogWidth = 400, kDogHeight = 221;
 constexpr int kPanelLeft = 128, kPanelTop = 288;
 constexpr int kPanelWidth = 640, kPanelHeight = 160;
@@ -142,14 +140,15 @@ void DoggyToolbar::ApplyPlacement() {
                GetSystemMetrics(SM_CYSCREEN)};
   SystemParametersInfoW(SPI_GETWORKAREA, 0, &work, 0);
   const float dip = scale_ / kSourceToDip;  // one dip in this window's pixels
-  const int anchorX =
-      work.right - static_cast<int>(std::lround(kRightMarginDip * dip));
-  const int anchorY =
-      work.bottom - static_cast<int>(std::lround(kBottomMarginDip * dip));
   const int width = window_rect_.right - window_rect_.left;
   const int height = window_rect_.bottom - window_rect_.top;
-  const int x = anchorX - static_cast<int>(std::lround(kAnchorPxX * scale_));
-  const int y = anchorY - static_cast<int>(std::lround(kAnchorPxY * scale_));
+  // Align the whole window to the corner. The anchor sits inside the canvas
+  // (448,296 of 896x480), so deriving the corner from it pushed the window off
+  // the screen by the space to its right and below.
+  const int x = work.right -
+                static_cast<int>(std::lround(kRightMarginDip * dip)) - width;
+  const int y = work.bottom -
+                static_cast<int>(std::lround(kBottomMarginDip * dip)) - height;
   SetWindowPos(hwnd_, HWND_TOPMOST, x, y, width, height,
                SWP_NOACTIVATE | SWP_SHOWWINDOW);
   window_rect_ = {x, y, x + width, y + height};
