@@ -465,26 +465,35 @@ namespace LeavesStoneSetup
             float br = corners != null ? corners[2] : radius;
             float bl = corners != null ? corners[3] : radius;
             float limit = Math.Min(rect.Width, rect.Height) / 2f;
-            tl = Math.Min(tl, limit); tr = Math.Min(tr, limit);
-            br = Math.Min(br, limit); bl = Math.Min(bl, limit);
-            if (tl <= 0.5f && tr <= 0.5f && br <= 0.5f && bl <= 0.5f)
+            tl = Math.Max(0f, Math.Min(tl, limit));
+            tr = Math.Max(0f, Math.Min(tr, limit));
+            br = Math.Max(0f, Math.Min(br, limit));
+            bl = Math.Max(0f, Math.Min(bl, limit));
+            if (tl + tr + br + bl < 0.5f)
             {
-                // A plain rectangle has no arcs; without this branch the path
-                // stayed empty and flat boxes such as the footer divider never
-                // painted at all.
                 path.AddRectangle(rect);
-                path.CloseFigure();
                 return path;
             }
-            if (tl > 0.5f) path.AddArc(rect.X, rect.Y, tl * 2, tl * 2, 180, 90);
-            if (tr > 0.5f) path.AddArc(rect.Right - tr * 2, rect.Y, tr * 2, tr * 2, 270, 90);
-            if (br > 0.5f) path.AddArc(rect.Right - br * 2, rect.Bottom - br * 2,
-                                       br * 2, br * 2, 0, 90);
-            if (bl > 0.5f) path.AddArc(rect.X, rect.Bottom - bl * 2, bl * 2, bl * 2, 90, 90);
+            // Always emit four arcs, however small: with fewer, CloseFigure joins
+            // the last arc straight back and the shape collapses (a box with only
+            // top corners became 28 px tall).
+            const float kMin = 0.02f;
+            float x = rect.X, y = rect.Y, w = rect.Width, h = rect.Height;
+            path.AddArc(x, y, Math.Max(tl, kMin) * 2, Math.Max(tl, kMin) * 2, 180, 90);
+            path.AddLine(x, y + tl, x, y + h - bl);
+            path.AddArc(x, y + h - Math.Max(bl, kMin) * 2,
+                        Math.Max(bl, kMin) * 2, Math.Max(bl, kMin) * 2, 90, 90);
+            path.AddLine(x + bl, y + h, x + w - br, y + h);
+            path.AddArc(x + w - Math.Max(br, kMin) * 2,
+                        y + h - Math.Max(br, kMin) * 2,
+                        Math.Max(br, kMin) * 2, Math.Max(br, kMin) * 2, 0, 90);
+            path.AddLine(x + w, y + h - br, x + w, y + tr);
+            path.AddArc(x + w - Math.Max(tr, kMin) * 2, y,
+                        Math.Max(tr, kMin) * 2, Math.Max(tr, kMin) * 2, 270, 90);
+            path.AddLine(x + w - tr, y, x + tl, y);
             path.CloseFigure();
             return path;
         }
-
         private void DrawBox(Graphics g, Dictionary<string, object> element)
         {
             RectangleF rect = RectOf(element);
