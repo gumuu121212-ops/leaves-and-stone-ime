@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $required = @(
@@ -16,7 +16,7 @@ foreach ($relativePath in $required) {
 }
 
 $testSource = Get-Content -LiteralPath (Join-Path $repoRoot 'test\TestLeavesStoneUI\SceneLayoutTests.cpp') -Raw
-foreach ($case in @('0u, 1u, 5u, 7u, 9u', '1.25f', '1.5f', '2.0f', 'placed_above', 'elevation', 'HitTest', 'has_visible_shared_background')) {
+foreach ($case in @('0u, 1u, 5u, 7u, 9u', '1.25f', '1.5f', '2.0f', 'work area at a lower-edge caret', 'elevation', 'HitTest', 'has_visible_shared_background')) {
   if ($testSource -notmatch [regex]::Escape($case)) { throw "Scene tests lost coverage marker: $case" }
 }
 
