@@ -101,13 +101,14 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   const float window_width = window_right - window_left;
   const float window_height = overhang + bar_height;
 
-  // Park the bar against the right edge of the work area instead of tracking
-  // the caret horizontally. Several hosts never revise the caret rect while an
-  // inline composition grows, so following it kept the bar on top of the text
-  // that was being typed. The row still follows the caret, so the bar stays
-  // under the line the user is on.
-  float left = input.work_area.right - 24.0f * scale - window_width;
-  float top = input.anchor.bottom + 6.0f * scale;
+  // Keep the bar next to the caret but below the typing line. Hosts that
+  // compose inline may never revise the caret rect while the text grows, so a
+  // bar centred on the line ends up under the words; parked below the line the
+  // text stays readable, and staying close keeps it feeling attached.
+  float left = input.anchor.right + 12.0f * scale;
+  if (left + window_width > input.work_area.right)
+    left = input.anchor.left - 12.0f * scale - window_width;
+  float top = input.anchor.bottom + 8.0f * scale;
   if (top + window_height > input.work_area.bottom)
     top = input.anchor.top - 8.0f * scale - window_height;
   left = Clamp(left, input.work_area.left, input.work_area.right - window_width);
