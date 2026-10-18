@@ -105,9 +105,9 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   // compose inline may never revise the caret rect while the text grows, so a
   // bar centred on the line ends up under the words; parked below the line the
   // text stays readable, and staying close keeps it feeling attached.
-  float left = input.anchor.right + 12.0f * scale;
+  float left = input.anchor.right + 200.0f * scale;
   if (left + window_width > input.work_area.right)
-    left = input.anchor.left - 12.0f * scale - window_width;
+    left = input.anchor.left - 200.0f * scale - window_width;
   float top = input.anchor.bottom + 8.0f * scale;
   if (top + window_height > input.work_area.bottom)
     top = input.anchor.top - 8.0f * scale - window_height;
