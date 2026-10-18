@@ -223,7 +223,7 @@ void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
   // the anchor by an estimate of how wide the text already is; pinyin is latin,
   // so a little under one em per character is close enough to keep clear.
   const float typed_advance =
-      static_cast<float>(m_ctx.preedit.str.size()) * 11.0f * dpiScaleLayout;
+      0.0f;
   input.anchor = {static_cast<float>(m_inputPos.left) + typed_advance,
                   static_cast<float>(m_inputPos.top),
                   static_cast<float>(m_inputPos.right) + typed_advance,
