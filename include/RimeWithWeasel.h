@@ -1,6 +1,7 @@
-#pragma once
+﻿#pragma once
 #include <WeaselIPC.h>
 #include <WeaselUI.h>
+#include <functional>
 #include <map>
 #include <string>
 
@@ -54,6 +55,10 @@ class RimeWithWeaselHandler : public weasel::RequestHandler {
   virtual bool ChangePage(bool backward, WeaselSessionId ipc_id, EatLine eat);
   virtual void FocusIn(DWORD param, WeaselSessionId ipc_id);
   virtual void FocusOut(DWORD param, WeaselSessionId ipc_id);
+  // Lets the host show or hide its status bar with the input method.
+  void SetActiveChangedCallback(std::function<void(bool)> callback) {
+    m_active_changed = callback;
+  }
   virtual void UpdateInputPosition(RECT const& rc, WeaselSessionId ipc_id);
   virtual void StartMaintenance();
   virtual void EndMaintenance();
@@ -98,6 +103,8 @@ class RimeWithWeaselHandler : public weasel::RequestHandler {
   AppOptionsByAppName m_app_options;
   weasel::UI* m_ui;  // reference
   DWORD m_active_session;
+  int m_open_sessions = 0;
+  std::function<void(bool)> m_active_changed;
   bool m_disabled;
   std::string m_last_schema_id;
   std::string m_last_app_name;

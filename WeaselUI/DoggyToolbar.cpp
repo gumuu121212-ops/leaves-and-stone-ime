@@ -109,7 +109,7 @@ bool DoggyToolbar::Create(std::function<void(ToolbarAction)> handler) {
 
   ApplyPlacement();
   Render();
-  ShowWindow(hwnd_, SW_SHOWNOACTIVATE);
+  // Hidden until the input method is actually selected.
   SetTimer(hwnd_, kPollTimer, kPollMilliseconds, nullptr);
   return true;
 }
@@ -121,6 +121,12 @@ void DoggyToolbar::Destroy() {
     hwnd_ = nullptr;
   }
   assets_.Discard();
+}
+
+void DoggyToolbar::SetVisible(bool visible) {
+  if (!hwnd_)
+    return;
+  ShowWindow(hwnd_, visible ? SW_SHOWNOACTIVATE : SW_HIDE);
 }
 
 void DoggyToolbar::SetAsciiMode(bool) {

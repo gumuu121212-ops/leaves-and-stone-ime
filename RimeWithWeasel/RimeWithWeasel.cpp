@@ -213,6 +213,11 @@ DWORD RimeWithWeaselHandler::AddSession(LPWSTR buffer, EatLine eat) {
       return 0;
   }
   RimeSessionId session_id = (RimeSessionId)rime_api->create_session();
+  if (session_id) {
+    ++m_open_sessions;
+    if (m_active_changed)
+      m_active_changed(true);
+  }
   if (m_global_ascii_mode) {
     for (const auto& pair : m_session_status_map) {
       if (pair.first) {
@@ -262,6 +267,10 @@ DWORD RimeWithWeaselHandler::RemoveSession(WeaselSessionId ipc_id) {
   if (m_disabled)
     return 0;
   DLOG(INFO) << "Remove session: session_id = " << to_session_id(ipc_id);
+  if (m_open_sessions > 0)
+    --m_open_sessions;
+  if (m_active_changed)
+    m_active_changed(m_open_sessions > 0);
   // TODO: force committing? otherwise current composition would be lost
   rime_api->destroy_session(to_session_id(ipc_id));
   m_session_status_map.erase(ipc_id);

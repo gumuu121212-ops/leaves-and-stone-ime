@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <windows.h>
 
@@ -28,6 +28,7 @@ class DoggyToolbar {
   bool Create(std::function<void(ToolbarAction)> handler);
   void Destroy();
   void SetAsciiMode(bool ascii);
+  void SetVisible(bool visible);
   HWND hwnd() const { return hwnd_; }
 
  private:

@@ -32,6 +32,11 @@ int WeaselServerApp::Run() {
   m_handler->Initialize();
   m_handler->OnUpdateUI([this]() { tray_icon.Refresh(); });
 
+  if (m_handler)
+    m_handler->SetActiveChangedCallback([this](bool active) {
+      if (m_toolbar) m_toolbar->SetVisible(active);
+    });
+
   tray_icon.Create(m_server.GetHWnd());
   tray_icon.Refresh();
 
