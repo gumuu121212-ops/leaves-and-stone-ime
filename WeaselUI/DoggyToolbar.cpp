@@ -183,19 +183,26 @@ RECT DoggyToolbar::NativeRectToWindow(int x,
 }
 
 bool DoggyToolbar::PointInVisibleArea(int x, int y) const {
-  // Base panel plus the mascot, matching the silhouette of the current state.
-  const RECT panel =
-      (state_ == State::Idle) ? RECT{96, 320, 832, 448} : RECT{192, 288, 832, 448};
-  const RECT dog = (state_ == State::Idle)    ? RECT{96, 148, 616, 436}
-                   : (state_ == State::Default) ? RECT{72, 204, 352, 428}
-                                                : RECT{12, 116, 412, 337};
-  return PointInRect(NativeRectToWindow(panel.left, panel.top,
-                                        panel.right - panel.left,
-                                        panel.bottom - panel.top),
-                     x, y) ||
-         PointInRect(NativeRectToWindow(dog.left, dog.top, dog.right - dog.left,
-                                        dog.bottom - dog.top),
-                     x, y);
+  // The silhouette must not depend on the state: switching between the resting
+  // and the raised mascot used to change the test itself, so a pointer on the
+  // boundary expanded, failed the new test, collapsed, and flickered.
+  static const RECT kPanel = {192, 288, 832, 448};
+  static const RECT kDogRest = {72, 204, 352, 428};
+  static const RECT kDogRaised = {12, 116, 412, 337};
+  static const RECT kIdlePanel = {96, 320, 832, 448};
+  static const RECT kIdleDog = {96, 148, 616, 436};
+
+  auto inside = [this, x, y](const RECT& rect) {
+    return PointInRect(NativeRectToWindow(rect.left, rect.top,
+                                          rect.right - rect.left,
+                                          rect.bottom - rect.top),
+                       x, y);
+  };
+
+  if (inside(kPanel) || inside(kDogRest) || inside(kDogRaised))
+    return true;
+  // The sleeping pose sits elsewhere on the canvas and has to wake on contact.
+  return state_ == State::Idle && (inside(kIdlePanel) || inside(kIdleDog));
 }
 
 DoggyToolbar::Hot DoggyToolbar::HitTest(int x, int y) const {
