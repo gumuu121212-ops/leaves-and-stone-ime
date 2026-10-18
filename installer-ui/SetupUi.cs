@@ -1,4 +1,4 @@
-﻿// Custom installer front end for Leaves & Stone.
+// Custom installer front end for Leaves & Stone.
 //
 // The wizard is rendered from the supplied layout.json: every page lists its
 // elements with absolute coordinates, colours and per-state styling, so the
@@ -39,6 +39,12 @@ namespace LeavesStoneSetup
         private string _result;
         private double _progress = 0.37;
         private string _status = "";
+        // Stage percentages written by the bundled NSIS package, so the bar
+        // reflects the real install instead of a timed guess.
+        private readonly string _progressFile = Path.Combine(Path.GetTempPath(),
+            "leaves-stone-setup-progress.txt");
+        private readonly System.Windows.Forms.Timer _readTimer =
+            new System.Windows.Forms.Timer { Interval = 250 };
 
         // Optional keys must not throw: the indexer raises KeyNotFoundException,
         // which used to be swallowed together with the whole element.
@@ -165,8 +171,27 @@ namespace LeavesStoneSetup
 
             _progressTimer.Tick += delegate
             {
-                if (_progress < 0.93) _progress += 0.004;
                 Invalidate();
+            };
+            _readTimer.Tick += delegate
+            {
+                try
+                {
+                    if (!File.Exists(_progressFile)) return;
+                    int percent = 0;
+                    foreach (string line in File.ReadAllLines(_progressFile))
+                    {
+                        int parsed;
+                        if (int.TryParse(line.Trim(), out parsed)) percent = parsed;
+                    }
+                    if (percent <= 0) return;
+                    double value = Math.Min(1.0, percent / 100.0);
+                    if (value > _progress) _progress = value;
+                    Invalidate();
+                }
+                catch
+                {
+                }
             };
         }
 
@@ -364,7 +389,9 @@ namespace LeavesStoneSetup
                 return;
             }
             _installing = true;
-            _progress = 0.05;
+            _progress = 0.03;
+            try { File.Delete(_progressFile); } catch { }
+            _readTimer.Start();
             _page = "installing";
             _hover = "";
             _field.Visible = false;
@@ -399,6 +426,8 @@ namespace LeavesStoneSetup
                     BeginInvoke((Action)delegate
                     {
                         _progressTimer.Stop();
+                        _readTimer.Stop();
+                        _progress = 1.0;
                         _installing = false;
                         _page = "finished";
                         Invalidate();

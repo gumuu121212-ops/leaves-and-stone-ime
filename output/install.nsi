@@ -46,6 +46,16 @@ VIAddVersionKey /LANG=2052 "FileVersion" "${WEASEL_VERSION}"
 !define MUI_HEADERIMAGE_BITMAP "ui\header.bmp"
 SetCompressor /SOLID lzma
 
+; --- progress reporting for the drawn wizard -------------------------------
+; The wrapper reads this file while the silent install runs, so the bar shows
+; real stages instead of a timed animation.
+!define PROGRESS_FILE "$TEMP\leaves-stone-setup-progress.txt"
+!macro MarkProgress percent
+  FileOpen $9 "${PROGRESS_FILE}" a
+  FileWrite $9 "${percent}$\r$\n"
+  FileClose $9
+!macroend
+
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
@@ -210,6 +220,8 @@ InstallDirRegKey HKLM "${LEAVES_STONE_REGISTRY_ROOT}" "InstallDir"
 Section "Weasel"
 
   SectionIn RO
+  Delete "${PROGRESS_FILE}"
+  !insertmacro MarkProgress 3
 
   ; Write the new installation path into the registry
   ; redirect on 64 bit system
@@ -296,6 +308,7 @@ program_files:
   ${Endif}
 
   File "WeaselSetup.exe"
+  !insertmacro MarkProgress 35
   ; shared data files
   SetOutPath $INSTDIR\data
   File "data\*.yaml"
@@ -308,6 +321,7 @@ program_files:
   ; images
   SetOutPath $INSTDIR\data\preview
   File "data\preview\*.png"
+  !insertmacro MarkProgress 55
 
   SetOutPath $INSTDIR
 
@@ -323,6 +337,7 @@ program_files:
   StrCpy $R2 "/t"
 
   ExecWait '"$INSTDIR\WeaselSetup.exe" $R2'
+  !insertmacro MarkProgress 70
 
   ; Write the uninstall keys for Windows
   WriteRegStr HKLM "${REG_UNINST_KEY}" "DisplayName" "$(DISPLAYNAME)"
@@ -335,6 +350,7 @@ program_files:
   WriteRegDWORD HKLM "${REG_UNINST_KEY}" "NoModify" 1
   WriteRegDWORD HKLM "${REG_UNINST_KEY}" "NoRepair" 1
   WriteUninstaller "$INSTDIR\uninstall.exe"
+  !insertmacro MarkProgress 78
 
   ; run as user...
   IfSilent deploy_silently
@@ -344,6 +360,7 @@ program_files:
   deploy_silently:
   ExecWait "$INSTDIR\WeaselDeployer.exe /deploy"
   deploy_done:
+  !insertmacro MarkProgress 88
 
   ; don't redirect on 64 bit system for auto run setting
   ${If} ${IsNativeARM64}
@@ -355,6 +372,7 @@ program_files:
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Run" "LeavesAndStoneServer" "$INSTDIR\WeaselServer.exe"
   ; Start WeaselServer
   Exec "$INSTDIR\WeaselServer.exe"
+  !insertmacro MarkProgress 94
 
   ; option CheckForUpdates
   IfSilent DisableAutoCheckUpdate
@@ -366,6 +384,7 @@ program_files:
   WriteRegStr HKCU "${LEAVES_STONE_REGISTRY_ROOT}\Updates" "CheckForUpdates" "1"
   end:
 
+  !insertmacro MarkProgress 97
   ; Prompt reboot
   StrCmp $0 "Upgrade" 0 +2
   SetRebootFlag true
@@ -387,6 +406,7 @@ Section "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\$(DISPLAYNAME)\$(LNKFORUPDATER).lnk" "$INSTDIR\WeaselServer.exe" "/update" "$SYSDIR\shell32.dll" 13
   CreateShortCut "$SMPROGRAMS\$(DISPLAYNAME)\$(LNKFORSETUP).lnk" "$INSTDIR\WeaselSetup.exe" "" "$SYSDIR\shell32.dll" 162
   CreateShortCut "$SMPROGRAMS\$(DISPLAYNAME)\$(LNKFORUNINSTALL).lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
+  !insertmacro MarkProgress 100
 
 SectionEnd
 
