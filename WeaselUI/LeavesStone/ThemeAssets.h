@@ -25,6 +25,22 @@ enum class ThemeAssetId : size_t {
   IconMoon,
   IconShirt,
   IconGear,
+  // Floating doggy toolbar.
+  ToolbarDefault,
+  ToolbarHover,
+  ToolbarPressed,
+  ToolbarIdle,
+  ModeBackground,
+  ModeGlyphZh,
+  ModeGlyphEn,
+  TbIconMoon,
+  TbIconShirt,
+  TbIconGear,
+  ButtonHover,
+  ButtonPressed,
+  DecorHover,
+  DecorPressed,
+  DecorIdle,
   Count
 };
 

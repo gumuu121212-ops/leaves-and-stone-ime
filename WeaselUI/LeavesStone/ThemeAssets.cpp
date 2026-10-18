@@ -17,7 +17,12 @@ constexpr std::array<int, static_cast<size_t>(ThemeAssetId::Count)>
         IDR_DOG_MASCOT_IDLE,    IDR_DOG_MASCOT_AVATAR, IDR_DOG_PANEL,
         IDR_DOG_MENU,           IDR_DOG_PAW,           IDR_DOG_ICON_ZH,
         IDR_DOG_ICON_EN,        IDR_DOG_ICON_JP,       IDR_DOG_ICON_KR,
-        IDR_DOG_ICON_MOON,      IDR_DOG_ICON_SHIRT,    IDR_DOG_ICON_GEAR};
+        IDR_DOG_ICON_MOON,      IDR_DOG_ICON_SHIRT,    IDR_DOG_ICON_GEAR,
+        IDR_DOG_TOOLBAR_DEFAULT, IDR_DOG_TOOLBAR_HOVER, IDR_DOG_TOOLBAR_PRESSED,
+        IDR_DOG_TOOLBAR_IDLE,   IDR_DOG_TB_MODE_BG,    IDR_DOG_TB_MODE_ZH,
+        IDR_DOG_TB_MODE_EN,     IDR_DOG_TB_ICON_MOON,  IDR_DOG_TB_ICON_SHIRT,
+        IDR_DOG_TB_ICON_GEAR,   IDR_DOG_TB_BTN_HOVER,  IDR_DOG_TB_BTN_PRESSED,
+        IDR_DOG_TB_DECOR_HOVER, IDR_DOG_TB_DECOR_PRESSED, IDR_DOG_TB_DECOR_IDLE};
 
 // The candidate window is drawn both by WeaselServer.exe and, in this build, by
 // the text service inside the client process. GetModuleHandleW(nullptr) returns

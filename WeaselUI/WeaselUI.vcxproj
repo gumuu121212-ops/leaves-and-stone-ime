@@ -291,6 +291,9 @@
     <ClCompile Include="LeavesStone\ThemeAssets.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="DoggyToolbar.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="LeavesStone\ThemeConfig.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -324,6 +327,7 @@
     <ClInclude Include="LeavesStone\SceneTypes.h" />
     <ClInclude Include="LeavesStone\ThemeAssets.h" />
     <ClInclude Include="LeavesStone\ThemeConfig.h" />
+  <ClInclude Include="DoggyToolbar.h" />
     <ClInclude Include="..\LeavesStoneSettings\SettingsStore.h" />
     <ClInclude Include="FullScreenLayout.h" />
     <ClInclude Include="GdiplusBlur.h" />

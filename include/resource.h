@@ -60,3 +60,20 @@
 #define IDR_DOG_ICON_MOON           613
 #define IDR_DOG_ICON_SHIRT          614
 #define IDR_DOG_ICON_GEAR           615
+
+// Floating doggy toolbar (resource/doggy/toolbar).
+#define IDR_DOG_TOOLBAR_DEFAULT      620
+#define IDR_DOG_TOOLBAR_HOVER        621
+#define IDR_DOG_TOOLBAR_PRESSED      622
+#define IDR_DOG_TOOLBAR_IDLE         623
+#define IDR_DOG_TB_MODE_BG           624
+#define IDR_DOG_TB_MODE_ZH           625
+#define IDR_DOG_TB_MODE_EN           626
+#define IDR_DOG_TB_ICON_MOON         627
+#define IDR_DOG_TB_ICON_SHIRT        628
+#define IDR_DOG_TB_ICON_GEAR         629
+#define IDR_DOG_TB_BTN_HOVER         630
+#define IDR_DOG_TB_BTN_PRESSED       631
+#define IDR_DOG_TB_DECOR_HOVER       632
+#define IDR_DOG_TB_DECOR_PRESSED     633
+#define IDR_DOG_TB_DECOR_IDLE        634
