@@ -97,6 +97,12 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   // mascot pushed the candidates a whole head height below the caret, which is
   // what made the bar look detached from the words being typed.
   const float mascot_width = content_width * mascot_scale;
+  // The bar and the mascot share the screen, so the bar has to give way: clamp
+  // it so that the two together still fit the work area.
+  const float max_bar_width =
+      std::max(200.0f * scale, work_width - mascot_width - 4.0f * scale);
+  if (bar_width > max_bar_width)
+    bar_width = max_bar_width;
   const float mascot_top_pad = 0.0f;
   const float mascot_left = bar_width + 4.0f * scale;
   const float mascot_right = mascot_left + mascot_width;
