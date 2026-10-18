@@ -287,6 +287,7 @@ namespace LeavesStoneSetup
                     WindowState = FormWindowState.Minimized;
                     break;
                 case "cancel":
+                case "back":
                     if (_installing) return;
                     Close();
                     break;
@@ -295,10 +296,11 @@ namespace LeavesStoneSetup
                     if (!_installing) Close();
                     break;
                 case "install":
+                case "start-install":
                     BeginInstall();
                     break;
                 default:
-                    if (id == "installButton") BeginInstall();
+                    if (id == "footer.primary" || id == "installButton") BeginInstall();
                     break;
             }
         }
