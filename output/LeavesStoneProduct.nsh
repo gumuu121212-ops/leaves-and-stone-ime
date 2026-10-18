@@ -1,5 +1,5 @@
-; Generated from config/product.json. Do not edit by hand.
-!define LEAVES_STONE_DISPLAY_NAME "Leaves & Stone"
+﻿; Generated from config/product.json. Do not edit by hand.
+!define LEAVES_STONE_DISPLAY_NAME "小毛豆输入法"
 !define LEAVES_STONE_PRODUCT_SLUG "LeavesAndStone"
 !define LEAVES_STONE_REGISTRY_ROOT "Software\LeavesAndStone\IME"
 !define LEAVES_STONE_USER_DATA_SUBDIR "LeavesAndStone\Rime"

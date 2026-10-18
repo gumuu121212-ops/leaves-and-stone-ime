@@ -1,10 +1,10 @@
-#pragma once
+﻿#pragma once
 
 #include <guiddef.h>
 
 namespace leaves_stone::product {
-inline constexpr char kDisplayNameA[] = "Leaves & Stone";
-inline constexpr wchar_t kDisplayName[] = L"Leaves & Stone";
+inline constexpr char kDisplayNameA[] = "小毛豆输入法";
+inline constexpr wchar_t kDisplayName[] = L"小毛豆输入法";
 inline constexpr char kRegistryRootA[] = "Software\\LeavesAndStone\\IME";
 inline constexpr wchar_t kRegistryRoot[] = L"Software\\LeavesAndStone\\IME";
 inline constexpr wchar_t kRegistryRootWow64[] = L"Software\\WOW6432Node\\LeavesAndStone\\IME";
