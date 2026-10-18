@@ -439,6 +439,23 @@ LRESULT DoggyToolbar::Handle(HWND hwnd,
         TrackMouseEvent(&track);
         tracking_mouse_ = true;
       }
+      // The window is a 224x120 canvas whose corners are transparent. Moving
+      // into that empty area does not raise WM_MOUSELEAVE, so the hover state
+      // used to stay on with the pointer nowhere near the mascot. Test the
+      // silhouette on every move instead.
+      if (!PointInVisibleArea(x, y)) {
+        if (hover_pending_) {
+          KillTimer(hwnd_, kHoverTimer);
+          hover_pending_ = false;
+        }
+        if (hot_ != Hot::None) {
+          hot_ = Hot::None;
+          Render();
+        }
+        if (state_ != State::Pressed)
+          SetState(State::Default);
+        return 0;
+      }
       Wake();
       const Hot hot = HitTest(x, y);
       if (hot != hot_) {
@@ -446,7 +463,7 @@ LRESULT DoggyToolbar::Handle(HWND hwnd,
         Render();
       }
       if (!hover_pending_ && state_ != State::Pressed &&
-          PointInVisibleArea(x, y)) {
+          state_ != State::Hover) {
         hover_pending_ = true;
         SetTimer(hwnd_, kHoverTimer, kHoverDelayMilliseconds, nullptr);
       }
@@ -470,7 +487,8 @@ LRESULT DoggyToolbar::Handle(HWND hwnd,
       }
       if (wparam == kIdleTimer) {
         KillTimer(hwnd_, kIdleTimer);
-        if (state_ != State::Pressed && hot_ == Hot::None)
+        // Do not fall asleep while the pointer is resting on the bar.
+        if (state_ != State::Pressed && state_ != State::Hover)
           SetState(State::Idle);
         return 0;
       }
