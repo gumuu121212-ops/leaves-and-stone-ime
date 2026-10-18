@@ -1,119 +1,237 @@
-// Custom installer front end for Leaves & Stone.
+﻿// Custom installer front end for Leaves & Stone.
 //
-// Everything is painted by this file so the wizard can match the supplied
-// artwork exactly: warm paper background, a rounded card holding the mascot,
-// pill buttons and a three step header. The actual installation still runs the
-// proven NSIS package, embedded in this executable, in silent mode.
+// The wizard is rendered from the supplied layout.json: every page lists its
+// elements with absolute coordinates, colours and per-state styling, so the
+// window matches the design instead of a hand-tuned approximation. The actual
+// installation still runs the proven NSIS package, embedded in this executable,
+// in silent mode.
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.IO;
 using System.Reflection;
+using System.Threading;
+using System.Web.Script.Serialization;
 using System.Windows.Forms;
 
 namespace LeavesStoneSetup
 {
-    internal static class Palette
-    {
-        public static readonly Color Background = Color.FromArgb(250, 246, 240);
-        public static readonly Color Card = Color.FromArgb(243, 233, 221);
-        public static readonly Color Ink = Color.FromArgb(62, 47, 38);
-        public static readonly Color Muted = Color.FromArgb(138, 118, 102);
-        public static readonly Color Accent = Color.FromArgb(213, 189, 167);
-        public static readonly Color AccentDark = Color.FromArgb(196, 168, 142);
-        public static readonly Color Field = Color.FromArgb(255, 253, 250);
-        public static readonly Color Outline = Color.FromArgb(223, 208, 191);
-        public static readonly Color StepActive = Color.FromArgb(232, 217, 201);
-    }
-
     internal sealed class SetupWindow : Form
     {
-        private const int W = 980;
-        private const int H = 660;
-        private const int CardX = 18;
-        private const int CardY = 18;
-        private const int CardW = 250;
-        private const int ContentX = 300;
-        // The wizard is drawn on a 980x660 canvas and scaled up so the window
-        // matches the size of the reference design.
-        private const float K = 1.38f;
+        private readonly Dictionary<string, object> _layout;
+        private readonly Dictionary<string, Image> _images =
+            new Dictionary<string, Image>();
+        private readonly float _canvasWidth;
+        private readonly float _canvasHeight;
+        private readonly float _scale;
+        private readonly string _installDir;
+        private readonly TextBox _field;
+        private readonly System.Windows.Forms.Timer _progressTimer =
+            new System.Windows.Forms.Timer { Interval = 120 };
 
-        private readonly Image _dogCrop;
-
-        private readonly Rectangle _browseRect = new Rectangle(880, 232, 84, 42);
-        private readonly Rectangle _fieldRect = new Rectangle(300, 232, 566, 42);
-        private readonly Rectangle _backRect = new Rectangle(560, 594, 112, 38);
-        private readonly Rectangle _installRect = new Rectangle(684, 594, 112, 38);
-        private readonly Rectangle _cancelRect = new Rectangle(808, 594, 112, 38);
-
-        private readonly TextBox _dirBox;
+        private string _page = "directory";
         private string _hover = "";
-        private int _page;            // 0 location, 1 progress, 2 finished
-        private int _marquee;
-        private readonly Timer _timer;
-        private string _status = "";
+        private bool _pressed;
+        private bool _installing;
+        private string _result;
+        private double _progress = 0.37;
 
-        public SetupWindow(string installDir, Image dog)
+        private static Dictionary<string, object> Dict(object value)
         {
-            _dogCrop = CropMascot(dog);
+            return value as Dictionary<string, object>;
+        }
+
+        // JavaScriptSerializer returns object[] for JSON arrays, not List<object>.
+        private static List<object> Seq(object value)
+        {
+            List<object> direct = value as List<object>;
+            if (direct != null) return direct;
+            System.Collections.IEnumerable items = value as System.Collections.IEnumerable;
+            if (items == null || value is string) return null;
+            List<object> result = new List<object>();
+            foreach (object item in items) result.Add(item);
+            return result;
+        }
+
+        private static string Str(Dictionary<string, object> d, string key,
+                                  string fallback = "")
+        {
+            object v;
+            return d != null && d.TryGetValue(key, out v) && v != null
+                       ? Convert.ToString(v) : fallback;
+        }
+
+        private static double Num(Dictionary<string, object> d, string key,
+                                  double fallback = 0)
+        {
+            object v;
+            if (d == null || !d.TryGetValue(key, out v) || v == null) return fallback;
+            try { return Convert.ToDouble(v); }
+            catch { return fallback; }
+        }
+
+        private static bool Flag(Dictionary<string, object> d, string key, bool fallback)
+        {
+            object v;
+            if (d == null || !d.TryGetValue(key, out v) || v == null) return fallback;
+            try { return Convert.ToBoolean(v); }
+            catch { return fallback; }
+        }
+
+        private static RectangleF RectOf(Dictionary<string, object> element)
+        {
+            List<object> r = element != null ? Seq(element["rect"]) : null;
+            if (r == null || r.Count < 4) return RectangleF.Empty;
+            try
+            {
+                RectangleF rect = new RectangleF(Convert.ToSingle(r[0]),
+                                                 Convert.ToSingle(r[1]),
+                                                 Convert.ToSingle(r[2]),
+                                                 Convert.ToSingle(r[3]));
+                if (float.IsNaN(rect.X) || float.IsNaN(rect.Y) ||
+                    float.IsNaN(rect.Width) || float.IsNaN(rect.Height) ||
+                    rect.Width < 0 || rect.Height < 0)
+                    return RectangleF.Empty;
+                return rect;
+            }
+            catch
+            {
+                return RectangleF.Empty;
+            }
+        }
+
+        private static Color Hex(string value, Color fallback)
+        {
+            if (string.IsNullOrEmpty(value) || value.Length < 7 || value[0] != '#')
+                return fallback;
+            try
+            {
+                int r = Convert.ToInt32(value.Substring(1, 2), 16);
+                int g = Convert.ToInt32(value.Substring(3, 2), 16);
+                int b = Convert.ToInt32(value.Substring(5, 2), 16);
+                return Color.FromArgb(r, g, b);
+            }
+            catch
+            {
+                return fallback;
+            }
+        }
+
+        public SetupWindow(Dictionary<string, object> layout, string installDir)
+        {
+            _layout = layout;
+            _installDir = installDir;
+
+            List<object> canvas = Seq(layout["canvas"]);
+            _canvasWidth = Convert.ToSingle(canvas[0]);
+            _canvasHeight = Convert.ToSingle(canvas[1]);
+
+            Rectangle work = Screen.PrimaryScreen.WorkingArea;
+            float dpi = 96f;
+            using (Bitmap probe = new Bitmap(1, 1))
+            using (Graphics surface = Graphics.FromImage(probe))
+                dpi = surface.DpiX;
+            float fit = Math.Min(work.Width / _canvasWidth, work.Height / _canvasHeight);
+            // Never exceed the work area, and never grow past 1.35 of the
+            // design size: a 200% desktop would otherwise ask for 2560 px.
+            _scale = Math.Min(Math.Min(dpi / 96f, fit * 0.96f), 1.35f);
+            if (_scale <= 0.1f || float.IsNaN(_scale)) _scale = 1f;
+
             Text = "Leaves & Stone 安装";
-            ClientSize = new Size((int)(W * K), (int)(H * K));
-            FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox = false;
-            MinimizeBox = false;
+            FormBorderStyle = FormBorderStyle.None;
             StartPosition = FormStartPosition.CenterScreen;
-            BackColor = Palette.Background;
+            BackColor = Hex(Str(Dict(layout["colors"]), "background"),
+                            Color.FromArgb(251, 248, 241));
+            ClientSize = new Size((int)(_canvasWidth * _scale),
+                                  (int)(_canvasHeight * _scale));
             DoubleBuffered = true;
-            Font = new Font("Microsoft YaHei UI", 14f, FontStyle.Regular, GraphicsUnit.Pixel);
 
-            _dirBox = new TextBox
-            {
-                Text = installDir,
-                BorderStyle = BorderStyle.None,
-                BackColor = Palette.Field,
-                ForeColor = Palette.Ink,
-                Font = new Font("Microsoft YaHei UI", 15f, FontStyle.Regular, GraphicsUnit.Pixel),
-                Bounds = new Rectangle((int)((_fieldRect.X + 14) * K),
-                                       (int)((_fieldRect.Y + 12) * K),
-                                       (int)((_fieldRect.Width - 28) * K),
-                                       (int)(20 * K))
-            };
-            _dirBox.TextChanged += delegate { Invalidate(); };
-            Controls.Add(_dirBox);
+            LoadImages();
+            _field = BuildField();
+            if (_field != null) Controls.Add(_field);
 
-            _timer = new Timer { Interval = 30 };
-            _timer.Tick += delegate
+            _progressTimer.Tick += delegate
             {
-                _marquee = (_marquee + 14) % (W + 200);
+                if (_progress < 0.94) _progress += 0.01;
                 Invalidate();
             };
         }
 
-        private static Image CropMascot(Image source)
+        private void LoadImages()
         {
-            if (source == null) return null;
-            // The avatar carries a lot of empty space; keep the content box.
-            Rectangle box = new Rectangle(342, 450, 340, 188);
-            if (box.Right > source.Width || box.Bottom > source.Height)
-                box = new Rectangle(0, 0, source.Width, source.Height);
-            Bitmap cropped = new Bitmap(box.Width, box.Height);
-            using (Graphics g = Graphics.FromImage(cropped))
-                g.DrawImage(source, new Rectangle(0, 0, box.Width, box.Height),
-                            box, GraphicsUnit.Pixel);
-            return cropped;
+            foreach (string name in new[] { "mascot", "paw", "cushion", "titlebar-dog" })
+            {
+                using (Stream stream = Assembly.GetExecutingAssembly()
+                           .GetManifestResourceStream("img-" + name))
+                {
+                    if (stream == null) continue;
+                    // Image.FromStream keeps using the stream, so take an owned
+                    // copy before it is disposed.
+                    using (Image loaded = Image.FromStream(stream))
+                        _images[name] = new Bitmap(loaded);
+                }
+            }
         }
 
-        // ---------------------------------------------------------------- input
+        private TextBox BuildField()
+        {
+            foreach (Dictionary<string, object> element in Elements())
+            {
+                if (Str(element, "type") != "input") continue;
+                RectangleF rect = RectOf(element);
+                List<object> padding = Seq(element["padding"]);
+                float left = padding != null && padding.Count >= 4
+                                 ? Convert.ToSingle(padding[3]) : 20f;
+                return new TextBox
+                {
+                    Text = _installDir,
+                    BorderStyle = BorderStyle.None,
+                    BackColor = Hex(Str(element, "background"), Color.White),
+                    ForeColor = Hex(Str(element, "color"), Color.Black),
+                    Font = new Font(Str(element, "font", "Microsoft YaHei UI"),
+                                    (float)Num(element, "size", 24),
+                                    FontStyle.Regular, GraphicsUnit.Pixel),
+                    Bounds = new Rectangle(
+                        (int)((rect.X + left) * _scale),
+                        (int)((rect.Y + rect.Height / 2 - 18) * _scale),
+                        Math.Max(40, (int)((rect.Width - left * 2) * _scale)),
+                        (int)(36 * _scale))
+                };
+            }
+            return null;
+        }
+
+        private List<Dictionary<string, object>> Elements()
+        {
+            List<Dictionary<string, object>> result =
+                new List<Dictionary<string, object>>();
+            Dictionary<string, object> pages = Dict(_layout["pages"]);
+            Dictionary<string, object> page = pages != null ? Dict(pages[_page]) : null;
+            List<object> elements = page != null ? Seq(page["elements"]) : null;
+            if (elements == null) return result;
+            foreach (object item in elements)
+            {
+                Dictionary<string, object> element = Dict(item);
+                if (element != null) result.Add(element);
+            }
+            return result;
+        }
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
+            PointF p = new PointF(e.X / _scale, e.Y / _scale);
             string hover = "";
-            if (_page == 0 && _browseRect.Contains(e.Location)) hover = "browse";
-            if (_page != 1 && _backRect.Contains(e.Location)) hover = "back";
-            if (_page == 0 && _installRect.Contains(e.Location)) hover = "install";
-            if (_page != 1 && _cancelRect.Contains(e.Location)) hover = "cancel";
+            foreach (Dictionary<string, object> element in Elements())
+            {
+                string type = Str(element, "type");
+                if (type != "button" && type != "icon-button") continue;
+                if (!Flag(element, "visible", true) || !Flag(element, "enabled", true))
+                    continue;
+                if (RectOf(element).Contains(p)) { hover = Str(element, "id"); break; }
+            }
             if (hover != _hover)
             {
                 _hover = hover;
@@ -123,21 +241,66 @@ namespace LeavesStoneSetup
             base.OnMouseMove(e);
         }
 
-        protected override void OnMouseLeave(EventArgs e)
+        protected override void OnMouseDown(MouseEventArgs e)
         {
-            _hover = "";
-            Cursor = Cursors.Default;
+            PointF p = new PointF(e.X / _scale, e.Y / _scale);
+            foreach (Dictionary<string, object> element in Elements())
+            {
+                if (Str(element, "type") == "drag-region" && RectOf(element).Contains(p))
+                {
+                    Native.ReleaseCapture();
+                    Native.SendMessage(Handle, 0xA1, (IntPtr)2, IntPtr.Zero);
+                    return;
+                }
+            }
+            _pressed = true;
             Invalidate();
-            base.OnMouseLeave(e);
+            base.OnMouseDown(e);
         }
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
-            if (_page == 0 && _browseRect.Contains(e.Location)) Browse();
-            else if (_page != 1 && _backRect.Contains(e.Location)) SetPage(0);
-            else if (_page == 0 && _installRect.Contains(e.Location)) Install();
-            else if (_page != 1 && _cancelRect.Contains(e.Location)) Close();
+            PointF p = new PointF(e.X / _scale, e.Y / _scale);
+            _pressed = false;
+            foreach (Dictionary<string, object> element in Elements())
+            {
+                string type = Str(element, "type");
+                if (type != "button" && type != "icon-button") continue;
+                if (!Flag(element, "visible", true) || !Flag(element, "enabled", true))
+                    continue;
+                if (!RectOf(element).Contains(p)) continue;
+                Act(Str(element, "action"), Str(element, "id"));
+                break;
+            }
+            Invalidate();
             base.OnMouseUp(e);
+        }
+
+        private void Act(string action, string id)
+        {
+            switch (action)
+            {
+                case "browse":
+                    Browse();
+                    break;
+                case "minimize":
+                    WindowState = FormWindowState.Minimized;
+                    break;
+                case "cancel":
+                    if (_installing) return;
+                    Close();
+                    break;
+                case "close":
+                case "finish":
+                    if (!_installing) Close();
+                    break;
+                case "install":
+                    BeginInstall();
+                    break;
+                default:
+                    if (id == "installButton") BeginInstall();
+                    break;
+            }
         }
 
         private void Browse()
@@ -145,301 +308,325 @@ namespace LeavesStoneSetup
             using (FolderBrowserDialog dialog = new FolderBrowserDialog())
             {
                 dialog.Description = "选择安装位置";
-                dialog.SelectedPath = _dirBox.Text;
+                dialog.SelectedPath = _field.Text;
                 if (dialog.ShowDialog(this) == DialogResult.OK)
-                    _dirBox.Text = dialog.SelectedPath;
+                    _field.Text = dialog.SelectedPath;
             }
         }
 
-        // ----------------------------------------------------------------- flow
-
-        private void SetPage(int page)
+        private void BeginInstall()
         {
-            _page = page;
-            _dirBox.Visible = page == 0;
-            if (page == 1) _timer.Start(); else _timer.Stop();
-            Invalidate();
-        }
-
-        private void Install()
-        {
-            string target = _dirBox.Text.Trim();
+            string target = _field.Text.Trim();
             if (target.Length == 0)
             {
                 MessageBox.Show(this, "请先选择安装目录。", "Leaves & Stone 安装");
                 return;
             }
-            _status = "正在复制文件并注册输入法…";
-            SetPage(1);
-            try
-            {
-                string core = Path.Combine(Path.GetTempPath(),
-                                           "leaves-stone-setup-core.exe");
-                using (Stream stream = Assembly.GetExecutingAssembly()
-                           .GetManifestResourceStream("CoreInstaller"))
-                using (FileStream file = File.Create(core))
-                    stream.CopyTo(file);
-                ProcessStartInfo info = new ProcessStartInfo(core)
-                {
-                    Arguments = "/S /D=" + target,
-                    UseShellExecute = false
-                };
-                using (Process process = Process.Start(info))
-                    process.WaitForExit();
-                SetPage(2);
-            }
-            catch (Exception error)
-            {
-                MessageBox.Show(this, "安装失败：" + error.Message, "Leaves & Stone 安装");
-                SetPage(0);
-            }
-        }
+            _installing = true;
+            _progress = 0.05;
+            _page = "installing";
+            _hover = "";
+            _field.Visible = false;
+            _progressTimer.Start();
+            Invalidate();
 
-        // ---------------------------------------------------------------- paint
+            Thread worker = new Thread(delegate ()
+            {
+                try
+                {
+                    string core = Path.Combine(Path.GetTempPath(),
+                                               "leaves-stone-setup-core.exe");
+                    using (Stream stream = Assembly.GetExecutingAssembly()
+                               .GetManifestResourceStream("CoreInstaller"))
+                    using (FileStream file = File.Create(core))
+                        stream.CopyTo(file);
+                    ProcessStartInfo info = new ProcessStartInfo(core)
+                    {
+                        Arguments = "/S /D=" + target,
+                        UseShellExecute = false
+                    };
+                    using (Process process = Process.Start(info))
+                        process.WaitForExit();
+                    _result = null;
+                }
+                catch (Exception error)
+                {
+                    _result = error.Message;
+                }
+                try
+                {
+                    BeginInvoke((Action)delegate
+                    {
+                        _progressTimer.Stop();
+                        _installing = false;
+                        _page = "finished";
+                        Invalidate();
+                    });
+                }
+                catch
+                {
+                }
+            });
+            worker.IsBackground = true;
+            worker.Start();
+        }
 
         protected override void OnPaint(PaintEventArgs e)
         {
             Graphics g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
-            g.Clear(Palette.Background);
-            g.ScaleTransform(K, K);
+            g.Clear(BackColor);
+            g.ScaleTransform(_scale, _scale);
 
-            DrawCard(g);
-            DrawHeader(g);
-            if (_page == 0) DrawLocation(g);
-            else if (_page == 1) DrawProgress(g);
-            else DrawFinished(g);
-            DrawFooter(g);
-        }
-
-        private void DrawCard(Graphics g)
-        {
-            Rectangle card = new Rectangle(CardX, CardY, CardW, H - CardY * 2);
-            using (GraphicsPath path = Rounded(card, 22))
-            using (SolidBrush brush = new SolidBrush(Palette.Card))
-                g.FillPath(brush, path);
-
-            using (Font brand = new Font("Microsoft YaHei UI", 26f, FontStyle.Bold, GraphicsUnit.Pixel))
-            using (Font sub = new Font("Microsoft YaHei UI", 12f, FontStyle.Regular, GraphicsUnit.Pixel))
-            using (SolidBrush ink = new SolidBrush(Palette.Ink))
-            using (SolidBrush muted = new SolidBrush(Palette.Muted))
+            foreach (Dictionary<string, object> element in Elements())
             {
-                g.DrawString("Leaves & Stone", brand, ink, 38, 54);
-                g.DrawString("输入法安装向导", sub, muted, 39, 88);
-            }
-
-            Rectangle pill = new Rectangle(38, 116, 82, 26);
-            using (GraphicsPath path = Rounded(pill, 13))
-            using (SolidBrush brush = new SolidBrush(Palette.Background))
-                g.FillPath(brush, path);
-            using (Font f = new Font("Microsoft YaHei UI", 11f, FontStyle.Regular, GraphicsUnit.Pixel))
-            using (SolidBrush muted = new SolidBrush(Palette.Muted))
-                g.DrawString("0.17.4", f, muted, 52, 121);
-
-            if (_dogCrop != null)
-            {
-                int width = CardW - 30;
-                int height = width * _dogCrop.Height / _dogCrop.Width;
-                g.DrawImage(_dogCrop,
-                            new Rectangle(CardX + 15, card.Bottom - height - 72,
-                                          width, height));
-            }
-
-            // Paw mark under the mascot.
-            using (SolidBrush paw = new SolidBrush(Color.FromArgb(214, 196, 176)))
-            {
-                g.FillEllipse(paw, CardX + 118, card.Bottom - 44, 15, 13);
-                g.FillEllipse(paw, CardX + 106, card.Bottom - 58, 7, 8);
-                g.FillEllipse(paw, CardX + 116, card.Bottom - 62, 7, 8);
-                g.FillEllipse(paw, CardX + 126, card.Bottom - 58, 7, 8);
-            }
-        }
-
-        private void DrawHeader(Graphics g)
-        {
-            string title = _page == 0 ? "选择安装位置"
-                         : _page == 1 ? "正在安装" : "安装完成";
-            string subtitle = _page == 0
-                ? "选择 Leaves & Stone 的安装文件夹。"
-                : _page == 1 ? "请稍候，正在复制文件并注册输入法。"
-                             : "Leaves & Stone 已安装完成，可以开始使用了。";
-
-            using (Font f = new Font("Microsoft YaHei UI", 30f, FontStyle.Bold, GraphicsUnit.Pixel))
-            using (SolidBrush ink = new SolidBrush(Palette.Ink))
-                g.DrawString(title, f, ink, ContentX, 44);
-            using (Font f = new Font("Microsoft YaHei UI", 13f, FontStyle.Regular, GraphicsUnit.Pixel))
-            using (SolidBrush muted = new SolidBrush(Palette.Muted))
-                g.DrawString(subtitle, f, muted, ContentX + 2, 92);
-
-            string[] labels = { "安装位置", "正在安装", "完成" };
-            int x = ContentX;
-            for (int index = 0; index < labels.Length; ++index)
-            {
-                using (Font f = new Font("Microsoft YaHei UI", 13f, FontStyle.Regular, GraphicsUnit.Pixel))
+                if (!Flag(element, "visible", true)) continue;
+                try
                 {
-                    string text = (index < _page ? "✓ " : (index + 1) + "  ") + labels[index];
-                    Size size = TextRenderer.MeasureText(text, f);
-                    Rectangle box = new Rectangle(x, 140, size.Width + 26, 34);
-                    if (index == _page)
+                    switch (Str(element, "type"))
                     {
-                        using (GraphicsPath path = Rounded(box, 17))
-                        using (SolidBrush brush = new SolidBrush(Palette.StepActive))
-                            g.FillPath(brush, path);
+                        case "box":
+                            DrawBox(g, element);
+                            break;
+                        case "image":
+                            DrawImage(g, element);
+                            break;
+                        case "text":
+                            DrawText(g, element);
+                            break;
+                        case "input":
+                            DrawInput(g, element);
+                            break;
+                        case "button":
+                        case "icon-button":
+                            DrawButton(g, element, Str(element, "type") == "icon-button");
+                            break;
+                        case "progress":
+                            DrawProgress(g, element);
+                            break;
                     }
-                    using (SolidBrush brush = new SolidBrush(
-                               index == _page ? Palette.Ink : Palette.Muted))
-                        g.DrawString(text, f, brush, box.X + 14, box.Y + 8);
-                    x = box.Right + 12;
+                }
+                catch
+                {
+                    // A malformed element must not take the whole window down.
                 }
             }
         }
 
-        private void DrawLocation(Graphics g)
+        private static GraphicsPath Rounded(RectangleF rect, float radius,
+                                            float[] corners = null)
         {
-            using (Font f = new Font("Microsoft YaHei UI", 14f, FontStyle.Regular, GraphicsUnit.Pixel))
-            using (SolidBrush ink = new SolidBrush(Palette.Ink))
-            using (SolidBrush muted = new SolidBrush(Palette.Muted))
-            {
-                g.DrawString("安装目录", f, ink, ContentX, 206);
+            GraphicsPath path = new GraphicsPath();
+            if (rect.Width < 1 || rect.Height < 1) return path;
+            float tl = corners != null ? corners[0] : radius;
+            float tr = corners != null ? corners[1] : radius;
+            float br = corners != null ? corners[2] : radius;
+            float bl = corners != null ? corners[3] : radius;
+            float limit = Math.Min(rect.Width, rect.Height) / 2f;
+            tl = Math.Min(tl, limit); tr = Math.Min(tr, limit);
+            br = Math.Min(br, limit); bl = Math.Min(bl, limit);
+            if (tl > 0.5f) path.AddArc(rect.X, rect.Y, tl * 2, tl * 2, 180, 90);
+            if (tr > 0.5f) path.AddArc(rect.Right - tr * 2, rect.Y, tr * 2, tr * 2, 270, 90);
+            if (br > 0.5f) path.AddArc(rect.Right - br * 2, rect.Bottom - br * 2,
+                                       br * 2, br * 2, 0, 90);
+            if (bl > 0.5f) path.AddArc(rect.X, rect.Bottom - bl * 2, bl * 2, bl * 2, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
 
-                using (GraphicsPath path = Rounded(_fieldRect, 12))
+        private void DrawBox(Graphics g, Dictionary<string, object> element)
+        {
+            RectangleF rect = RectOf(element);
+            if (rect.IsEmpty) return;
+            float radius = (float)Num(element, "radius", 0);
+            float[] corners = null;
+            List<object> list = Seq(element["cornerRadii"]);
+            if (list != null && list.Count == 4)
+                corners = new[] { Convert.ToSingle(list[0]), Convert.ToSingle(list[1]),
+                                  Convert.ToSingle(list[2]), Convert.ToSingle(list[3]) };
+            using (GraphicsPath path = Rounded(rect, radius, corners))
+            {
+                Color fill = Hex(Str(element, "background"), Color.Transparent);
+                if (fill.A > 0)
                 {
-                    using (SolidBrush brush = new SolidBrush(Palette.Field))
+                    using (SolidBrush brush = new SolidBrush(fill))
                         g.FillPath(brush, path);
-                    using (Pen pen = new Pen(Palette.Outline))
-                        g.DrawPath(pen, path);
                 }
-                DrawButton(g, _browseRect, "浏览…", false, _hover == "browse");
-
-                using (Font small = new Font("Microsoft YaHei UI", 11f, FontStyle.Regular, GraphicsUnit.Pixel))
-                    g.DrawString("点击「浏览」可选择其他文件夹。", small, muted,
-                                 ContentX + 2, 288);
-
-                Rectangle info = new Rectangle(ContentX, 336, 676, 96);
-                using (GraphicsPath path = Rounded(info, 16))
-                using (SolidBrush brush = new SolidBrush(Palette.Card))
-                    g.FillPath(brush, path);
-
-                using (Font small = new Font("Microsoft YaHei UI", 11f, FontStyle.Regular, GraphicsUnit.Pixel))
-                using (Font value = new Font("Microsoft YaHei UI", 19f, FontStyle.Regular, GraphicsUnit.Pixel))
+                Dictionary<string, object> border = Dict(element["border"]);
+                float width = (float)Num(border, "width", 0);
+                if (width > 0)
                 {
-                    g.DrawString("所需空间", small, muted, info.X + 30, info.Y + 20);
-                    g.DrawString("约 91 MB", value, ink, info.X + 30, info.Y + 42);
-                    g.DrawString("可用空间", small, muted, info.X + 330, info.Y + 20);
-                    g.DrawString(FreeSpace(), value, ink, info.X + 330, info.Y + 42);
-                }
-            }
-        }
-
-        private static string FreeSpace()
-        {
-            try
-            {
-                DriveInfo drive = new DriveInfo(Path.GetPathRoot(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)));
-                return (drive.AvailableFreeSpace / (1024L * 1024L * 1024L)) + " GB";
-            }
-            catch
-            {
-                return "-";
-            }
-        }
-
-        private void DrawProgress(Graphics g)
-        {
-            Rectangle track = new Rectangle(ContentX, 300, 676, 14);
-            using (GraphicsPath path = Rounded(track, 7))
-            using (SolidBrush brush = new SolidBrush(Palette.Card))
-                g.FillPath(brush, path);
-            Rectangle bar = new Rectangle(ContentX + _marquee - 180, 300, 180, 14);
-            bar.Intersect(track);
-            if (bar.Width > 4)
-            {
-                using (GraphicsPath path = Rounded(bar, 7))
-                using (SolidBrush brush = new SolidBrush(Palette.Accent))
-                    g.FillPath(brush, path);
-            }
-            using (Font f = new Font("Microsoft YaHei UI", 13f, FontStyle.Regular, GraphicsUnit.Pixel))
-            using (SolidBrush muted = new SolidBrush(Palette.Muted))
-                g.DrawString(_status, f, muted, ContentX, 332);
-        }
-
-        private void DrawFinished(Graphics g)
-        {
-            using (Font f = new Font("Microsoft YaHei UI", 15f, FontStyle.Regular, GraphicsUnit.Pixel))
-            using (SolidBrush ink = new SolidBrush(Palette.Ink))
-            using (SolidBrush muted = new SolidBrush(Palette.Muted))
-            {
-                g.DrawString("输入法已经注册到系统。", f, ink, ContentX, 210);
-                g.DrawString("按下 Win + 空格 可以在「Leaves & Stone」和微软拼音之间切换。",
-                             f, muted, ContentX, 244);
-                g.DrawString("右键托盘里的图标可以打开设置、重新部署或卸载。",
-                             f, muted, ContentX, 278);
-            }
-        }
-
-        private void DrawFooter(Graphics g)
-        {
-            using (Pen pen = new Pen(Palette.Outline))
-                g.DrawLine(pen, ContentX, 566, W - 28, 566);
-
-            using (Font f = new Font("Microsoft YaHei UI", 12f, FontStyle.Regular, GraphicsUnit.Pixel))
-            using (SolidBrush muted = new SolidBrush(Palette.Muted))
-            {
-                if (_page == 2)
-                    g.DrawString("Leaves & Stone 0.17.4", f, muted, 28, 592);
-            }
-
-            if (_page != 1)
-                DrawButton(g, _backRect, "上一步", false, _hover == "back");
-            if (_page == 0)
-                DrawButton(g, _installRect, "安装", true, _hover == "install");
-            if (_page != 1)
-                DrawButton(g, _cancelRect, _page == 2 ? "完成" : "取消", false,
-                           _hover == "cancel");
-        }
-
-        private void DrawButton(Graphics g, Rectangle rect, string text,
-                                bool primary, bool hover)
-        {
-            using (GraphicsPath path = Rounded(rect, rect.Height / 2))
-            {
-                Color fill = primary
-                    ? (hover ? Palette.AccentDark : Palette.Accent)
-                    : (hover ? Color.FromArgb(252, 248, 242) : Color.White);
-                using (SolidBrush brush = new SolidBrush(fill))
-                    g.FillPath(brush, path);
-                if (!primary)
-                {
-                    using (Pen pen = new Pen(Palette.Outline))
+                    using (Pen pen = new Pen(Hex(Str(border, "color"), Color.Gray), width))
                         g.DrawPath(pen, path);
                 }
             }
-            using (Font f = new Font("Microsoft YaHei UI", 14f, FontStyle.Regular, GraphicsUnit.Pixel))
+        }
+
+        private void DrawImage(Graphics g, Dictionary<string, object> element)
+        {
+            string asset = Path.GetFileNameWithoutExtension(Str(element, "asset"));
+            Image image;
+            if (asset.Length == 0 || !_images.TryGetValue(asset, out image)) return;
+            RectangleF rect = RectOf(element);
+            if (rect.IsEmpty) return;
+            g.DrawImage(image, rect);
+        }
+
+        private void DrawText(Graphics g, Dictionary<string, object> element)
+        {
+            RectangleF rect = RectOf(element);
+            if (rect.IsEmpty) return;
+            float size = (float)Num(element, "size", 16);
+            if (size <= 0.5f) size = 16f;
+            int weight = (int)Num(element, "weight", 400);
+            string text = Str(element, "text");
+            if (Str(element, "binding") == "directory" && _field != null)
+                text = _field.Text;
+            using (Font font = new Font(Str(element, "font", "Microsoft YaHei UI"), size,
+                                        weight >= 600 ? FontStyle.Bold : FontStyle.Regular,
+                                        GraphicsUnit.Pixel))
             using (SolidBrush brush = new SolidBrush(
-                       primary ? Color.FromArgb(58, 44, 34) : Palette.Ink))
+                       Hex(Str(element, "color"), Color.Black)))
+            using (StringFormat format = new StringFormat())
+            {
+                string align = Str(element, "align", "left");
+                format.Alignment = align == "center" ? StringAlignment.Center
+                                  : align == "right" ? StringAlignment.Far
+                                                     : StringAlignment.Near;
+                format.LineAlignment = Str(element, "verticalAlign", "middle") == "top"
+                                           ? StringAlignment.Near
+                                           : StringAlignment.Center;
+                format.FormatFlags = StringFormatFlags.NoWrap;
+                g.DrawString(text, font, brush, rect, format);
+            }
+        }
+
+        private void DrawInput(Graphics g, Dictionary<string, object> element)
+        {
+            RectangleF rect = RectOf(element);
+            if (rect.IsEmpty) return;
+            using (GraphicsPath path = Rounded(rect, (float)Num(element, "radius", 12)))
+            {
+                using (SolidBrush brush = new SolidBrush(
+                           Hex(Str(element, "background"), Color.White)))
+                    g.FillPath(brush, path);
+                Dictionary<string, object> border = Dict(element["border"]);
+                float width = (float)Num(border, "width", 2);
+                if (width > 0)
+                {
+                    using (Pen pen = new Pen(Hex(Str(border, "color"), Color.Gray), width))
+                        g.DrawPath(pen, path);
+                }
+            }
+        }
+
+        private void DrawButton(Graphics g, Dictionary<string, object> element,
+                                bool iconOnly)
+        {
+            RectangleF rect = RectOf(element);
+            if (rect.IsEmpty) return;
+            string id = Str(element, "id");
+            bool enabled = Flag(element, "enabled", true);
+            Dictionary<string, object> states = Dict(element["states"]);
+            string state = !enabled ? "disabled"
+                         : (_hover == id && _pressed) ? "pressed"
+                         : _hover == id ? "hover" : "normal";
+            Dictionary<string, object> look = states != null ? Dict(states[state]) : null;
+            if (look == null && states != null) look = Dict(states["normal"]);
+
+            float radius = (float)Num(element, "radius", rect.Height / 2);
+            Color fill = Hex(look != null ? Str(look, "background") : "", Color.Transparent);
+            string borderColor = look != null ? Str(look, "borderColor") : "";
+            float borderWidth = (float)Num(Dict(element["border"]), "width", 0);
+            if (borderColor.Length > 0 && borderWidth <= 0) borderWidth = 2f;
+
+            using (GraphicsPath path = Rounded(rect, radius))
+            {
+                if (fill.A > 0)
+                {
+                    using (SolidBrush brush = new SolidBrush(fill))
+                        g.FillPath(brush, path);
+                }
+                if (borderWidth > 0)
+                {
+                    using (Pen pen = new Pen(Hex(borderColor, Color.Gray), borderWidth))
+                        g.DrawPath(pen, path);
+                }
+            }
+
+            Color ink = Hex(look != null ? Str(look, "color") : "", Color.Black);
+            if (iconOnly)
+            {
+                List<object> paths = Seq(element["paths"]);
+                float stroke = (float)Num(element, "strokeWidth", 2);
+                using (Pen pen = new Pen(ink, stroke))
+                {
+                    pen.StartCap = LineCap.Round;
+                    pen.EndCap = LineCap.Round;
+                    if (paths != null)
+                    {
+                        foreach (object value in paths)
+                        {
+                            List<object> points = Seq(value);
+                            if (points == null || points.Count < 2) continue;
+                            PointF[] line = new PointF[points.Count];
+                            bool ok = true;
+                            for (int i = 0; i < points.Count; ++i)
+                            {
+                                List<object> pair = Seq(points[i]);
+                                if (pair == null || pair.Count < 2) { ok = false; break; }
+                                line[i] = new PointF(Convert.ToSingle(pair[0]),
+                                                     Convert.ToSingle(pair[1]));
+                            }
+                            if (ok) g.DrawLines(pen, line);
+                        }
+                    }
+                }
+                return;
+            }
+
+            using (Font font = new Font(Str(element, "font", "Microsoft YaHei UI"),
+                                        (float)Num(element, "size", 20),
+                                        (int)Num(element, "weight", 400) >= 600
+                                            ? FontStyle.Bold : FontStyle.Regular,
+                                        GraphicsUnit.Pixel))
+            using (SolidBrush brush = new SolidBrush(ink))
             using (StringFormat format = new StringFormat())
             {
                 format.Alignment = StringAlignment.Center;
                 format.LineAlignment = StringAlignment.Center;
-                g.DrawString(text, f, brush, rect, format);
+                g.DrawString(Str(element, "text"), font, brush, rect, format);
             }
         }
 
-        private static GraphicsPath Rounded(Rectangle rect, int radius)
+        private void DrawProgress(Graphics g, Dictionary<string, object> element)
         {
-            GraphicsPath path = new GraphicsPath();
-            int d = Math.Max(2, radius * 2);
-            if (d > rect.Width) d = rect.Width;
-            if (d > rect.Height) d = rect.Height;
-            path.AddArc(rect.X, rect.Y, d, d, 180, 90);
-            path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
-            path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
-            path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
-            path.CloseFigure();
-            return path;
+            RectangleF rect = RectOf(element);
+            if (rect.IsEmpty) return;
+            float radius = (float)Num(element, "radius", rect.Height / 2);
+            using (GraphicsPath path = Rounded(rect, radius))
+            using (SolidBrush brush = new SolidBrush(
+                       Hex(Str(element, "background"), Color.LightGray)))
+                g.FillPath(brush, path);
+            double value = _page == "installing" ? _progress : Num(element, "value", 0);
+            if (value <= 0) return;
+            RectangleF bar = new RectangleF(rect.X, rect.Y,
+                                            rect.Width * (float)value, rect.Height);
+            using (GraphicsPath path = Rounded(bar, radius))
+            using (SolidBrush brush = new SolidBrush(Hex(Str(element, "fill"), Color.Tan)))
+                g.FillPath(brush, path);
         }
+    }
+
+    internal static class Native
+    {
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        public static extern bool ReleaseCapture();
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        public static extern IntPtr SendMessage(IntPtr hWnd, int msg,
+                                                IntPtr wParam, IntPtr lParam);
     }
 
     internal static class Program
@@ -450,44 +637,73 @@ namespace LeavesStoneSetup
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            Image dog = LoadImage("DogImage");
-            string installDir = ReadInstallDir();
-
-            if (args != null && args.Length == 2 && args[0] == "--render")
+            Dictionary<string, object> layout;
+            using (Stream stream = Assembly.GetExecutingAssembly()
+                       .GetManifestResourceStream("LayoutJson"))
+            using (StreamReader reader = new StreamReader(stream))
             {
-                using (SetupWindow window = new SetupWindow(installDir, dog))
+                layout = new JavaScriptSerializer { MaxJsonLength = int.MaxValue }
+                    .Deserialize<Dictionary<string, object>>(reader.ReadToEnd());
+            }
+
+            if (args != null && args.Length >= 2 && args[0] == "--trace")
+            {
+                string log = args[1];
+                Action<string> mark = delegate (string what)
                 {
+                    File.AppendAllText(log, what + Environment.NewLine);
+                };
+                try
+                {
+                    mark("json-parsed pages=" + (layout.ContainsKey("pages")));
+                    using (SetupWindow window = new SetupWindow(layout, "C:\\tmp"))
+                    {
+                        mark("window-created");
+                        window.CreateControl();
+                        mark("control-created");
+                        using (Bitmap bitmap = new Bitmap(200, 200))
+                        {
+                            window.DrawToBitmap(bitmap, new Rectangle(0, 0, 200, 200));
+                            mark("painted");
+                        }
+                    }
+                    mark("done");
+                }
+                catch (Exception error)
+                {
+                    mark("exception: " + error);
+                }
+                return;
+            }
+
+            if (args != null && args.Length >= 3 && args[0] == "--render")
+            {
+                using (SetupWindow window = new SetupWindow(layout, ReadInstallDir()))
+                {
+                    typeof(SetupWindow)
+                        .GetField("_page", BindingFlags.NonPublic | BindingFlags.Instance)
+                        .SetValue(window, args[1]);
                     window.CreateControl();
                     using (Bitmap bitmap = new Bitmap(window.ClientSize.Width,
                                                       window.ClientSize.Height))
                     {
                         window.DrawToBitmap(bitmap, new Rectangle(0, 0,
                             bitmap.Width, bitmap.Height));
-                        bitmap.Save(args[1], System.Drawing.Imaging.ImageFormat.Png);
+                        bitmap.Save(args[2], System.Drawing.Imaging.ImageFormat.Png);
                     }
                 }
                 return;
             }
 
-            Application.Run(new SetupWindow(installDir, dog));
-        }
-
-        private static Image LoadImage(string name)
-        {
-            using (Stream stream = Assembly.GetExecutingAssembly()
-                       .GetManifestResourceStream(name))
-            {
-                if (stream == null) return null;
-                return Image.FromStream(stream);
-            }
+            Application.Run(new SetupWindow(layout, ReadInstallDir()));
         }
 
         private static string ReadInstallDir()
         {
             try
             {
-                using (Microsoft.Win32.RegistryKey key = Microsoft.Win32.Registry.LocalMachine
-                           .OpenSubKey(@"Software\WOW6432Node\LeavesAndStone\IME"))
+                using (Microsoft.Win32.RegistryKey key = Microsoft.Win32.Registry
+                           .LocalMachine.OpenSubKey(@"Software\WOW6432Node\LeavesAndStone\IME"))
                 {
                     object value = key == null ? null : key.GetValue("InstallDir");
                     if (value is string && ((string)value).Length > 0)
