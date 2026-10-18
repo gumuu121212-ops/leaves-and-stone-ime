@@ -1,4 +1,4 @@
-﻿#include "SceneRenderer.h"
+#include "SceneRenderer.h"
 
 #include <algorithm>
 #include <cmath>
@@ -259,7 +259,7 @@ bool SceneRenderer::Render(HDC target,
                           left_format_, &index_brush);
 
       Gdiplus::RectF text_rect(item.X + 24.0f * scale, item.Y,
-                               item.Width - 28.0f * scale, item.Height);
+                               item.Width - 26.0f * scale, item.Height);
       Gdiplus::SolidBrush text_brush(Color(255, 0x44, 0x37, 0x2F, opacity));
       graphics.DrawString(candidate.display_text.c_str(), -1, candidate_font_,
                           text_rect, left_format_, &text_brush);
