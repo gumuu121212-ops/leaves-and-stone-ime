@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 
 $dataRoot = Join-Path (Split-Path -Parent $PSScriptRoot) 'output\data'
 $required = @(
@@ -29,7 +29,7 @@ if ($content['leaves_stone_theme.yaml'] -notmatch 'orientation:\s*horizontal') {
 if ($content['leaves_stone_theme.yaml'] -notmatch 'animation_enabled:\s*true') { throw 'Animation must default on.' }
 if ($content['leaves_stone_theme.yaml'] -notmatch 'decoration_enabled:\s*true') { throw 'Decoration must default on.' }
 if ($content['weasel.yaml'] -notmatch 'horizontal:\s*true') { throw 'Host layout must be horizontal.' }
-if ($content['weasel.yaml'] -notmatch 'inline_preedit:\s*false') { throw 'Inline preedit must be off.' }
+if ($content['weasel.yaml'] -notmatch 'inline_preedit:\s*true') { throw 'Inline preedit must be on.' }
 
 $allContent = ($content.Values -join "`n")
 foreach ($forbidden in @('http://', 'https://', 'network:', 'update_url:', 'telemetry:', 'cloud:')) {
