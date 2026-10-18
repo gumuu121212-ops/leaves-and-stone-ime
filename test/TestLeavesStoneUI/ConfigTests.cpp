@@ -195,6 +195,8 @@ int RunSceneLayoutTests();
 int RunRendererSmokeTests();
 int RunSettingsStoreTests();
 int RunInputStateTests();
+int RunCaretPositionTests();
+int RunToolbarVisibilityTests();
 
 int main(int argc, char* argv[]) {
   const std::string filter =
@@ -211,6 +213,10 @@ int main(int argc, char* argv[]) {
     failures += RunSettingsStoreTests();
   if (filter.empty() || filter.find("InputState") != std::string::npos)
     failures += RunInputStateTests();
+  if (filter.empty() || filter == "CaretPosition")
+    failures += RunCaretPositionTests();
+  if (filter.empty() || filter == "ToolbarVisibility")
+    failures += RunToolbarVisibilityTests();
   if (failures == 0)
     std::cout << "TestLeavesStoneUI: PASS\n";
   return failures == 0 ? 0 : 1;

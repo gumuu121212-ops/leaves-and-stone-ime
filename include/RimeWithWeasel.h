@@ -103,7 +103,7 @@ class RimeWithWeaselHandler : public weasel::RequestHandler {
   AppOptionsByAppName m_app_options;
   weasel::UI* m_ui;  // reference
   DWORD m_active_session;
-  int m_open_sessions = 0;
+  WeaselSessionId m_focused_session = 0;
   std::function<void(bool)> m_active_changed;
   bool m_disabled;
   std::string m_last_schema_id;

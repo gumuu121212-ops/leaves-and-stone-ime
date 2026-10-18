@@ -8,7 +8,7 @@ $config = Get-Content -LiteralPath (Join-Path $repoRoot 'config\product.json') -
 $header = Get-Content -LiteralPath (Join-Path $repoRoot 'include\LeavesStoneProduct.h') -Raw
 $nsis = Get-Content -LiteralPath (Join-Path $repoRoot 'output\LeavesStoneProduct.nsh') -Raw
 
-if ($config.display_name -ne 'Leaves & Stone') { throw 'Unexpected product display name.' }
+if ($config.display_name -ne '小毛豆输入法') { throw 'Unexpected product display name.' }
 if ($config.registry_root -ne 'Software\LeavesAndStone\IME') { throw 'Unexpected product registry root.' }
 if ($config.user_data_subdir -ne 'LeavesAndStone\Rime') { throw 'Unexpected user data directory.' }
 
@@ -29,7 +29,7 @@ foreach ($guid in $productGuids) {
   if (-not [guid]::TryParse($guid, [ref]([guid]::Empty))) { throw "Invalid GUID: $guid" }
 }
 
-if ($header -notmatch 'kDisplayName\[\].*Leaves & Stone') { throw 'Generated C++ header lost the display name.' }
+if ($header -notmatch 'kDisplayName\[\].*小毛豆输入法') { throw 'Generated C++ header lost the display name.' }
 if ($header -notmatch 'kRegistryRoot\[\].*Software\\\\LeavesAndStone\\\\IME') { throw 'Generated C++ header lost the registry root.' }
 if (-not $header.Contains('inline constexpr wchar_t kRegistryRootWow64[] = L"Software\\WOW6432Node\\LeavesAndStone\\IME";')) {
   throw 'Generated C++ header has an incorrectly escaped WOW64 registry root.'
@@ -37,7 +37,7 @@ if (-not $header.Contains('inline constexpr wchar_t kRegistryRootWow64[] = L"Sof
 if (-not $header.Contains('inline constexpr wchar_t kRegistryUpdates[] = L"Software\\LeavesAndStone\\IME\\Updates";')) {
   throw 'Generated C++ header has an incorrectly escaped update registry path.'
 }
-if ($nsis -notmatch 'LEAVES_STONE_DISPLAY_NAME "Leaves & Stone"') { throw 'Generated NSIS constants lost the display name.' }
+if ($nsis -notmatch 'LEAVES_STONE_DISPLAY_NAME "小毛豆输入法"') { throw 'Generated NSIS constants lost the display name.' }
 if ($nsis -notmatch 'LEAVES_STONE_REGISTRY_ROOT "Software\\LeavesAndStone\\IME"') { throw 'Generated NSIS constants lost the registry root.' }
 
 $globals = Get-Content -LiteralPath (Join-Path $repoRoot 'WeaselTSF\Globals.cpp') -Raw

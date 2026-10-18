@@ -127,6 +127,11 @@ void DoggyToolbar::SetVisible(bool visible) {
   if (!hwnd_)
     return;
   ShowWindow(hwnd_, visible ? SW_SHOWNOACTIVATE : SW_HIDE);
+  if (!visible) {
+    pointer_inside_ = false;
+    hot_ = Hot::None;
+    SetAwake(false);
+  }
 }
 
 void DoggyToolbar::SetAsciiMode(bool) {
@@ -160,7 +165,7 @@ void DoggyToolbar::ApplyPlacement() {
   const int y = work.bottom -
                 static_cast<int>(std::lround(kBottomMarginDip * dip)) - height;
   SetWindowPos(hwnd_, HWND_TOPMOST, x, y, width, height,
-               SWP_NOACTIVATE | SWP_SHOWWINDOW);
+               SWP_NOACTIVATE);
   window_rect_ = {x, y, x + width, y + height};
 }
 
@@ -225,6 +230,8 @@ void DoggyToolbar::SetAwake(bool awake) {
 }
 
 void DoggyToolbar::PollPointer() {
+  if (!hwnd_ || !IsWindowVisible(hwnd_))
+    return;
   POINT cursor = {0, 0};
   if (!GetCursorPos(&cursor))
     return;

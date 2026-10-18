@@ -198,6 +198,7 @@ class WeaselTSF : public ITfTextInputProcessorEx,
   com_ptr<ITfThreadMgr> _pThreadMgr;
   TfClientId _tfClientId;
   DWORD _dwThreadMgrEventSinkCookie;
+  DWORD _dwProfileNotifySinkCookie;
 
   com_ptr<ITfContext> _pTextEditSinkContext;
   DWORD _dwTextEditSinkCookie, _dwTextLayoutSinkCookie;

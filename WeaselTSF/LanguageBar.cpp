@@ -6,6 +6,8 @@
 #include "LanguageBar.h"
 #include "CandidateList.h"
 #include <WeaselUtility.h>
+#include "TsfDiagnostics.h"
+#include <sstream>
 
 static const DWORD LANGBARITEMSINK_COOKIE = 0x42424242;
 
@@ -202,27 +204,36 @@ STDAPI CLangBarItemButton::OnMenuSelect(UINT wID) {
 }
 
 STDAPI CLangBarItemButton::GetIcon(HICON* phIcon) {
-  if (ascii_mode) {
-    if (_style.current_ascii_icon.empty())
-      *phIcon = (HICON)LoadImageW(g_hInst, MAKEINTRESOURCEW(IDI_EN), IMAGE_ICON,
-                                  GetSystemMetrics(SM_CXSMICON),
-                                  GetSystemMetrics(SM_CYSMICON), LR_SHARED);
-    else
-      *phIcon =
-          (HICON)LoadImageW(NULL, _style.current_ascii_icon.c_str(), IMAGE_ICON,
-                            GetSystemMetrics(SM_CXSMICON),
-                            GetSystemMetrics(SM_CYSMICON), LR_LOADFROMFILE);
-  } else {
-    if (_style.current_zhung_icon.empty())
-      *phIcon = (HICON)LoadImageW(g_hInst, MAKEINTRESOURCEW(IDI_ZH), IMAGE_ICON,
-                                  GetSystemMetrics(SM_CXSMICON),
-                                  GetSystemMetrics(SM_CYSMICON), LR_SHARED);
-    else
-      *phIcon =
-          (HICON)LoadImageW(NULL, _style.current_zhung_icon.c_str(), IMAGE_ICON,
-                            GetSystemMetrics(SM_CXSMICON),
-                            GetSystemMetrics(SM_CYSMICON), LR_LOADFROMFILE);
+  if (!phIcon) return E_INVALIDARG;
+  *phIcon = nullptr;
+  const int width = GetSystemMetrics(SM_CXSMICON);
+  const int height = GetSystemMetrics(SM_CYSMICON);
+  const UINT resource = ascii_mode ? IDI_EN : IDI_ZH;
+  const std::wstring& configured = ascii_mode ? _style.current_ascii_icon
+                                             : _style.current_zhung_icon;
+  DWORD configured_error = ERROR_SUCCESS;
+  if (!configured.empty()) {
+    *phIcon = (HICON)LoadImageW(nullptr, configured.c_str(), IMAGE_ICON,
+                                width, height, LR_LOADFROMFILE);
+    if (!*phIcon) configured_error = GetLastError();
   }
+  const bool from_file = *phIcon != nullptr;
+  if (!*phIcon) {
+    // The TSF caller owns and destroys this icon. Never return LR_SHARED.
+    *phIcon = (HICON)LoadImageW(g_hInst, MAKEINTRESOURCEW(resource), IMAGE_ICON,
+                                width, height, 0);
+  }
+  const DWORD load_error = *phIcon ? ERROR_SUCCESS : GetLastError();
+  wchar_t module[MAX_PATH]{};
+  GetModuleFileNameW(g_hInst, module, MAX_PATH);
+  std::ostringstream diagnostic;
+  diagnostic << "ascii=" << ascii_mode << " source="
+             << (from_file ? "file" : "resource") << " id=" << resource
+             << " size=" << width << 'x' << height << " load_error="
+             << load_error << " configured_error=" << configured_error
+             << " module=" << leaves_stone::DiagnosticUtf8(module)
+             << " configured=" << leaves_stone::DiagnosticUtf8(configured);
+  leaves_stone::WriteTsfDiagnostic("icon-v2", diagnostic.str());
   return (*phIcon == NULL) ? E_FAIL : S_OK;
 }
 

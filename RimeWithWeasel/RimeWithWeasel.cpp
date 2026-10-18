@@ -190,6 +190,7 @@ void RimeWithWeaselHandler::Initialize() {
 
 void RimeWithWeaselHandler::Finalize() {
   m_active_session = 0;
+  m_focused_session = 0;
   m_disabled = true;
   m_session_status_map.clear();
   LOG(INFO) << "Finalizing la rime.";
@@ -213,11 +214,6 @@ DWORD RimeWithWeaselHandler::AddSession(LPWSTR buffer, EatLine eat) {
       return 0;
   }
   RimeSessionId session_id = (RimeSessionId)rime_api->create_session();
-  if (session_id) {
-    ++m_open_sessions;
-    if (m_active_changed)
-      m_active_changed(true);
-  }
   if (m_global_ascii_mode) {
     for (const auto& pair : m_session_status_map) {
       if (pair.first) {
@@ -262,19 +258,22 @@ DWORD RimeWithWeaselHandler::AddSession(LPWSTR buffer, EatLine eat) {
 }
 
 DWORD RimeWithWeaselHandler::RemoveSession(WeaselSessionId ipc_id) {
-  if (m_ui)
-    m_ui->Hide();
   if (m_disabled)
     return 0;
   DLOG(INFO) << "Remove session: session_id = " << to_session_id(ipc_id);
-  if (m_open_sessions > 0)
-    --m_open_sessions;
-  if (m_active_changed)
-    m_active_changed(m_open_sessions > 0);
+  if (m_focused_session == ipc_id) {
+    m_focused_session = 0;
+    if (m_active_changed)
+      m_active_changed(false);
+  }
+  if (m_active_session == ipc_id) {
+    if (m_ui)
+      m_ui->Hide();
+    m_active_session = 0;
+  }
   // TODO: force committing? otherwise current composition would be lost
   rime_api->destroy_session(to_session_id(ipc_id));
   m_session_status_map.erase(ipc_id);
-  m_active_session = 0;
   return 0;
 }
 
@@ -339,6 +338,7 @@ BOOL RimeWithWeaselHandler::ProcessKeyEvent(KeyEvent keyEvent,
   _Respond(ipc_id, eat);
   _UpdateUI(ipc_id);
   m_active_session = ipc_id;
+  m_focused_session = ipc_id;
   if (m_active_changed)
     m_active_changed(true);
   return (BOOL)handled;
@@ -351,8 +351,6 @@ void RimeWithWeaselHandler::CommitComposition(WeaselSessionId ipc_id) {
   rime_api->commit_composition(to_session_id(ipc_id));
   _UpdateUI(ipc_id);
   m_active_session = ipc_id;
-  if (m_active_changed)
-    m_active_changed(true);
 }
 
 void RimeWithWeaselHandler::ClearComposition(WeaselSessionId ipc_id) {
@@ -362,8 +360,6 @@ void RimeWithWeaselHandler::ClearComposition(WeaselSessionId ipc_id) {
   rime_api->clear_composition(to_session_id(ipc_id));
   _UpdateUI(ipc_id);
   m_active_session = ipc_id;
-  if (m_active_changed)
-    m_active_changed(true);
 }
 
 void RimeWithWeaselHandler::SelectCandidateOnCurrentPage(
@@ -407,12 +403,17 @@ void RimeWithWeaselHandler::FocusIn(DWORD client_caps, WeaselSessionId ipc_id) {
     return;
   _UpdateUI(ipc_id);
   m_active_session = ipc_id;
+  m_focused_session = ipc_id;
   if (m_active_changed)
     m_active_changed(true);
 }
 
 void RimeWithWeaselHandler::FocusOut(DWORD param, WeaselSessionId ipc_id) {
   DLOG(INFO) << "Focus out: ipc_id = " << ipc_id;
+  // A late notification from a background client must not hide the current one.
+  if (ipc_id != m_focused_session)
+    return;
+  m_focused_session = 0;
   if (m_ui)
     m_ui->Hide();
   m_active_session = 0;

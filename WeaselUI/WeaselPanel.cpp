@@ -218,15 +218,11 @@ void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
   }
 
   leaves_stone::SceneInput input;
-  // Chromium style hosts keep reporting the same caret rect while an inline
-  // composition grows, so the window would sit on the words being typed. Move
-  // the anchor by an estimate of how wide the text already is; pinyin is latin,
-  // so a little under one em per character is close enough to keep clear.
-  const float typed_advance =
-      0.0f;
-  input.anchor = {static_cast<float>(m_inputPos.left) + typed_advance,
+  // TSF supplies the selection caret for inline preedit. Do not estimate its
+  // advance from the number of characters or from the candidate-window text.
+  input.anchor = {static_cast<float>(m_inputPos.left),
                   static_cast<float>(m_inputPos.top),
-                  static_cast<float>(m_inputPos.right) + typed_advance,
+                  static_cast<float>(m_inputPos.right),
                   static_cast<float>(m_inputPos.bottom)};
   input.work_area = {static_cast<float>(work_area.left),
                      static_cast<float>(work_area.top),
@@ -266,7 +262,9 @@ void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
               << m_inputPos.right << "," << m_inputPos.bottom << "  window "
               << static_cast<int>(m_leaves_scene.window_bounds.left) << ","
               << static_cast<int>(m_leaves_scene.window_bounds.top) << "  len "
-              << input.preedit.size() << "\n";
+              << m_ctx.preedit.str.size() << " drawn_len "
+              << input.preedit.size() << " inline " << m_style.inline_preedit
+              << "\n";
         }
       }
     }

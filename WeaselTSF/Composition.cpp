@@ -3,6 +3,9 @@
 #include "EditSession.h"
 #include "ResponseParser.h"
 #include "CandidateList.h"
+#include "CaretPosition.h"
+#include "TsfDiagnostics.h"
+#include <sstream>
 
 /* Start Composition */
 class CStartCompositionEditSession : public CEditSession {
@@ -138,11 +141,13 @@ class CGetTextExtentEditSession : public CEditSession {
                             com_ptr<ITfContext> pContext,
                             com_ptr<ITfContextView> pContextView,
                             com_ptr<ITfComposition> pComposition,
-                            bool enhancedPosition)
+                            bool enhancedPosition,
+                            bool inlinePreedit)
       : CEditSession(pTextService, pContext) {
     _pContextView = pContextView;
     _pComposition = pComposition;
     _enhancedPosition = enhancedPosition;
+    _inlinePreedit = inlinePreedit;
   }
 
   /* ITfEditSession */
@@ -152,34 +157,55 @@ class CGetTextExtentEditSession : public CEditSession {
   com_ptr<ITfContextView> _pContextView;
   com_ptr<ITfComposition> _pComposition;
   bool _enhancedPosition;
+  bool _inlinePreedit;
 };
 
 STDAPI CGetTextExtentEditSession::DoEditSession(TfEditCookie ec) {
-  com_ptr<ITfInsertAtSelection> pInsertAtSelection;
-  com_ptr<ITfRange> pRangeComposition;
-  ITfRange* pRange;
-  RECT rc;
-  BOOL fClipped;
-  TF_SELECTION selection;
-  ULONG nSelection;
-
-  if (FAILED(_pContext->QueryInterface(IID_ITfInsertAtSelection,
-                                       (LPVOID*)&pInsertAtSelection)))
-    return E_FAIL;
-  if (FAILED(_pContext->GetSelection(ec, TF_DEFAULT_SELECTION, 1, &selection,
-                                     &nSelection)))
-    return E_FAIL;
-
-  if (_pComposition != nullptr && _pComposition->GetRange(&pRange) == S_OK) {
-    pRange->Collapse(ec, TF_ANCHOR_START);
-  } else {
-    // composition end
-    // note: selection.range is always an empty range
-    pRange = selection.range;
-  }
-
-  if ((_pContextView->GetTextExt(ec, pRange, &rc, &fClipped)) == S_OK &&
-      (rc.left != 0 || rc.top != 0)) {
+  RECT rc{};
+  const bool found = leaves_stone::ResolveCaretRect(
+      _inlinePreedit, [&](leaves_stone::CaretRange kind, RECT& candidate) {
+        com_ptr<ITfRange> range;
+        TfAnchor anchor = TF_ANCHOR_START;
+        if (kind == leaves_stone::CaretRange::Selection) {
+          TF_SELECTION selection{};
+          ULONG fetched = 0;
+          const HRESULT hr = _pContext->GetSelection(
+              ec, TF_DEFAULT_SELECTION, 1, &selection, &fetched);
+          com_ptr<ITfRange> selected;
+          selected.Attach(selection.range);
+          if (FAILED(hr) || !fetched || !selected ||
+              FAILED(selected->Clone(&range)))
+            return false;
+          anchor = selection.style.ase == TF_AE_START ? TF_ANCHOR_START
+                                                    : TF_ANCHOR_END;
+        } else {
+          if (!_pComposition || FAILED(_pComposition->GetRange(&range)))
+            return false;
+          anchor = kind == leaves_stone::CaretRange::CompositionEnd
+                       ? TF_ANCHOR_END : TF_ANCHOR_START;
+        }
+        if (FAILED(range->Collapse(ec, anchor))) return false;
+        BOOL clipped = FALSE;
+        const HRESULT hr = _pContextView->GetTextExt(ec, range, &candidate,
+                                                    &clipped);
+        std::ostringstream diagnostic;
+        diagnostic << "inline=" << _inlinePreedit << " range="
+                   << static_cast<int>(kind) << " hr=" << hr
+                   << " clipped=" << clipped << " rect=" << candidate.left
+                   << ',' << candidate.top << ',' << candidate.right << ','
+                   << candidate.bottom;
+        leaves_stone::WriteTsfDiagnostic("caret", diagnostic.str());
+        const bool nonempty = candidate.left || candidate.top ||
+                              candidate.right || candidate.bottom;
+        // Non-inline CUAS uses a zero-height response to enable its existing
+        // dummy-composition workaround in _SetCompositionPosition.
+        const bool usable_height = _inlinePreedit
+            ? candidate.bottom > candidate.top
+            : candidate.bottom >= candidate.top;
+        return hr == S_OK && !clipped && nonempty && usable_height &&
+               candidate.right >= candidate.left;
+      }, rc);
+  if (found) {
     // get the foreground window pos and check if rc from GetTextExt is out of
     // window
     if (_enhancedPosition) {
@@ -215,7 +241,8 @@ BOOL WeaselTSF::_UpdateCompositionWindow(com_ptr<ITfContext> pContext) {
   com_ptr<CGetTextExtentEditSession> pEditSession;
   pEditSession.Attach(
       new CGetTextExtentEditSession(this, pContext, pContextView, _pComposition,
-                                    _cand->style().enhanced_position));
+                                    _cand->style().enhanced_position,
+                                    _cand->style().inline_preedit));
   if (pEditSession == NULL) {
     return FALSE;
   }
@@ -298,9 +325,10 @@ STDAPI CInlinePreeditEditSession::DoEditSession(TfEditCookie ec) {
   tfSelection.range = pRangeComposition;
   tfSelection.style.ase = TF_AE_NONE;
   tfSelection.style.fInterimChar = FALSE;
-  _pContext->SetSelection(ec, 1, &tfSelection);
-
-  return S_OK;
+  const HRESULT selection_result = _pContext->SetSelection(ec, 1, &tfSelection);
+  if (SUCCEEDED(selection_result))
+    _pTextService->_UpdateCompositionWindow(_pContext);
+  return selection_result;
 }
 
 BOOL WeaselTSF::_ShowInlinePreedit(

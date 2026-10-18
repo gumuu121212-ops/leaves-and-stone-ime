@@ -8,6 +8,7 @@
 #include "LanguageBar.h"
 #include "Compartment.h"
 #include "ResponseParser.h"
+#include "TsfDiagnostics.h"
 
 static void error_message(const WCHAR* msg) {
   static DWORD next_tick = 0;
@@ -22,6 +23,7 @@ WeaselTSF::WeaselTSF() {
   _cRef = 1;
 
   _dwThreadMgrEventSinkCookie = TF_INVALID_COOKIE;
+  _dwProfileNotifySinkCookie = TF_INVALID_COOKIE;
 
   _dwTextEditSinkCookie = TF_INVALID_COOKIE;
   _dwTextLayoutSinkCookie = TF_INVALID_COOKIE;
@@ -65,6 +67,8 @@ STDAPI WeaselTSF::QueryInterface(REFIID riid, void** ppvObject) {
     *ppvObject = (ITfEditSession*)this;
   else if (IsEqualIID(riid, IID_ITfThreadFocusSink))
     *ppvObject = (ITfThreadFocusSink*)this;
+  else if (IsEqualIID(riid, IID_ITfActiveLanguageProfileNotifySink))
+    *ppvObject = (ITfActiveLanguageProfileNotifySink*)this;
   else if (IsEqualIID(riid, IID_ITfDisplayAttributeProvider))
     *ppvObject = (ITfDisplayAttributeProvider*)this;
 
@@ -95,6 +99,7 @@ STDAPI WeaselTSF::Activate(ITfThreadMgr* pThreadMgr, TfClientId tfClientId) {
 }
 
 STDAPI WeaselTSF::Deactivate() {
+  m_client.FocusOut();
   m_client.EndSession();
 
   _InitTextEditSink(com_ptr<ITfDocumentMgr>());
@@ -108,7 +113,7 @@ STDAPI WeaselTSF::Deactivate() {
 
   _UninitCompartment();
 
-  _UninitThreadMgrEventSink();
+  _UninitThreadFocusSink();
 
   _pThreadMgr = NULL;
 
@@ -159,7 +164,11 @@ STDAPI WeaselTSF::ActivateEx(ITfThreadMgr* pThreadMgr,
   if (!_InitThreadFocusSink())
     goto ExitError;
 
-  _EnsureServerConnected();
+  if (_EnsureServerConnected()) {
+    BOOL focused = FALSE;
+    if (SUCCEEDED(_pThreadMgr->IsThreadFocus(&focused)) && focused)
+      m_client.FocusIn();
+  }
 
   return S_OK;
 
@@ -174,6 +183,7 @@ STDMETHODIMP WeaselTSF::OnSetThreadFocus() {
                     L"ToggleImeOnOpenClose", _ToggleImeOnOpenClose);
   _isToOpenClose = (_ToggleImeOnOpenClose == L"yes");
   if (m_client.Echo()) {
+    m_client.FocusIn();
     m_client.ProcessKeyEvent(0);
     weasel::ResponseParser parser(NULL, NULL, &_status, NULL, &_cand->style());
     bool ok = m_client.GetResponseData(std::ref(parser));
@@ -183,6 +193,7 @@ STDMETHODIMP WeaselTSF::OnSetThreadFocus() {
   return S_OK;
 }
 STDMETHODIMP WeaselTSF::OnKillThreadFocus() {
+  m_client.FocusOut();
   _AbortComposition();
   return S_OK;
 }
@@ -196,14 +207,15 @@ BOOL WeaselTSF::_InitThreadFocusSink() {
     return FALSE;
   return TRUE;
 }
-void WeaselTSF::_UninitThreadFocusSink() {
-  com_ptr<ITfSource> pSource;
-  if (FAILED(_pThreadMgr->QueryInterface(&pSource)))
-    return;
-  if (FAILED(pSource->UnadviseSink(_dwThreadFocusSinkCookie)))
-    return;
-}
 
+void WeaselTSF::_UninitThreadFocusSink() {
+  if (_dwThreadFocusSinkCookie == TF_INVALID_COOKIE || !_pThreadMgr)
+    return;
+  com_ptr<ITfSource> source;
+  if (SUCCEEDED(_pThreadMgr->QueryInterface(&source)))
+    source->UnadviseSink(_dwThreadFocusSinkCookie);
+  _dwThreadFocusSinkCookie = TF_INVALID_COOKIE;
+}
 STDMETHODIMP WeaselTSF::OnActivated(REFCLSID clsid,
                                     REFGUID guidProfile,
                                     BOOL isActivated) {
@@ -214,10 +226,16 @@ STDMETHODIMP WeaselTSF::OnActivated(REFCLSID clsid,
   if (isActivated) {
     _ShowLanguageBar(TRUE);
     _UpdateLanguageBar(_status);
+    BOOL focused = FALSE;
+    if (_pThreadMgr && SUCCEEDED(_pThreadMgr->IsThreadFocus(&focused)) &&
+        focused && m_client.Echo())
+      m_client.FocusIn();
   } else {
+    m_client.FocusOut();
     _DeleteCandidateList();
     _ShowLanguageBar(FALSE);
   }
+  leaves_stone::WriteTsfDiagnostic("profile", isActivated ? "active=1" : "active=0");
   return S_OK;
 }
 
