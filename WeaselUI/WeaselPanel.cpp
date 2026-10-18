@@ -218,9 +218,15 @@ void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
   }
 
   leaves_stone::SceneInput input;
-  input.anchor = {static_cast<float>(m_inputPos.left),
+  // Chromium style hosts keep reporting the same caret rect while an inline
+  // composition grows, so the window would sit on the words being typed. Move
+  // the anchor by an estimate of how wide the text already is; pinyin is latin,
+  // so a little under one em per character is close enough to keep clear.
+  const float typed_advance =
+      static_cast<float>(m_ctx.preedit.str.size()) * 11.0f * dpiScaleLayout;
+  input.anchor = {static_cast<float>(m_inputPos.left) + typed_advance,
                   static_cast<float>(m_inputPos.top),
-                  static_cast<float>(m_inputPos.right),
+                  static_cast<float>(m_inputPos.right) + typed_advance,
                   static_cast<float>(m_inputPos.bottom)};
   input.work_area = {static_cast<float>(work_area.left),
                      static_cast<float>(work_area.top),
