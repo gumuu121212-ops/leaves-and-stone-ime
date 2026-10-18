@@ -107,14 +107,19 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   float left = Clamp(input.anchor.left + 24.0f * scale,
                      input.work_area.left,
                      input.work_area.right - window_width);
-  // Start the whole window below the caret. The mascot occupies the top of the
-  // window, so keeping the bar under the caret while ignoring the mascot height
-  // made the head cover the line being typed.
-  float top = input.anchor.bottom + 6.0f * scale;
-  if (top + window_height > input.work_area.bottom) {
-    // Place the whole window above the caret, not just the bar: the mascot is
-    // part of the window and would otherwise cover the line being typed.
-    top = input.anchor.top - 10.0f * scale - window_height;
+  // Prefer the space above the caret. Chat inputs sit at the bottom of their
+  // window, so hanging the bar underneath puts it straight onto the field being
+  // typed in; above the caret it only covers content that is already read.
+  const float below = input.anchor.bottom + 6.0f * scale;
+  const float above =
+      input.anchor.top - 8.0f * scale - window_height;
+  float top = below;
+  if (above >= input.work_area.top) {
+    top = above;
+    scene.placed_above = true;
+  } else if (below + window_height > input.work_area.bottom) {
+    // No room above and none below: fall back to just above the caret.
+    top = above;
     scene.placed_above = true;
   }
   top = Clamp(top, input.work_area.top,
