@@ -37,7 +37,7 @@ constexpr int kIdleMilliseconds = 12000;
 constexpr int kHoverDelayMilliseconds = 100;
 constexpr UINT_PTR kHoverTimer = 1;
 constexpr UINT_PTR kIdleTimer = 2;
-constexpr int kCornerMarginDip = 24;
+constexpr int kCornerMarginDip = 8;
 
 // Native source rectangles, straight from layout.json.
 struct ControlRects {
@@ -156,8 +156,10 @@ void DoggyToolbar::ApplyPlacement() {
       std::lround(kCornerMarginDip * scale_ * 4.0f));
   const int width = window_rect_.right - window_rect_.left;
   const int height = window_rect_.bottom - window_rect_.top;
+  // Docked: flush with the bottom edge and a small gap on the right, the way a
+  // language bar sits above the taskbar.
   const int x = work.right - width - margin;
-  const int y = work.bottom - height - margin;
+  const int y = work.bottom - height;
   SetWindowPos(hwnd_, HWND_TOPMOST, x, y, width, height,
                SWP_NOACTIVATE | SWP_SHOWWINDOW);
   window_rect_ = {x, y, x + width, y + height};
@@ -381,22 +383,6 @@ void DoggyToolbar::Render() {
     DrawBitmap(memory, decoration, canvas, 255);
   }
 
-  // UpdateLayeredWindow expects premultiplied alpha; the drawing above produced
-  // straight alpha.
-  const size_t count = static_cast<size_t>(width) * static_cast<size_t>(height);
-  auto* argb = static_cast<DWORD*>(pixels);
-  for (size_t index = 0; index < count; ++index) {
-    const DWORD value = argb[index];
-    const BYTE alpha = static_cast<BYTE>(value >> 24);
-    if (alpha == 0 || alpha == 255)
-      continue;
-    const BYTE blue = static_cast<BYTE>((value >> 0) * alpha / 255);
-    const BYTE green = static_cast<BYTE>((value >> 8) * alpha / 255);
-    const BYTE red = static_cast<BYTE>((value >> 16) * alpha / 255);
-    argb[index] = (static_cast<DWORD>(alpha) << 24) |
-                  (static_cast<DWORD>(red) << 16) |
-                  (static_cast<DWORD>(green) << 8) | static_cast<DWORD>(blue);
-  }
 
   POINT destination = {window_rect_.left, window_rect_.top};
   SIZE size = {width, height};
@@ -505,12 +491,7 @@ LRESULT DoggyToolbar::Handle(HWND hwnd,
         SetCapture(hwnd_);
         return 0;
       }
-      if (PointInVisibleArea(x, y)) {
-        dragging_ = true;
-        GetCursorPos(&drag_origin_);
-        GetWindowRect(hwnd_, &drag_window_);
-        SetCapture(hwnd_);
-      }
+      // The bar is docked to the taskbar edge on purpose; it does not drag.
       return 0;
     }
     case WM_LBUTTONUP: {
