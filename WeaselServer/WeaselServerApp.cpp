@@ -35,8 +35,29 @@ int WeaselServerApp::Run() {
   tray_icon.Create(m_server.GetHWnd());
   tray_icon.Refresh();
 
+  m_toolbar =
+      std::make_unique<leaves_stone::DoggyToolbar>(GetModuleHandle(nullptr));
+  m_toolbar->Create([this](leaves_stone::ToolbarAction action) {
+    const std::filesystem::path dir = install_dir();
+    switch (action) {
+      case leaves_stone::ToolbarAction::OpenSettings:
+        execute(dir / L"WeaselDeployer.exe", std::wstring());
+        break;
+      case leaves_stone::ToolbarAction::OpenSkinPicker:
+        explore(WeaselUserDataPath());
+        break;
+      case leaves_stone::ToolbarAction::ToggleMode:
+      case leaves_stone::ToolbarAction::ToggleRest:
+        break;
+    }
+  });
+
   int ret = m_server.Run();
 
+  if (m_toolbar) {
+    m_toolbar->Destroy();
+    m_toolbar.reset();
+  }
   m_handler->Finalize();
   m_ui.Destroy();
   tray_icon.RemoveIcon();

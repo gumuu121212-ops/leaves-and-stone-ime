@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <windows.h>
 
@@ -15,8 +15,8 @@ enum class ToolbarAction {
   OpenSettings,
 };
 
-// Compact status strip drawn in the plush palette and parked inside the taskbar
-// row: mascot head, mode capsule and three buttons.
+// Floating status bar anchored to the bottom-right corner of the work area:
+// a plush capsule with the mascot leaning on it and four buttons.
 class DoggyToolbar {
  public:
   explicit DoggyToolbar(HINSTANCE instance);
@@ -43,9 +43,12 @@ class DoggyToolbar {
   void ReloadMetrics();
   void ApplyPlacement();
   void Render();
+  void SetState(State state);
+  void Wake();
   Hot HitTest(int x, int y) const;
   ToolbarAction ActionFor(Hot hot) const;
-  RECT DipRect(const RECT& dip) const;
+  RECT NativeRectToWindow(int x, int y, int width, int height) const;
+  bool PointInVisibleArea(int x, int y) const;
 
   HINSTANCE instance_ = nullptr;
   HWND hwnd_ = nullptr;
@@ -56,6 +59,10 @@ class DoggyToolbar {
   Hot pressed_ = Hot::None;
   bool ascii_mode_ = false;
   bool tracking_mouse_ = false;
+  bool hover_pending_ = false;
+  bool dragging_ = false;
+  POINT drag_origin_{0, 0};
+  RECT drag_window_{0, 0, 0, 0};
   float scale_ = 1.0f;
   RECT window_rect_{0, 0, 0, 0};
 };
