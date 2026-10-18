@@ -37,6 +37,13 @@ VIAddVersionKey /LANG=2052 "FileDescription" "${LEAVES_STONE_DISPLAY_NAME} Input
 VIAddVersionKey /LANG=2052 "FileVersion" "${WEASEL_VERSION}"
 
 !define MUI_ICON ..\resource\weasel.ico
+; Doggy installer artwork: the strip on the finish page and the header on the
+; wizard pages. NSIS only accepts BMP here.
+!define MUI_WELCOMEFINISHPAGE_BITMAP "ui\welcome.bmp"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "ui\welcome.bmp"
+!define MUI_HEADERIMAGE
+!define MUI_HEADERIMAGE_RIGHT
+!define MUI_HEADERIMAGE_BITMAP "ui\header.bmp"
 SetCompressor /SOLID lzma
 
 
