@@ -37,6 +37,10 @@ constexpr int kIdleMilliseconds = 12000;
 constexpr int kHoverDelayMilliseconds = 100;
 constexpr UINT_PTR kHoverTimer = 1;
 constexpr UINT_PTR kIdleTimer = 2;
+// Polling the cursor is the only reliable way to leave hover: a layered window
+// with transparent pixels receives no mouse messages over those pixels.
+constexpr UINT_PTR kPollTimer = 3;
+constexpr int kPollMilliseconds = 100;
 constexpr int kCornerMarginDip = 8;
 
 // Native source rectangles, straight from layout.json.
@@ -114,6 +118,7 @@ bool DoggyToolbar::Create(std::function<void(ToolbarAction)> handler) {
   Render();
   ShowWindow(hwnd_, SW_SHOWNOACTIVATE);
   SetTimer(hwnd_, kIdleTimer, kIdleMilliseconds, nullptr);
+  SetTimer(hwnd_, kPollTimer, kPollMilliseconds, nullptr);
   return true;
 }
 
@@ -238,6 +243,7 @@ void DoggyToolbar::SetState(State state) {
 void DoggyToolbar::Wake() {
   KillTimer(hwnd_, kIdleTimer);
   SetTimer(hwnd_, kIdleTimer, kIdleMilliseconds, nullptr);
+  SetTimer(hwnd_, kPollTimer, kPollMilliseconds, nullptr);
   if (state_ == State::Idle)
     SetState(State::Default);
 }
@@ -490,6 +496,32 @@ LRESULT DoggyToolbar::Handle(HWND hwnd,
         // Do not fall asleep while the pointer is resting on the bar.
         if (state_ != State::Pressed && state_ != State::Hover)
           SetState(State::Idle);
+        return 0;
+      }
+      if (wparam == kPollTimer) {
+        POINT cursor = {0, 0};
+        if (!GetCursorPos(&cursor))
+          return 0;
+        ScreenToClient(hwnd_, &cursor);
+        const bool inside =
+            PointInVisibleArea(cursor.x, cursor.y);
+        if (!inside) {
+          if (hot_ != Hot::None) {
+            hot_ = Hot::None;
+            Render();
+          }
+          if (state_ != State::Pressed && state_ != State::Idle)
+            SetState(State::Default);
+          return 0;
+        }
+        Wake();
+        const Hot hot = HitTest(cursor.x, cursor.y);
+        if (hot != hot_) {
+          hot_ = hot;
+          Render();
+        }
+        if (state_ != State::Pressed && state_ != State::Hover)
+          SetState(State::Hover);
         return 0;
       }
       return 0;
