@@ -1,4 +1,4 @@
-﻿#include "DoggyToolbar.h"
+#include "DoggyToolbar.h"
 
 #include <algorithm>
 #include <cmath>
@@ -32,6 +32,9 @@ constexpr wchar_t kWindowClass[] = L"LeavesStoneDoggyToolbar";
 constexpr int kCanvasPxWidth = 896;
 constexpr int kCanvasPxHeight = 480;
 constexpr float kSourceToDip = 0.5f;   // assetScale = 2
+// The artwork targets a 448x240 dip canvas, twice the previous bar and oversized
+// on a 1600x1000 desktop, so it is shown smaller than the spec size.
+constexpr float kUserScale = 0.55f;
 constexpr int kDogLeft = 248, kDogTop = 96, kDogWidth = 400, kDogHeight = 221;
 constexpr int kPanelLeft = 128, kPanelTop = 288;
 constexpr int kPanelWidth = 640, kPanelHeight = 160;
@@ -129,7 +132,8 @@ void DoggyToolbar::ReloadMetrics() {
   const int dpi = screen ? GetDeviceCaps(screen, LOGPIXELSX) : 96;
   if (screen)
     ReleaseDC(nullptr, screen);
-  scale_ = (static_cast<float>(dpi) / 96.0f) * kSourceToDip;
+  const float dip_scale = static_cast<float>(dpi) / 96.0f;
+  scale_ = dip_scale * kSourceToDip * kUserScale;
   const int width = static_cast<int>(std::lround(kCanvasPxWidth * scale_));
   const int height = static_cast<int>(std::lround(kCanvasPxHeight * scale_));
   window_rect_ = {0, 0, width, height};
@@ -139,7 +143,7 @@ void DoggyToolbar::ApplyPlacement() {
   RECT work = {0, 0, GetSystemMetrics(SM_CXSCREEN),
                GetSystemMetrics(SM_CYSCREEN)};
   SystemParametersInfoW(SPI_GETWORKAREA, 0, &work, 0);
-  const float dip = scale_ / kSourceToDip;  // one dip in this window's pixels
+  const float dip = scale_ / (kSourceToDip * kUserScale);
   const int width = window_rect_.right - window_rect_.left;
   const int height = window_rect_.bottom - window_rect_.top;
   // Align the whole window to the corner. The anchor sits inside the canvas
