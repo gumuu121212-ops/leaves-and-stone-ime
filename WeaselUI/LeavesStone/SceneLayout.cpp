@@ -71,11 +71,14 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   item_widths.reserve(visible_count);
   for (size_t i = 0; i < visible_count; ++i) {
     display_texts.push_back(TruncateCandidate(input.candidates[i].text));
-    const float label = 16.0f * scale;
     const float glyphs = static_cast<float>(display_texts.back().size());
-    item_widths.push_back(Clamp(label + glyphs * 16.0f * scale * text_scale +
-                                    14.0f * scale,
-                                40.0f * scale, 220.0f * scale));
+    // The candidate text starts after the inline index (24 dip), so the width
+    // has to reserve that offset plus a right padding; computing it from the
+    // index width alone clipped every one-character candidate to "字...".
+    item_widths.push_back(
+        Clamp(24.0f * scale + glyphs * 16.0f * scale * text_scale +
+                  10.0f * scale,
+              44.0f * scale, 260.0f * scale));
   }
 
   float items_width = 0.0f;
