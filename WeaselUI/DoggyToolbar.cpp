@@ -1,4 +1,4 @@
-#include "DoggyToolbar.h"
+﻿#include "DoggyToolbar.h"
 
 #include <algorithm>
 #include <cmath>
@@ -283,6 +283,11 @@ void DoggyToolbar::Render() {
   const ThemeAssetId frame =
       awake_ ? ThemeAssetId::RestAwake : ThemeAssetId::RestSleep;
   DrawBitmap(memory, assets_.Get(frame), 0, 0, width, height);
+  // The little marks above the head live on their own layer: motion lines while
+  // awake, drifting z's while asleep.
+  const ThemeAssetId decoration =
+      awake_ ? ThemeAssetId::RestDecorAwake : ThemeAssetId::RestDecorSleep;
+  DrawBitmap(memory, assets_.Get(decoration), 0, 0, width, height);
 
   POINT destination = {window_rect_.left, window_rect_.top};
   SIZE size = {width, height};

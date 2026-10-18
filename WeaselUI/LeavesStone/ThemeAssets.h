@@ -44,6 +44,8 @@ enum class ThemeAssetId : size_t {
   // Resting toolbar frames (resource/doggy/rest).
   RestSleep,
   RestAwake,
+  RestDecorSleep,
+  RestDecorAwake,
   Count
 };
 

@@ -65,7 +65,7 @@ void TestResourceLifecycle() {
   leaves_stone::ThemeAssets assets;
   Check(assets.Load(GetModuleHandleW(nullptr)),
         "all compiled theme assets must decode through WIC");
-  Check(assets.LoadedBitmapCount() == 32,
+  Check(assets.LoadedBitmapCount() == 34,
         "the runtime skin must expose all fifteen decoded layers");
 
   const auto scene = MakeScene();

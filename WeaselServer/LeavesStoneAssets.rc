@@ -44,3 +44,5 @@ IDR_DOG_ICON_GEAR           RCDATA "../resource/doggy/icons/icon-gear.png"
 // Resting toolbar frames.
   IDR_DOG_REST_SLEEP          RCDATA "../resource/doggy/rest/toolbar-sleep.png"
   IDR_DOG_REST_AWAKE          RCDATA "../resource/doggy/rest/toolbar-awake.png"
+  IDR_DOG_REST_DECOR_SLEEP    RCDATA "../resource/doggy/rest/decoration-sleep.png"
+  IDR_DOG_REST_DECOR_AWAKE    RCDATA "../resource/doggy/rest/decoration-awake.png"

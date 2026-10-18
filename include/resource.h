@@ -81,3 +81,5 @@
 // Resting toolbar (resource/doggy/rest).
 #define IDR_DOG_REST_SLEEP          635
 #define IDR_DOG_REST_AWAKE          636
+#define IDR_DOG_REST_DECOR_SLEEP    637
+#define IDR_DOG_REST_DECOR_AWAKE    638
