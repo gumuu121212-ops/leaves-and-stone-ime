@@ -339,6 +339,8 @@ BOOL RimeWithWeaselHandler::ProcessKeyEvent(KeyEvent keyEvent,
   _Respond(ipc_id, eat);
   _UpdateUI(ipc_id);
   m_active_session = ipc_id;
+  if (m_active_changed)
+    m_active_changed(true);
   return (BOOL)handled;
 }
 
@@ -349,6 +351,8 @@ void RimeWithWeaselHandler::CommitComposition(WeaselSessionId ipc_id) {
   rime_api->commit_composition(to_session_id(ipc_id));
   _UpdateUI(ipc_id);
   m_active_session = ipc_id;
+  if (m_active_changed)
+    m_active_changed(true);
 }
 
 void RimeWithWeaselHandler::ClearComposition(WeaselSessionId ipc_id) {
@@ -358,6 +362,8 @@ void RimeWithWeaselHandler::ClearComposition(WeaselSessionId ipc_id) {
   rime_api->clear_composition(to_session_id(ipc_id));
   _UpdateUI(ipc_id);
   m_active_session = ipc_id;
+  if (m_active_changed)
+    m_active_changed(true);
 }
 
 void RimeWithWeaselHandler::SelectCandidateOnCurrentPage(
@@ -401,6 +407,8 @@ void RimeWithWeaselHandler::FocusIn(DWORD client_caps, WeaselSessionId ipc_id) {
     return;
   _UpdateUI(ipc_id);
   m_active_session = ipc_id;
+  if (m_active_changed)
+    m_active_changed(true);
 }
 
 void RimeWithWeaselHandler::FocusOut(DWORD param, WeaselSessionId ipc_id) {
@@ -408,6 +416,8 @@ void RimeWithWeaselHandler::FocusOut(DWORD param, WeaselSessionId ipc_id) {
   if (m_ui)
     m_ui->Hide();
   m_active_session = 0;
+  if (m_active_changed)
+    m_active_changed(false);
 }
 
 void RimeWithWeaselHandler::UpdateInputPosition(RECT const& rc,
