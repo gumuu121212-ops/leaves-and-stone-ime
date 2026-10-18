@@ -30,7 +30,7 @@ namespace LeavesStoneSetup
         private readonly string _installDir;
         private readonly TextBox _field;
         private readonly System.Windows.Forms.Timer _progressTimer =
-            new System.Windows.Forms.Timer { Interval = 120 };
+            new System.Windows.Forms.Timer { Interval = 150 };
 
         private string _page = "directory";
         private string _hover = "";
@@ -38,6 +38,7 @@ namespace LeavesStoneSetup
         private bool _installing;
         private string _result;
         private double _progress = 0.37;
+        private string _status = "";
 
         // Optional keys must not throw: the indexer raises KeyNotFoundException,
         // which used to be swallowed together with the whole element.
@@ -164,7 +165,7 @@ namespace LeavesStoneSetup
 
             _progressTimer.Tick += delegate
             {
-                if (_progress < 0.94) _progress += 0.01;
+                if (_progress < 0.93) _progress += 0.004;
                 Invalidate();
             };
         }
@@ -571,8 +572,13 @@ namespace LeavesStoneSetup
             if (size <= 0.5f) size = 16f;
             int weight = (int)Num(element, "weight", 400);
             string text = Str(element, "text");
-            if (Str(element, "binding") == "directory" && _field != null)
+            string binding = Str(element, "binding");
+            if (binding == "directory" && _field != null)
                 text = _field.Text;
+            else if (binding == "progressPercent")
+                text = ((int)Math.Round(_progress * 100)).ToString() + "%";
+            else if (binding == "currentStep" && _status.Length > 0)
+                text = _status;
             using (Font font = new Font(Str(element, "font", "Microsoft YaHei UI"), size,
                                         weight >= 600 ? FontStyle.Bold : FontStyle.Regular,
                                         GraphicsUnit.Pixel))
