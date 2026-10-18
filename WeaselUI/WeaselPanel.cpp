@@ -241,6 +241,26 @@ void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
     input.candidates.push_back({m_ctx.cinfo.candies[index].str, comment});
   }
   m_leaves_scene = leaves_stone::BuildCandidateScene(input);
+  // Record the caret rect the host reports so a window that refuses to follow
+  // the text can be told apart from a host that never sends a new rect.
+  {
+    static int trail = 0;
+    if (trail < 40) {
+      ++trail;
+      wchar_t temp[MAX_PATH] = {0};
+      if (GetTempPathW(MAX_PATH, temp) != 0) {
+        std::wstring path = std::wstring(temp) + L"leaves-stone-caret.log";
+        std::ofstream out(path.c_str(), std::ios::app | std::ios::binary);
+        if (out) {
+          out << "caret " << m_inputPos.left << "," << m_inputPos.top << ","
+              << m_inputPos.right << "," << m_inputPos.bottom << "  window "
+              << static_cast<int>(m_leaves_scene.window_bounds.left) << ","
+              << static_cast<int>(m_leaves_scene.window_bounds.top) << "  len "
+              << input.preedit.size() << "\n";
+        }
+      }
+    }
+  }
 
   if (restart_animation && m_leaves_theme.animation_enabled) {
     m_scene_opacity = 0.0f;
