@@ -104,7 +104,10 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   float left = Clamp(input.anchor.left - window_width * 0.605f,
                      input.work_area.left,
                      input.work_area.right - window_width);
-  float top = input.anchor.bottom + 10.0f * scale - overhang;
+  // Start the whole window below the caret. The mascot occupies the top of the
+  // window, so keeping the bar under the caret while ignoring the mascot height
+  // made the head cover the line being typed.
+  float top = input.anchor.bottom + 6.0f * scale;
   if (top + window_height > input.work_area.bottom) {
     // Place the whole window above the caret, not just the bar: the mascot is
     // part of the window and would otherwise cover the line being typed.
