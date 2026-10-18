@@ -1,4 +1,4 @@
-#include <algorithm>
+﻿#include <algorithm>
 #include <cctype>
 #include <chrono>
 #include <filesystem>
@@ -113,8 +113,8 @@ void RunConfigTests() {
          "settings changes must apply on the next candidate frame");
   Expect(Matches(weasel, R"(horizontal:\s*true\s*$)"),
          "Weasel host layout must be horizontal");
-  Expect(Matches(weasel, R"(inline_preedit:\s*false\s*$)"),
-         "inline preedit must be disabled");
+  Expect(Matches(weasel, R"(inline_preedit:\s*true\s*$)"),
+         "inline preedit must be enabled");
 
   std::string packaged = defaults + schema + dictionary + theme + weasel;
   std::transform(packaged.begin(), packaged.end(), packaged.begin(),
