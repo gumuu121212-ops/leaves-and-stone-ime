@@ -198,13 +198,13 @@ bool SceneRenderer::EnsureDeviceResources(float dpi_scale) {
   if (!gdiplus_token_)
     return false;
 
-  candidate_font_ = new Gdiplus::Font(L"Microsoft YaHei UI", 13.0f * dpi_scale,
+  candidate_font_ = new Gdiplus::Font(L"Microsoft YaHei UI", 12.0f * dpi_scale,
                                       Gdiplus::FontStyleRegular,
                                       Gdiplus::UnitPixel);
-  label_font_ = new Gdiplus::Font(L"Microsoft YaHei UI", 8.0f * dpi_scale,
+  label_font_ = new Gdiplus::Font(L"Microsoft YaHei UI", 9.0f * dpi_scale,
                                   Gdiplus::FontStyleBold,
                                   Gdiplus::UnitPixel);
-  pinyin_font_ = new Gdiplus::Font(L"Microsoft YaHei UI", 11.0f * dpi_scale,
+  pinyin_font_ = new Gdiplus::Font(L"Microsoft YaHei UI", 10.0f * dpi_scale,
                                    Gdiplus::FontStyleRegular,
                                    Gdiplus::UnitPixel);
   centered_format_ = new Gdiplus::StringFormat();
@@ -244,8 +244,9 @@ bool SceneRenderer::Render(HDC target,
     Gdiplus::SolidBrush transparent(Gdiplus::Color(0, 0, 0, 0));
     clear.FillRectangle(&transparent, 0, 0, width, height);
   }
-  const bool rear_artwork_drawn =
-      DrawRearArtwork(target, scene, assets, opacity);
+  // No artwork behind the row: the approved brief forbids using the poster as a
+  // background, and a full-bleed landscape made the window read as one. Only the
+  // small clipped sprigs in front of the cards remain.
 
   {
     Gdiplus::Graphics graphics(target);
@@ -260,13 +261,13 @@ bool SceneRenderer::Render(HDC target,
       Gdiplus::RectF plaque = LocalRect(scene, scene.pinyin.bounds);
       Gdiplus::RectF shadow = plaque;
       shadow.X += 1.5f * scale;
-      shadow.Y += 3.0f * scale;
+      shadow.Y += 2.0f * scale;
       Gdiplus::SolidBrush shadow_brush(Color(54, 39, 48, 38, opacity));
-      FillRoundedRect(&graphics, shadow, 10.0f * scale, &shadow_brush);
+      FillRoundedRect(&graphics, shadow, 6.0f * scale, &shadow_brush);
       Gdiplus::SolidBrush plaque_brush(Color(248, 185, 222, 235, opacity));
       Gdiplus::Pen plaque_edge(Color(150, 91, 133, 143, opacity),
                                1.0f * scale);
-      FillRoundedRect(&graphics, plaque, 10.0f * scale, &plaque_brush,
+      FillRoundedRect(&graphics, plaque, 6.0f * scale, &plaque_brush,
                       &plaque_edge);
       Gdiplus::SolidBrush text_brush(Color(255, 45, 55, 49, opacity));
       graphics.DrawString(scene.pinyin.text.c_str(), -1, pinyin_font_, plaque,
@@ -282,8 +283,8 @@ bool SceneRenderer::Render(HDC target,
       // The layout already lifts a selected card by selected_elevation. Grow
       // the paper thickness by that same amount so the lift reads as depth
       // instead of a second, unrelated number.
-      const float depth = 4.0f * scale + candidate.elevation;
-      const float radius = 10.0f * scale;
+      const float depth = 2.0f * scale + candidate.elevation;
+      const float radius = 6.0f * scale;
 
       for (int ring = 3; ring >= 1; --ring) {
         Gdiplus::RectF shadow = face;
@@ -317,21 +318,20 @@ bool SceneRenderer::Render(HDC target,
       Gdiplus::SolidBrush highlight_brush(Color(120, 255, 255, 250, opacity));
       FillRoundedRect(&graphics, highlight, 2.0f * scale, &highlight_brush);
 
-      Gdiplus::RectF label(face.X + 7.0f * scale,
-                           face.Y + (face.Height - 18.0f * scale) / 2.0f,
-                           18.0f * scale, 18.0f * scale);
+      // Inline index, the way a Chinese IME normally shows it, instead of a
+      // large badge that forced the card taller.
+      const std::wstring label_text =
+          std::to_wstring(candidate.candidate_index + 1);
+      Gdiplus::RectF label(face.X + 6.0f * scale, face.Y, 12.0f * scale,
+                           face.Height);
       Gdiplus::SolidBrush label_brush(
           candidate.selected ? Color(255, 52, 96, 112, opacity)
                              : Color(236, 184, 101, 74, opacity));
-      graphics.FillEllipse(&label_brush, label);
-      const std::wstring label_text =
-          std::to_wstring(candidate.candidate_index + 1);
-      Gdiplus::SolidBrush label_text_brush(Color(255, 255, 250, 237, opacity));
       graphics.DrawString(label_text.c_str(), -1, label_font_, label,
-                          centered_format_, &label_text_brush);
+                          centered_format_, &label_brush);
 
-      Gdiplus::RectF text_rect(face.X + 29.0f * scale, face.Y,
-                               face.Width - 35.0f * scale, face.Height);
+      Gdiplus::RectF text_rect(face.X + 18.0f * scale, face.Y,
+                               face.Width - 22.0f * scale, face.Height);
       Gdiplus::SolidBrush candidate_text(Color(255, 43, 52, 44, opacity));
       graphics.DrawString(candidate.display_text.c_str(), -1, candidate_font_,
                           text_rect, centered_format_, &candidate_text);
@@ -351,7 +351,7 @@ bool SceneRenderer::Render(HDC target,
     for (const auto& control : scene.controls) {
       const Gdiplus::RectF circle = LocalRect(scene, control.bounds);
       Gdiplus::RectF shadow = circle;
-      shadow.Y += 3.0f * scale;
+      shadow.Y += 2.0f * scale;
       Gdiplus::SolidBrush shadow_brush(Color(45, 40, 47, 38, opacity));
       graphics.FillEllipse(&shadow_brush, shadow);
       Gdiplus::SolidBrush circle_brush(
@@ -383,7 +383,7 @@ bool SceneRenderer::Render(HDC target,
 
     graphics.Flush(Gdiplus::FlushIntentionSync);
   }
-  return rear_artwork_drawn && front_artwork_drawn;
+  return front_artwork_drawn;
 }
 
 void SceneRenderer::DiscardDeviceResources() {

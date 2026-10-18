@@ -21,11 +21,13 @@ std::wstring TruncateCandidate(const std::wstring& value) {
 }
 
 float DesiredCardWidth(const std::wstring& display_text, float scale) {
-  const float character_width = 16.0f * scale;
-  const float horizontal_padding = 24.0f * scale;
+  // Room for the inline index followed by the candidate text, matching the
+  // compact single-row arrangement people expect from a Chinese IME.
+  const float character_width = 15.0f * scale;
+  const float horizontal_padding = 20.0f * scale;
   return Clamp(horizontal_padding +
                    character_width * static_cast<float>(display_text.size()),
-               36.0f * scale, 112.0f * scale);
+               40.0f * scale, 120.0f * scale);
 }
 
 }  // namespace
@@ -45,23 +47,23 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
       std::min(input.candidates.size(), static_cast<size_t>(page_size));
   const bool has_plaque = !input.preedit.empty();
   const float gap = theme.gap_dip * scale;
-  const float card_height = 64.0f * scale * text_scale;
-  const float plaque_height = 42.0f * scale * text_scale;
-  const float control_size = 36.0f * scale;
-  const float vertical_margin = 12.0f * scale;
+  // Compact, single-row arrangement: the preedit sits on its own line above the
+  // candidates, and each candidate is a small card rather than a tall tile.
+  const float card_height = 34.0f * scale * text_scale;
+  const float plaque_height = 20.0f * scale * text_scale;
+  const float control_size = 22.0f * scale;
+  const float vertical_margin = 8.0f * scale;
   const float caret_offset = 10.0f * scale;
   const float elevation = theme.selected_elevation_dip * scale;
   const float plaque_width = Clamp(
-      (52.0f + static_cast<float>(input.preedit.size()) * 9.0f * text_scale) *
+      (24.0f + static_cast<float>(input.preedit.size()) * 7.0f * text_scale) *
           scale,
-            84.0f * scale, 136.0f * scale);
+      36.0f * scale, 160.0f * scale);
 
-  const size_t element_count = visible_count + 2 + (has_plaque ? 1 : 0);
-  const float total_gaps =
-      element_count > 0 ? static_cast<float>(element_count - 1) * gap : 0.0f;
   const float work_width = std::max(0.0f, input.work_area.Width());
-  const float fixed_width = (has_plaque ? plaque_width : 0.0f) +
-                            control_size * 2.0f + total_gaps;
+  // The preedit now occupies its own line, so only the two page controls share
+  // the candidate row.
+  const float fixed_width = control_size * 2.0f + gap * 2.0f;
 
   std::vector<std::wstring> display_texts;
   std::vector<float> card_widths;
@@ -160,7 +162,9 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   const float cards_width =
       std::accumulate(card_widths.begin(), card_widths.end(), 0.0f);
   const float scene_width = fixed_width + cards_width;
-  const float scene_height = vertical_margin * 2.0f + card_height;
+  const float plaque_block = has_plaque ? plaque_height + gap : 0.0f;
+  const float scene_height =
+      vertical_margin * 2.0f + plaque_block + card_height;
 
   float left = Clamp(input.anchor.left, input.work_area.left,
                      input.work_area.right - scene_width);
@@ -172,14 +176,12 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   top = Clamp(top, input.work_area.top, input.work_area.bottom - scene_height);
   scene.window_bounds = {left, top, left + scene_width, top + scene_height};
 
-  const float row_top = top + vertical_margin + elevation;
+  const float row_top = top + vertical_margin + plaque_block + elevation;
   float cursor = left;
   if (has_plaque) {
-    const float plaque_top = row_top + (card_height - plaque_height) / 2.0f;
-    scene.pinyin = {{cursor, plaque_top, cursor + plaque_width,
-                     plaque_top + plaque_height},
+    scene.pinyin = {{left, top + vertical_margin, left + plaque_width,
+                     top + vertical_margin + plaque_height},
                     input.preedit};
-    cursor += plaque_width + gap;
   }
 
   scene.candidates.reserve(visible_count);
