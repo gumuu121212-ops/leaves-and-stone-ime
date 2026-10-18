@@ -1,4 +1,4 @@
-// Custom installer front end for Leaves & Stone.
+﻿// Custom installer front end for Leaves & Stone.
 //
 // The wizard is rendered from the supplied layout.json: every page lists its
 // elements with absolute coordinates, colours and per-state styling, so the
@@ -843,7 +843,21 @@ namespace LeavesStoneSetup
                 {
                     object value = key == null ? null : key.GetValue("InstallDir");
                     if (value is string && ((string)value).Length > 0)
-                        return (string)value;
+                    {
+                        string dir = ((string)value).TrimEnd('\\');
+                        // InstallDir in the registry can already be the product
+                        // folder, and NSIS appends leaves-and-stone-<version> to
+                        // whatever it is given, which nested the tree twice.
+                        string leaf = Path.GetFileName(dir);
+                        if (leaf.StartsWith("leaves-and-stone-",
+                                            StringComparison.OrdinalIgnoreCase))
+                        {
+                            string parent = Path.GetDirectoryName(dir);
+                            if (!string.IsNullOrEmpty(parent) && Directory.Exists(parent))
+                                dir = parent;
+                        }
+                        return dir;
+                    }
                 }
             }
             catch
