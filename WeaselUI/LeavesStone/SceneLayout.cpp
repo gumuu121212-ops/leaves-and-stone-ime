@@ -101,19 +101,15 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   const float window_width = window_right - window_left;
   const float window_height = overhang + bar_height;
 
-  // Sit beside the caret instead of over the text: the window starts to the
-  // right of the insertion point and lines up with the caret row, so neither
-  // the input field nor the line above it is covered. It flips to the left of
-  // the caret only when there is no room on the right.
-  const float right_of_caret = input.anchor.right + 10.0f * scale;
-  const float left_of_caret =
-      input.anchor.left - 10.0f * scale - window_width;
-  const bool fits_right =
-      right_of_caret + window_width <= input.work_area.right;
-  float left = fits_right ? right_of_caret : left_of_caret;
-  // Vertically centre the bar on the caret row.
-  const float caret_middle = input.anchor.top + input.anchor.Height() * 0.5f;
-  float top = caret_middle - overhang - bar_height * 0.5f;
+  // Park the bar against the right edge of the work area instead of tracking
+  // the caret horizontally. Several hosts never revise the caret rect while an
+  // inline composition grows, so following it kept the bar on top of the text
+  // that was being typed. The row still follows the caret, so the bar stays
+  // under the line the user is on.
+  float left = input.work_area.right - 24.0f * scale - window_width;
+  float top = input.anchor.bottom + 6.0f * scale;
+  if (top + window_height > input.work_area.bottom)
+    top = input.anchor.top - 8.0f * scale - window_height;
   left = Clamp(left, input.work_area.left, input.work_area.right - window_width);
   top = Clamp(top, input.work_area.top,
               input.work_area.bottom - window_height);
