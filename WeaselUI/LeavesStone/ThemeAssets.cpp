@@ -12,9 +12,12 @@
 namespace leaves_stone {
 namespace {
 constexpr std::array<int, static_cast<size_t>(ThemeAssetId::Count)>
-    kResourceIds = {IDR_LS_LEAF_LEFT, IDR_LS_LEAF_RIGHT,
-                    IDR_LS_BUILDING_TERRACOTTA, IDR_LS_BUILDING_IVORY,
-                    IDR_LS_SKY_BLUE, IDR_LS_ARCHITECTURAL_LINES};
+    kResourceIds = {
+        IDR_DOG_MASCOT_DEFAULT, IDR_DOG_MASCOT_HOVER, IDR_DOG_MASCOT_PRESSED,
+        IDR_DOG_MASCOT_IDLE,    IDR_DOG_MASCOT_AVATAR, IDR_DOG_PANEL,
+        IDR_DOG_MENU,           IDR_DOG_PAW,           IDR_DOG_ICON_ZH,
+        IDR_DOG_ICON_EN,        IDR_DOG_ICON_JP,       IDR_DOG_ICON_KR,
+        IDR_DOG_ICON_MOON,      IDR_DOG_ICON_SHIRT,    IDR_DOG_ICON_GEAR};
 
 // The candidate window is drawn both by WeaselServer.exe and, in this build, by
 // the text service inside the client process. GetModuleHandleW(nullptr) returns

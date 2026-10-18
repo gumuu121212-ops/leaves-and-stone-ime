@@ -1,4 +1,4 @@
-#include <windows.h>
+﻿#include <windows.h>
 
 #include <iostream>
 #include <string>
@@ -65,8 +65,8 @@ void TestResourceLifecycle() {
   leaves_stone::ThemeAssets assets;
   Check(assets.Load(GetModuleHandleW(nullptr)),
         "all compiled theme assets must decode through WIC");
-  Check(assets.LoadedBitmapCount() == 6,
-        "the runtime theme must expose exactly six decoded layers");
+  Check(assets.LoadedBitmapCount() == 15,
+        "the runtime skin must expose all fifteen decoded layers");
 
   const auto scene = MakeScene();
   DibTarget target(static_cast<int>(scene.window_bounds.Width()),

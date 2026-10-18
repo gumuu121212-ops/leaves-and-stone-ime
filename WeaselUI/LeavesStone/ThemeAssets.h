@@ -10,12 +10,21 @@ struct IWICImagingFactory;
 namespace leaves_stone {
 
 enum class ThemeAssetId : size_t {
-  LeafLeft = 0,
-  LeafRight,
-  BuildingTerracotta,
-  BuildingIvory,
-  SkyBlue,
-  ArchitecturalLines,
+  MascotDefault = 0,
+  MascotHover,
+  MascotPressed,
+  MascotIdle,
+  MascotAvatar,
+  Panel,
+  Menu,
+  Paw,
+  IconZh,
+  IconEn,
+  IconJp,
+  IconKr,
+  IconMoon,
+  IconShirt,
+  IconGear,
   Count
 };
 

@@ -65,6 +65,12 @@ struct DecorationLayer {
 
 struct CandidateScene {
   RectF window_bounds;
+  // Plush candidate bar plus the mascot leaning over its top edge.
+  RectF bar;
+  bool has_bar = false;
+  RectF mascot;
+  RectF page_group;
+  RectF paw;
   PinyinPlaque pinyin;
   std::vector<CandidateCard> candidates;
   std::vector<ControlCard> controls;

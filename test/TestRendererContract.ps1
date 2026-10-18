@@ -7,12 +7,19 @@ $required = @(
   'WeaselUI\LeavesStone\ThemeAssets.h',
   'WeaselUI\LeavesStone\ThemeAssets.cpp',
   'test\TestLeavesStoneUI\RendererSmokeTests.cpp',
-  'resource\leaves-stone\leaf-left.png',
-  'resource\leaves-stone\leaf-right.png',
-  'resource\leaves-stone\building-terracotta.png',
-  'resource\leaves-stone\building-ivory.png',
-  'resource\leaves-stone\sky-blue.png',
-  'resource\leaves-stone\architectural-lines.png'
+  'resource\doggy\mascot-default.png',
+  'resource\doggy\mascot-hover.png',
+  'resource\doggy\mascot-pressed.png',
+  'resource\doggy\mascot-idle.png',
+  'resource\doggy\mascot-avatar.png',
+  'resource\doggy\textures\panel-plush.png',
+  'resource\doggy\textures\menu-plush.png',
+  'resource\doggy\icons\icon-paw.png',
+  'resource\doggy\icons\icon-zh.png',
+  'resource\doggy\icons\icon-en.png',
+  'resource\doggy\icons\icon-jp.png',
+  'resource\doggy\icons\icon-kr.png',
+  'resource\doggy\spec.md'
 )
 
 foreach ($relativePath in $required) {
@@ -26,16 +33,10 @@ foreach ($relativePath in $required) {
 }
 
 $renderer = Get-Content -LiteralPath (Join-Path $repoRoot 'WeaselUI\LeavesStone\SceneRenderer.cpp') -Raw
-foreach ($marker in @('DrawRearArtwork', 'BuildingTerracotta', 'thickness', 'DrawFrontArtwork', 'AlphaBlend')) {
+foreach ($marker in @('DrawAssetCrop', 'MascotDefault', 'page_group', 'AlphaBlend')) {
   if ($renderer -notmatch [regex]::Escape($marker)) {
-    throw "Renderer lost draw-order marker: $marker"
+    throw "Renderer lost draw marker: $marker"
   }
-}
-
-$frontArtwork = $renderer.IndexOf('DrawFrontArtwork(target, scene, assets, opacity)')
-$topmostControls = $renderer.IndexOf('Independent page controls stay above the decorative foliage')
-if ($frontArtwork -lt 0 -or $topmostControls -lt 0 -or $frontArtwork -gt $topmostControls) {
-  throw 'Front foliage must render after cards and before independent page controls'
 }
 
 $tests = Get-Content -LiteralPath (Join-Path $repoRoot 'test\TestLeavesStoneUI\RendererSmokeTests.cpp') -Raw

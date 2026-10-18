@@ -20,16 +20,6 @@ std::wstring TruncateCandidate(const std::wstring& value) {
   return value.substr(0, kMaximumCharacters - 1) + L"\u2026";
 }
 
-float DesiredCardWidth(const std::wstring& display_text, float scale) {
-  // Room for the inline index followed by the candidate text, matching the
-  // compact single-row arrangement people expect from a Chinese IME.
-  const float character_width = 15.0f * scale;
-  const float horizontal_padding = 20.0f * scale;
-  return Clamp(horizontal_padding +
-                   character_width * static_cast<float>(display_text.size()),
-               40.0f * scale, 120.0f * scale);
-}
-
 }  // namespace
 
 CandidateScene BuildCandidateScene(const SceneInput& input) {
@@ -46,187 +36,133 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   const size_t visible_count =
       std::min(input.candidates.size(), static_cast<size_t>(page_size));
   const bool has_plaque = !input.preedit.empty();
-  const float gap = theme.gap_dip * scale;
-  // Compact, single-row arrangement: the preedit sits on its own line above the
-  // candidates, and each candidate is a small card rather than a tall tile.
-  const float card_height = 34.0f * scale * text_scale;
-  const float plaque_height = 20.0f * scale * text_scale;
-  const float control_size = 22.0f * scale;
-  const float vertical_margin = 8.0f * scale;
-  const float caret_offset = 10.0f * scale;
-  const float elevation = theme.selected_elevation_dip * scale;
-  const float plaque_width = Clamp(
-      (24.0f + static_cast<float>(input.preedit.size()) * 7.0f * text_scale) *
-          scale,
-      36.0f * scale, 160.0f * scale);
 
-  const float work_width = std::max(0.0f, input.work_area.Width());
-  // The preedit now occupies its own line, so only the two page controls share
-  // the candidate row.
-  const float fixed_width = control_size * 2.0f + gap * 2.0f;
+  // Everything below is in dip and follows the supplied skin specification.
+  const float bar_height = 88.0f * scale;
+  const float pinyin_left = 33.0f * scale;
+  const float pinyin_top = 10.0f * scale;
+  const float row_top = 43.5f * scale;
+  const float capsule_height = 31.0f * scale;
+  const float first_left = 26.0f * scale;
+  const float item_gap = 16.0f * scale;
+  const float page_width = 61.0f * scale;
+  const float page_height = 28.5f * scale;
+  const float page_right = 28.0f * scale;
+  const float page_bottom = 14.0f * scale;
+  const float paw_size = 24.0f * scale;
+  const float paw_right = 20.0f * scale;
+  const float paw_top = 14.0f * scale;
+
+  // Mascot: 0.6 dip per source pixel, anchor (512,620) sits on the bar's top
+  // edge at 60.5% of its width. The visible content box is (342,450,340,188).
+  const float mascot_scale = 0.6f * scale;
+  const float mascot_anchor_x = 512.0f;
+  const float mascot_baseline = 620.0f;
+  const float content_left = 342.0f;
+  const float content_top = 450.0f;
+  const float content_width = 340.0f;
+  const float content_height = 188.0f;
+  const float overhang = (mascot_baseline - content_top) * mascot_scale;
+  const float content_offset_x = (mascot_anchor_x - content_left) * mascot_scale;
 
   std::vector<std::wstring> display_texts;
-  std::vector<float> card_widths;
+  std::vector<float> item_widths;
   display_texts.reserve(visible_count);
-  card_widths.reserve(visible_count);
+  item_widths.reserve(visible_count);
   for (size_t i = 0; i < visible_count; ++i) {
     display_texts.push_back(TruncateCandidate(input.candidates[i].text));
-    card_widths.push_back(
-        DesiredCardWidth(display_texts.back(), scale * text_scale));
+    const float label = 16.0f * scale;
+    const float glyphs = static_cast<float>(display_texts.back().size());
+    item_widths.push_back(Clamp(label + glyphs * 16.0f * scale * text_scale +
+                                    14.0f * scale,
+                                40.0f * scale, 220.0f * scale));
   }
 
-  if (theme.orientation == Orientation::Vertical) {
-    const float widest_card = card_widths.empty()
-                                  ? 112.0f * scale
-                                  : *std::max_element(card_widths.begin(),
-                                                      card_widths.end());
-    const float content_width =
-        std::max({widest_card, has_plaque ? plaque_width : 0.0f,
-                  control_size * 2.0f + gap});
-    const size_t rows = visible_count + (has_plaque ? 1 : 0) + 1;
-    const float content_height =
-        (has_plaque ? plaque_height : 0.0f) +
-        static_cast<float>(visible_count) * card_height + control_size +
-        (rows > 0 ? static_cast<float>(rows - 1) * gap : 0.0f);
-    const float scene_width = content_width + vertical_margin * 2.0f;
-    const float scene_height = content_height + vertical_margin * 2.0f;
-    float left = Clamp(input.anchor.left, input.work_area.left,
-                       input.work_area.right - scene_width);
-    float top = input.anchor.bottom + caret_offset;
-    if (top + scene_height > input.work_area.bottom) {
-      top = input.anchor.top - caret_offset - scene_height;
-      scene.placed_above = true;
-    }
-    top = Clamp(top, input.work_area.top, input.work_area.bottom - scene_height);
-    scene.window_bounds = {left, top, left + scene_width, top + scene_height};
+  float items_width = 0.0f;
+  for (const float width : item_widths)
+    items_width += width;
+  if (visible_count > 1)
+    items_width += static_cast<float>(visible_count - 1) * item_gap;
 
-    float cursor_y = top + vertical_margin;
-    const float content_left = left + vertical_margin;
-    if (has_plaque) {
-      scene.pinyin = {{content_left, cursor_y, content_left + content_width,
-                       cursor_y + plaque_height},
-                      input.preedit};
-      cursor_y += plaque_height + gap;
-    }
-    scene.candidates.reserve(visible_count);
-    for (size_t i = 0; i < visible_count; ++i) {
-      const bool selected = i == input.selected_index;
-      CandidateCard card;
-      card.candidate_index = i;
-      card.bounds = {content_left + (selected ? elevation : 0.0f), cursor_y,
-                     content_left + content_width, cursor_y + card_height};
-      card.full_text = input.candidates[i].text;
-      card.display_text = display_texts[i];
-      card.comment = input.candidates[i].comment;
-      card.selected = selected;
-      card.elevation = selected ? elevation : 0.0f;
-      scene.candidates.push_back(std::move(card));
-      cursor_y += card_height + gap;
-    }
-    const float controls_left =
-        content_left + (content_width - control_size * 2.0f - gap) / 2.0f;
-    scene.controls.push_back(
-        {ControlKind::PreviousPage,
-         {controls_left, cursor_y, controls_left + control_size,
-          cursor_y + control_size},
-         input.has_previous_page});
-    scene.controls.push_back(
-        {ControlKind::NextPage,
-         {controls_left + control_size + gap, cursor_y,
-          controls_left + control_size * 2.0f + gap, cursor_y + control_size},
-         input.has_next_page});
-    if (theme.decoration_enabled) {
-      const float decoration_width = std::min(scene_width / 2.0f, 64.0f * scale);
-      scene.decorations.push_back(
-          {DecorationKind::LeafLeft,
-           {left, top, left + decoration_width, top + 10.0f * scale}});
-      scene.decorations.push_back(
-          {DecorationKind::LeafRight,
-           {left + scene_width - decoration_width, top, left + scene_width,
-            top + 10.0f * scale}});
-    }
-    return scene;
-  }
+  const float work_width = std::max(0.0f, input.work_area.Width());
+  float bar_width =
+      first_left + items_width + item_gap + page_width + page_right;
+  bar_width = std::min(bar_width, std::max(0.0f, work_width - 8.0f * scale));
+  bar_width = std::max(bar_width, std::min(320.0f * scale, work_width));
 
-  const float desired_card_width =
-      std::accumulate(card_widths.begin(), card_widths.end(), 0.0f);
-  const float card_budget = std::max(0.0f, work_width - fixed_width);
-  if (visible_count > 0 && desired_card_width > card_budget) {
-    const float shared_width =
-        std::max(36.0f * scale,
-                 card_budget / static_cast<float>(visible_count));
-    for (float& width : card_widths)
-      width = std::min(width, shared_width);
-  }
+  const float anchor_x = bar_width * 0.605f;
+  const float mascot_left = anchor_x - content_offset_x;
+  const float mascot_right = mascot_left + content_width * mascot_scale;
+  const float window_left = std::min(0.0f, mascot_left);
+  const float window_right = std::max(bar_width, mascot_right);
+  const float window_width = window_right - window_left;
+  const float window_height = overhang + bar_height;
 
-  const float cards_width =
-      std::accumulate(card_widths.begin(), card_widths.end(), 0.0f);
-  const float scene_width = fixed_width + cards_width;
-  const float plaque_block = has_plaque ? plaque_height + gap : 0.0f;
-  const float scene_height =
-      vertical_margin * 2.0f + plaque_block + card_height;
-
-  float left = Clamp(input.anchor.left, input.work_area.left,
-                     input.work_area.right - scene_width);
-  float top = input.anchor.bottom + caret_offset;
-  if (top + scene_height > input.work_area.bottom) {
-    top = input.anchor.top - caret_offset - scene_height;
+  float left = Clamp(input.anchor.left - window_width * 0.605f,
+                     input.work_area.left,
+                     input.work_area.right - window_width);
+  float top = input.anchor.bottom + 10.0f * scale - overhang;
+  if (top + window_height > input.work_area.bottom) {
+    top = input.anchor.top - 10.0f * scale - bar_height;
     scene.placed_above = true;
   }
-  top = Clamp(top, input.work_area.top, input.work_area.bottom - scene_height);
-  scene.window_bounds = {left, top, left + scene_width, top + scene_height};
+  top = Clamp(top, input.work_area.top,
+              input.work_area.bottom - window_height);
+  scene.window_bounds = {left, top, left + window_width, top + window_height};
 
-  const float row_top = top + vertical_margin + plaque_block + elevation;
-  float cursor = left;
+  const float bar_left = left - window_left;
+  const float bar_top = top + overhang;
+  scene.bar = {bar_left, bar_top, bar_left + bar_width, bar_top + bar_height};
+  scene.has_bar = true;
+  scene.mascot = {bar_left + mascot_left, bar_top - overhang,
+                  bar_left + mascot_left + content_width * mascot_scale,
+                  bar_top - overhang + content_height * mascot_scale};
+
   if (has_plaque) {
-    scene.pinyin = {{left, top + vertical_margin, left + plaque_width,
-                     top + vertical_margin + plaque_height},
+    const float available = std::max(0.0f, bar_width - pinyin_left - 20.0f);
+    scene.pinyin = {{bar_left + pinyin_left, bar_top + pinyin_top,
+                     bar_left + pinyin_left + available,
+                     bar_top + pinyin_top + 24.0f * scale},
                     input.preedit};
   }
 
   scene.candidates.reserve(visible_count);
+  float cursor = bar_left + first_left;
   for (size_t i = 0; i < visible_count; ++i) {
     const bool selected = i == input.selected_index;
-    const float card_top = row_top - (selected ? elevation : 0.0f);
     CandidateCard card;
     card.candidate_index = i;
-    card.bounds =
-        {cursor, card_top, cursor + card_widths[i], card_top + card_height};
+    card.bounds = {cursor, bar_top + row_top, cursor + item_widths[i],
+                   bar_top + row_top + capsule_height};
     card.full_text = input.candidates[i].text;
     card.display_text = display_texts[i];
     card.comment = input.candidates[i].comment;
     card.selected = selected;
-    card.elevation = selected ? elevation : 0.0f;
+    card.elevation = selected ? theme.selected_elevation_dip * scale : 0.0f;
     scene.candidates.push_back(std::move(card));
-    cursor += card_widths[i] + gap;
+    cursor += item_widths[i] + item_gap;
   }
 
-  const float control_top = row_top + (card_height - control_size) / 2.0f;
-  scene.controls.push_back({ControlKind::PreviousPage,
-                            {cursor, control_top, cursor + control_size,
-                             control_top + control_size},
-                            input.has_previous_page});
-  cursor += control_size + gap;
+  const float page_left = bar_left + bar_width - page_right - page_width;
+  const float page_top = bar_top + bar_height - page_bottom - page_height;
+  const float arrow_width = page_width * 0.5f;
+  scene.controls.push_back(
+      {ControlKind::PreviousPage,
+       {page_left, page_top, page_left + arrow_width, page_top + page_height},
+       input.has_previous_page});
   scene.controls.push_back({ControlKind::NextPage,
-                            {cursor, control_top, cursor + control_size,
-                             control_top + control_size},
+                            {page_left + arrow_width, page_top,
+                             page_left + page_width, page_top + page_height},
                             input.has_next_page});
-
-  if (theme.decoration_enabled) {
-    const float decoration_height = 10.0f * scale;
-    const float decoration_width =
-        std::min(scene_width / 3.0f, 64.0f * scale);
-    scene.decorations.push_back(
-        {DecorationKind::LeafLeft,
-         {left, top, left + decoration_width, top + decoration_height}});
-    scene.decorations.push_back(
-        {DecorationKind::LeafRight,
-         {left + scene_width - decoration_width, top,
-          left + scene_width, top + decoration_height}});
-  }
+  scene.page_group = {page_left, page_top, page_left + page_width,
+                      page_top + page_height};
+  scene.paw = {bar_left + bar_width - paw_right - paw_size,
+               bar_top + paw_top, bar_left + bar_width - paw_right,
+               bar_top + paw_top + paw_size};
 
   return scene;
 }
+
 
 std::optional<HitTarget> HitTest(const CandidateScene& scene, PointF point) {
   for (const auto& candidate : scene.candidates) {

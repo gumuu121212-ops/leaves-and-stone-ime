@@ -33,7 +33,7 @@ class SceneRenderer {
   Gdiplus::Font* candidate_font_ = nullptr;
   Gdiplus::Font* label_font_ = nullptr;
   Gdiplus::Font* pinyin_font_ = nullptr;
-  Gdiplus::StringFormat* centered_format_ = nullptr;
+  Gdiplus::StringFormat* left_format_ = nullptr;
   float resource_dpi_scale_ = 0.0f;
   size_t resource_generation_ = 0;
 };

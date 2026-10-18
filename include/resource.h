@@ -44,3 +44,19 @@
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
+// Plush doggy skin artwork (resource/doggy).
+#define IDR_DOG_MASCOT_DEFAULT      601
+#define IDR_DOG_MASCOT_HOVER        602
+#define IDR_DOG_MASCOT_PRESSED      603
+#define IDR_DOG_MASCOT_IDLE         604
+#define IDR_DOG_MASCOT_AVATAR       605
+#define IDR_DOG_PANEL               606
+#define IDR_DOG_MENU                607
+#define IDR_DOG_PAW                 608
+#define IDR_DOG_ICON_ZH             609
+#define IDR_DOG_ICON_EN             610
+#define IDR_DOG_ICON_JP             611
+#define IDR_DOG_ICON_KR             612
+#define IDR_DOG_ICON_MOON           613
+#define IDR_DOG_ICON_SHIRT          614
+#define IDR_DOG_ICON_GEAR           615

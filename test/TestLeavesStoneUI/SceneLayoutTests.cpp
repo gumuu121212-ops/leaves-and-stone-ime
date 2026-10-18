@@ -145,13 +145,19 @@ void TestHitRegionsAndTruncation() {
 }
 
 void TestUserLayoutPreferences() {
-  auto vertical = MakeInput(5);
-  vertical.theme.orientation = leaves_stone::Orientation::Vertical;
-  const auto vertical_scene = leaves_stone::BuildCandidateScene(vertical);
-  for (size_t index = 1; index < vertical_scene.candidates.size(); ++index) {
-    Check(vertical_scene.candidates[index].bounds.top >
-              vertical_scene.candidates[index - 1].bounds.bottom,
-          "vertical orientation must stack independent candidate cards");
+  // The plush skin is a single horizontal bar; every candidate shares one row
+  // and the mascot always sits above it.
+  const auto bar_scene = leaves_stone::BuildCandidateScene(MakeInput(5));
+  Check(bar_scene.has_bar, "the scene must expose the plush candidate bar");
+  Check(bar_scene.mascot.bottom <= bar_scene.bar.top + 1.0f,
+        "the mascot must lean over the top edge of the bar");
+  for (size_t index = 1; index < bar_scene.candidates.size(); ++index) {
+    Check(NearlyEqual(bar_scene.candidates[index].bounds.top,
+                      bar_scene.candidates.front().bounds.top),
+          "every candidate must sit on the same row");
+    Check(bar_scene.candidates[index].bounds.left >
+              bar_scene.candidates[index - 1].bounds.left,
+          "candidates must be laid out left to right");
   }
 
   auto small = MakeInput(5);

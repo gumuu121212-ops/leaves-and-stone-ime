@@ -1,4 +1,4 @@
-// Theme artwork embedded into whichever module draws the candidate window.
+﻿// Theme artwork embedded into whichever module draws the candidate window.
 // Paths are relative to this file, so every project can compile the same
 // resource script regardless of where its .vcxproj lives.
 #include "../../include/resource.h"
@@ -9,3 +9,20 @@ IDR_LS_BUILDING_TERRACOTTA  RCDATA "building-terracotta.png"
 IDR_LS_BUILDING_IVORY       RCDATA "building-ivory.png"
 IDR_LS_SKY_BLUE             RCDATA "sky-blue.png"
 IDR_LS_ARCHITECTURAL_LINES  RCDATA "architectural-lines.png"
+
+// Plush doggy skin artwork.
+IDR_DOG_MASCOT_DEFAULT      RCDATA "../doggy/mascot-default.png"
+IDR_DOG_MASCOT_HOVER        RCDATA "../doggy/mascot-hover.png"
+IDR_DOG_MASCOT_PRESSED      RCDATA "../doggy/mascot-pressed.png"
+IDR_DOG_MASCOT_IDLE         RCDATA "../doggy/mascot-idle.png"
+IDR_DOG_MASCOT_AVATAR       RCDATA "../doggy/mascot-avatar.png"
+IDR_DOG_PANEL               RCDATA "../doggy/textures/panel-plush.png"
+IDR_DOG_MENU                RCDATA "../doggy/textures/menu-plush.png"
+IDR_DOG_PAW                 RCDATA "../doggy/icons/icon-paw.png"
+IDR_DOG_ICON_ZH             RCDATA "../doggy/icons/icon-zh.png"
+IDR_DOG_ICON_EN             RCDATA "../doggy/icons/icon-en.png"
+IDR_DOG_ICON_JP             RCDATA "../doggy/icons/icon-jp.png"
+IDR_DOG_ICON_KR             RCDATA "../doggy/icons/icon-kr.png"
+IDR_DOG_ICON_MOON           RCDATA "../doggy/icons/icon-moon.png"
+IDR_DOG_ICON_SHIRT          RCDATA "../doggy/icons/icon-shirt.png"
+IDR_DOG_ICON_GEAR           RCDATA "../doggy/icons/icon-gear.png"
