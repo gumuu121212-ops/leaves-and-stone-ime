@@ -1,4 +1,4 @@
-# Leaves & Stone host settings
+﻿# Leaves & Stone host settings
 # encoding: utf-8
 
 config_version: "1.0"
@@ -10,7 +10,7 @@ global_ascii: false
 
 style:
   horizontal: true
-  inline_preedit: false
+  inline_preedit: true
   preedit_type: composition
   display_tray_icon: false
   color_scheme: leaves_stone
