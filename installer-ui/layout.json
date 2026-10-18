@@ -1,0 +1,3014 @@
+{
+  "schemaVersion": 2,
+  "canvas": [
+    1280,
+    900
+  ],
+  "referenceDpi": 96,
+  "coordinateUnit": "reference-px",
+  "fontSizeUnit": "px",
+  "referenceScale": 1,
+  "physicalPixelFormula": "referencePx * actualDpi / 96",
+  "cssPixelFormula": "1 referencePx = 1 CSS px at 100% browser zoom",
+  "important": "This is a new canonical 1280x900 reference at 96 DPI. Do not apply the old assetScale=2 or divide coordinates by two.",
+  "product": {
+    "name": "小毛豆输入法",
+    "version": "0.17.4"
+  },
+  "font": {
+    "family": "Microsoft YaHei UI",
+    "allowedWeights": [
+      400,
+      700
+    ],
+    "fileBundled": false
+  },
+  "colors": {
+    "background": "#FBF8F1",
+    "text": "#554638",
+    "title": "#4C3B2C",
+    "muted": "#9A856E",
+    "border": "#DCCDBB",
+    "primary": "#D5BDA7"
+  },
+  "rectFormat": "absolute [x,y,width,height] in reference pixels; no parent-relative coordinates",
+  "assets": {
+    "titlebarDog": {
+      "file": "assets/titlebar-dog.png",
+      "size": [
+        64,
+        64
+      ],
+      "alpha": "straight"
+    },
+    "mascot": {
+      "file": "assets/mascot.png",
+      "size": [
+        600,
+        340
+      ],
+      "alpha": "straight"
+    },
+    "paw": {
+      "file": "assets/paw.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha": "straight"
+    },
+    "cushion": {
+      "file": "assets/cushion.png",
+      "size": [
+        544,
+        144
+      ],
+      "alpha": "straight"
+    }
+  },
+  "referenceData": {
+    "title": "小毛豆输入法 0.17.4 安装",
+    "version": "0.17.4",
+    "directory": "D:\\04 Applications\\",
+    "requiredSpace": "90.7 MB",
+    "freeSpace": "87.6 GB",
+    "progress": 0.37,
+    "progressPercent": "37%",
+    "currentStep": "正在复制输入法文件…"
+  },
+  "pages": {
+    "directory": {
+      "id": "directory",
+      "name": "选择安装位置",
+      "elements": [
+        {
+          "id": "window.frame",
+          "type": "box",
+          "rect": [
+            0,
+            0,
+            1280,
+            900
+          ],
+          "background": "#FBF8F1",
+          "radius": 30,
+          "border": {
+            "color": "#CDBEAA",
+            "width": 2
+          }
+        },
+        {
+          "id": "titleBar.background",
+          "type": "box",
+          "rect": [
+            2,
+            2,
+            1276,
+            76
+          ],
+          "background": "#F2EBDF",
+          "radius": 0,
+          "cornerRadii": [
+            28,
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "titleBar.divider",
+          "type": "box",
+          "rect": [
+            2,
+            77,
+            1276,
+            2
+          ],
+          "background": "#E3D8C7",
+          "radius": 0
+        },
+        {
+          "id": "titleBar.drag",
+          "type": "drag-region",
+          "rect": [
+            76,
+            2,
+            1000,
+            74
+          ],
+          "interactive": true
+        },
+        {
+          "id": "titleBar.icon",
+          "type": "image",
+          "rect": [
+            30,
+            16,
+            44,
+            44
+          ],
+          "asset": "assets/titlebar-dog.png",
+          "fit": "fill"
+        },
+        {
+          "id": "titleBar.title",
+          "type": "text",
+          "rect": [
+            86,
+            18,
+            930,
+            44
+          ],
+          "text": "小毛豆输入法 0.17.4 安装",
+          "font": "Microsoft YaHei UI",
+          "size": 24,
+          "weight": 400,
+          "color": "#514438",
+          "lineHeight": 44,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "binding": "title",
+          "baselineY": 49,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 24,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "titleBar.minimize",
+          "type": "icon-button",
+          "rect": [
+            1076,
+            10,
+            64,
+            58
+          ],
+          "glyph": "minimize",
+          "paths": [
+            [
+              [
+                1097,
+                40
+              ],
+              [
+                1119,
+                40
+              ]
+            ]
+          ],
+          "color": "#8C7A65",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "enabled": true,
+          "visible": true,
+          "action": "minimize",
+          "states": {
+            "hover": {
+              "background": "#E7DAC8"
+            },
+            "pressed": {
+              "background": "#D9C6AD"
+            },
+            "disabled": {
+              "color": "#B8AA98"
+            },
+            "normal": {
+              "background": "transparent",
+              "color": "#8C7A65",
+              "borderColor": "transparent"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          },
+          "radius": 8,
+          "border": {
+            "width": 0,
+            "color": "transparent"
+          }
+        },
+        {
+          "id": "titleBar.close",
+          "type": "icon-button",
+          "rect": [
+            1188,
+            10,
+            64,
+            58
+          ],
+          "glyph": "close",
+          "paths": [
+            [
+              [
+                1212,
+                30
+              ],
+              [
+                1232,
+                50
+              ]
+            ],
+            [
+              [
+                1232,
+                30
+              ],
+              [
+                1212,
+                50
+              ]
+            ]
+          ],
+          "color": "#8C7A65",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "enabled": true,
+          "visible": true,
+          "action": "close",
+          "states": {
+            "hover": {
+              "background": "#E8C9BB"
+            },
+            "pressed": {
+              "background": "#D6A18A"
+            },
+            "disabled": {
+              "color": "#B8AA98"
+            },
+            "normal": {
+              "background": "transparent",
+              "color": "#8C7A65",
+              "borderColor": "transparent"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          },
+          "radius": 8,
+          "border": {
+            "width": 0,
+            "color": "transparent"
+          }
+        },
+        {
+          "id": "sideCard",
+          "type": "box",
+          "rect": [
+            28,
+            106,
+            320,
+            764
+          ],
+          "background": {
+            "type": "linear-gradient",
+            "angle": 180,
+            "stops": [
+              {
+                "at": 0,
+                "color": "#F0E5D5"
+              },
+              {
+                "at": 1,
+                "color": "#F6EEE2"
+              }
+            ]
+          },
+          "radius": 28
+        },
+        {
+          "id": "brand",
+          "type": "text",
+          "rect": [
+            62,
+            150,
+            260,
+            44
+          ],
+          "text": "小毛豆输入法",
+          "font": "Microsoft YaHei UI",
+          "size": 27,
+          "weight": 700,
+          "color": "#5A4734",
+          "lineHeight": 44,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 182,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 27,
+            "fontBoundingBoxDescent": 7
+          }
+        },
+        {
+          "id": "brandSub",
+          "type": "text",
+          "rect": [
+            62,
+            199,
+            260,
+            34
+          ],
+          "text": "输入法安装向导",
+          "font": "Microsoft YaHei UI",
+          "size": 21,
+          "weight": 400,
+          "color": "#9D876E",
+          "lineHeight": 34,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 224,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 21,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "versionPill.background",
+          "type": "box",
+          "rect": [
+            62,
+            248,
+            112,
+            36
+          ],
+          "background": "#E7D7C3",
+          "radius": 18
+        },
+        {
+          "id": "versionPill.text",
+          "type": "text",
+          "rect": [
+            62,
+            248,
+            112,
+            36
+          ],
+          "text": "0.17.4",
+          "font": "Microsoft YaHei UI",
+          "size": 18,
+          "weight": 400,
+          "color": "#8D755A",
+          "lineHeight": 36,
+          "align": "center",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "binding": "version",
+          "baselineY": 272,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 18,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "mascot.cushion",
+          "type": "image",
+          "rect": [
+            52,
+            586,
+            272,
+            72
+          ],
+          "asset": "assets/cushion.png",
+          "fit": "fill"
+        },
+        {
+          "id": "mascot",
+          "type": "image",
+          "rect": [
+            38,
+            442,
+            300,
+            170
+          ],
+          "asset": "assets/mascot.png",
+          "fit": "fill"
+        },
+        {
+          "id": "paw",
+          "type": "image",
+          "rect": [
+            168,
+            658,
+            40,
+            40
+          ],
+          "asset": "assets/paw.png",
+          "fit": "fill"
+        },
+        {
+          "id": "footer.divider",
+          "type": "box",
+          "rect": [
+            380,
+            760,
+            832,
+            2
+          ],
+          "background": "#E6DCCC",
+          "radius": 0
+        },
+        {
+          "id": "footer.brand",
+          "type": "text",
+          "rect": [
+            400,
+            810,
+            220,
+            44
+          ],
+          "text": "小毛豆输入法",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#B39D83",
+          "lineHeight": 44,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 839,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "title",
+          "type": "text",
+          "rect": [
+            400,
+            118,
+            812,
+            60
+          ],
+          "text": "选择安装位置",
+          "font": "Microsoft YaHei UI",
+          "size": 40,
+          "weight": 700,
+          "color": "#4C3B2C",
+          "lineHeight": 60,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 163,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 41,
+            "fontBoundingBoxDescent": 10
+          }
+        },
+        {
+          "id": "subtitle",
+          "type": "text",
+          "rect": [
+            400,
+            181,
+            812,
+            38
+          ],
+          "text": "选择小毛豆输入法的安装文件夹。",
+          "font": "Microsoft YaHei UI",
+          "size": 22,
+          "weight": 400,
+          "color": "#9A856E",
+          "lineHeight": 38,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 208,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 22,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "steps.1.background",
+          "type": "box",
+          "rect": [
+            400,
+            234,
+            174,
+            48
+          ],
+          "background": "#EADBC8",
+          "radius": 24
+        },
+        {
+          "id": "steps.1.label",
+          "type": "text",
+          "rect": [
+            400,
+            234,
+            174,
+            48
+          ],
+          "text": "1  安装位置",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 700,
+          "color": "#6B5139",
+          "lineHeight": 48,
+          "align": "center",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "stepState": "active",
+          "baselineY": 265,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "steps.2.background",
+          "type": "box",
+          "rect": [
+            592,
+            234,
+            176,
+            48
+          ],
+          "background": "transparent",
+          "radius": 24
+        },
+        {
+          "id": "steps.2.label",
+          "type": "text",
+          "rect": [
+            592,
+            234,
+            176,
+            48
+          ],
+          "text": "2  正在安装",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#AA9985",
+          "lineHeight": 48,
+          "align": "center",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "stepState": "pending",
+          "baselineY": 265,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "steps.3.background",
+          "type": "box",
+          "rect": [
+            792,
+            234,
+            150,
+            48
+          ],
+          "background": "transparent",
+          "radius": 24
+        },
+        {
+          "id": "steps.3.label",
+          "type": "text",
+          "rect": [
+            792,
+            234,
+            150,
+            48
+          ],
+          "text": "3  完成",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#AA9985",
+          "lineHeight": 48,
+          "align": "center",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "stepState": "pending",
+          "baselineY": 265,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "notice",
+          "type": "text",
+          "rect": [
+            400,
+            315,
+            812,
+            38
+          ],
+          "text": "请选择安装文件夹，然后点击「安装」。",
+          "font": "Microsoft YaHei UI",
+          "size": 24,
+          "weight": 400,
+          "color": "#6B5845",
+          "lineHeight": 38,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 343,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 24,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "fieldLabel",
+          "type": "text",
+          "rect": [
+            400,
+            375,
+            200,
+            40
+          ],
+          "text": "安装目录",
+          "font": "Microsoft YaHei UI",
+          "size": 25,
+          "weight": 700,
+          "color": "#5A4734",
+          "lineHeight": 40,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 404,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 25,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "field",
+          "type": "input",
+          "rect": [
+            400,
+            426,
+            588,
+            72
+          ],
+          "value": "D:\\04 Applications\\",
+          "binding": "directory",
+          "font": "Microsoft YaHei UI",
+          "size": 25,
+          "weight": 400,
+          "lineHeight": 36,
+          "color": "#65503C",
+          "background": "#FFFDFA",
+          "radius": 20,
+          "border": {
+            "color": "#DCCDBB",
+            "width": 2
+          },
+          "padding": [
+            16,
+            22,
+            16,
+            22
+          ],
+          "enabled": true,
+          "states": {
+            "focus": {
+              "borderColor": "#B79572",
+              "borderWidth": 4,
+              "background": "#FFFDFA"
+            },
+            "disabled": {
+              "background": "#F1EBE2",
+              "color": "#A99681",
+              "borderColor": "#E2D6C7"
+            }
+          },
+          "baselineY": 471,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 25,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "browseButton",
+          "type": "button",
+          "rect": [
+            1008,
+            426,
+            204,
+            72
+          ],
+          "text": "浏览…",
+          "font": "Microsoft YaHei UI",
+          "size": 23,
+          "weight": 400,
+          "lineHeight": 34,
+          "align": "center",
+          "verticalAlign": "middle",
+          "radius": 22,
+          "border": {
+            "width": 2,
+            "color": "#D8C6B0"
+          },
+          "enabled": true,
+          "visible": true,
+          "action": "browse",
+          "states": {
+            "normal": {
+              "background": "#F9F5ED",
+              "color": "#7C644C",
+              "borderColor": "#D8C6B0"
+            },
+            "hover": {
+              "background": "#EEE2D2",
+              "color": "#6F563F",
+              "borderColor": "#C6AA89"
+            },
+            "pressed": {
+              "background": "#E1CEB7",
+              "color": "#4A3423",
+              "borderColor": "#B69672"
+            },
+            "disabled": {
+              "background": "#F2EDE5",
+              "color": "#B5A591",
+              "borderColor": "#E8E0D4"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          },
+          "baselineY": 472,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 23,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "hint",
+          "type": "text",
+          "rect": [
+            400,
+            512,
+            812,
+            38
+          ],
+          "text": "点击「浏览」可选择其他文件夹。",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#A28C73",
+          "lineHeight": 38,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 538,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "infoCard",
+          "type": "box",
+          "rect": [
+            400,
+            598,
+            812,
+            110
+          ],
+          "background": "#F1E8DB",
+          "radius": 22
+        },
+        {
+          "id": "requiredSpace.label",
+          "type": "text",
+          "rect": [
+            428,
+            609,
+            300,
+            34
+          ],
+          "text": "所需空间",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#A28C73",
+          "lineHeight": 34,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 633,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "requiredSpace.value",
+          "type": "text",
+          "rect": [
+            428,
+            642,
+            300,
+            40
+          ],
+          "text": "90.7 MB",
+          "font": "Microsoft YaHei UI",
+          "size": 27,
+          "weight": 700,
+          "color": "#66503A",
+          "lineHeight": 40,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "binding": "requiredSpace",
+          "baselineY": 672,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 27,
+            "fontBoundingBoxDescent": 7
+          }
+        },
+        {
+          "id": "freeSpace.label",
+          "type": "text",
+          "rect": [
+            798,
+            609,
+            300,
+            34
+          ],
+          "text": "可用空间",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#A28C73",
+          "lineHeight": 34,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 633,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "freeSpace.value",
+          "type": "text",
+          "rect": [
+            798,
+            642,
+            300,
+            40
+          ],
+          "text": "87.6 GB",
+          "font": "Microsoft YaHei UI",
+          "size": 27,
+          "weight": 700,
+          "color": "#66503A",
+          "lineHeight": 40,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "binding": "freeSpace",
+          "baselineY": 672,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 27,
+            "fontBoundingBoxDescent": 7
+          }
+        },
+        {
+          "id": "footer.back",
+          "type": "button",
+          "rect": [
+            658,
+            800,
+            160,
+            64
+          ],
+          "text": "上一步",
+          "font": "Microsoft YaHei UI",
+          "size": 23,
+          "weight": 400,
+          "lineHeight": 34,
+          "align": "center",
+          "verticalAlign": "middle",
+          "radius": 22,
+          "border": {
+            "width": 2,
+            "color": "#D8C6B0"
+          },
+          "enabled": false,
+          "visible": true,
+          "action": "back",
+          "states": {
+            "normal": {
+              "background": "#F9F5ED",
+              "color": "#7C644C",
+              "borderColor": "#D8C6B0"
+            },
+            "hover": {
+              "background": "#EEE2D2",
+              "color": "#6F563F",
+              "borderColor": "#C6AA89"
+            },
+            "pressed": {
+              "background": "#E1CEB7",
+              "color": "#4A3423",
+              "borderColor": "#B69672"
+            },
+            "disabled": {
+              "background": "#F2EDE5",
+              "color": "#B5A591",
+              "borderColor": "#E8E0D4"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          },
+          "baselineY": 842,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 23,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "footer.primary",
+          "type": "button",
+          "rect": [
+            834,
+            800,
+            188,
+            64
+          ],
+          "text": "安装",
+          "font": "Microsoft YaHei UI",
+          "size": 24,
+          "weight": 700,
+          "lineHeight": 34,
+          "align": "center",
+          "verticalAlign": "middle",
+          "radius": 22,
+          "border": {
+            "width": 2,
+            "color": "#D8C6B0"
+          },
+          "enabled": true,
+          "visible": true,
+          "action": "start-install",
+          "states": {
+            "normal": {
+              "background": "#D5BDA7",
+              "color": "#4A3423",
+              "borderColor": "#D8C6B0"
+            },
+            "hover": {
+              "background": "#CBB095",
+              "color": "#4A3423",
+              "borderColor": "#C6AA89"
+            },
+            "pressed": {
+              "background": "#BFA084",
+              "color": "#4A3423",
+              "borderColor": "#B69672"
+            },
+            "disabled": {
+              "background": "#E7DCCD",
+              "color": "#B5A591",
+              "borderColor": "#E8E0D4"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          },
+          "baselineY": 843,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 24,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "footer.cancel",
+          "type": "button",
+          "rect": [
+            1038,
+            800,
+            160,
+            64
+          ],
+          "text": "取消",
+          "font": "Microsoft YaHei UI",
+          "size": 23,
+          "weight": 400,
+          "lineHeight": 34,
+          "align": "center",
+          "verticalAlign": "middle",
+          "radius": 22,
+          "border": {
+            "width": 2,
+            "color": "#D8C6B0"
+          },
+          "enabled": true,
+          "visible": true,
+          "action": "cancel",
+          "states": {
+            "normal": {
+              "background": "#F9F5ED",
+              "color": "#7C644C",
+              "borderColor": "#D8C6B0"
+            },
+            "hover": {
+              "background": "#EEE2D2",
+              "color": "#6F563F",
+              "borderColor": "#C6AA89"
+            },
+            "pressed": {
+              "background": "#E1CEB7",
+              "color": "#4A3423",
+              "borderColor": "#B69672"
+            },
+            "disabled": {
+              "background": "#F2EDE5",
+              "color": "#B5A591",
+              "borderColor": "#E8E0D4"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          },
+          "baselineY": 842,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 23,
+            "fontBoundingBoxDescent": 6
+          }
+        }
+      ],
+      "focusOrder": [
+        "field",
+        "browseButton",
+        "footer.primary",
+        "footer.cancel",
+        "titleBar.minimize",
+        "titleBar.close"
+      ],
+      "buttonState": {
+        "back": false,
+        "primary": true,
+        "cancel": true,
+        "minimize": true,
+        "close": true
+      },
+      "validation": {
+        "directoryRequired": true,
+        "invalidPathDisablesInstall": true,
+        "insufficientSpaceDisablesInstall": true
+      },
+      "onClose": "cancel-immediately-before-install"
+    },
+    "installing": {
+      "id": "installing",
+      "name": "正在安装",
+      "elements": [
+        {
+          "id": "window.frame",
+          "type": "box",
+          "rect": [
+            0,
+            0,
+            1280,
+            900
+          ],
+          "background": "#FBF8F1",
+          "radius": 30,
+          "border": {
+            "color": "#CDBEAA",
+            "width": 2
+          }
+        },
+        {
+          "id": "titleBar.background",
+          "type": "box",
+          "rect": [
+            2,
+            2,
+            1276,
+            76
+          ],
+          "background": "#F2EBDF",
+          "radius": 0,
+          "cornerRadii": [
+            28,
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "titleBar.divider",
+          "type": "box",
+          "rect": [
+            2,
+            77,
+            1276,
+            2
+          ],
+          "background": "#E3D8C7",
+          "radius": 0
+        },
+        {
+          "id": "titleBar.drag",
+          "type": "drag-region",
+          "rect": [
+            76,
+            2,
+            1000,
+            74
+          ],
+          "interactive": true
+        },
+        {
+          "id": "titleBar.icon",
+          "type": "image",
+          "rect": [
+            30,
+            16,
+            44,
+            44
+          ],
+          "asset": "assets/titlebar-dog.png",
+          "fit": "fill"
+        },
+        {
+          "id": "titleBar.title",
+          "type": "text",
+          "rect": [
+            86,
+            18,
+            930,
+            44
+          ],
+          "text": "小毛豆输入法 0.17.4 安装",
+          "font": "Microsoft YaHei UI",
+          "size": 24,
+          "weight": 400,
+          "color": "#514438",
+          "lineHeight": 44,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "binding": "title",
+          "baselineY": 49,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 24,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "titleBar.minimize",
+          "type": "icon-button",
+          "rect": [
+            1076,
+            10,
+            64,
+            58
+          ],
+          "glyph": "minimize",
+          "paths": [
+            [
+              [
+                1097,
+                40
+              ],
+              [
+                1119,
+                40
+              ]
+            ]
+          ],
+          "color": "#8C7A65",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "enabled": true,
+          "visible": true,
+          "action": "minimize",
+          "states": {
+            "hover": {
+              "background": "#E7DAC8"
+            },
+            "pressed": {
+              "background": "#D9C6AD"
+            },
+            "disabled": {
+              "color": "#B8AA98"
+            },
+            "normal": {
+              "background": "transparent",
+              "color": "#8C7A65",
+              "borderColor": "transparent"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          },
+          "radius": 8,
+          "border": {
+            "width": 0,
+            "color": "transparent"
+          }
+        },
+        {
+          "id": "titleBar.close",
+          "type": "icon-button",
+          "rect": [
+            1188,
+            10,
+            64,
+            58
+          ],
+          "glyph": "close",
+          "paths": [
+            [
+              [
+                1212,
+                30
+              ],
+              [
+                1232,
+                50
+              ]
+            ],
+            [
+              [
+                1232,
+                30
+              ],
+              [
+                1212,
+                50
+              ]
+            ]
+          ],
+          "color": "#8C7A65",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "enabled": true,
+          "visible": true,
+          "action": "close",
+          "states": {
+            "hover": {
+              "background": "#E8C9BB"
+            },
+            "pressed": {
+              "background": "#D6A18A"
+            },
+            "disabled": {
+              "color": "#B8AA98"
+            },
+            "normal": {
+              "background": "transparent",
+              "color": "#8C7A65",
+              "borderColor": "transparent"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          },
+          "radius": 8,
+          "border": {
+            "width": 0,
+            "color": "transparent"
+          }
+        },
+        {
+          "id": "sideCard",
+          "type": "box",
+          "rect": [
+            28,
+            106,
+            320,
+            764
+          ],
+          "background": {
+            "type": "linear-gradient",
+            "angle": 180,
+            "stops": [
+              {
+                "at": 0,
+                "color": "#F0E5D5"
+              },
+              {
+                "at": 1,
+                "color": "#F6EEE2"
+              }
+            ]
+          },
+          "radius": 28
+        },
+        {
+          "id": "brand",
+          "type": "text",
+          "rect": [
+            62,
+            150,
+            260,
+            44
+          ],
+          "text": "小毛豆输入法",
+          "font": "Microsoft YaHei UI",
+          "size": 27,
+          "weight": 700,
+          "color": "#5A4734",
+          "lineHeight": 44,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 182,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 27,
+            "fontBoundingBoxDescent": 7
+          }
+        },
+        {
+          "id": "brandSub",
+          "type": "text",
+          "rect": [
+            62,
+            199,
+            260,
+            34
+          ],
+          "text": "输入法安装向导",
+          "font": "Microsoft YaHei UI",
+          "size": 21,
+          "weight": 400,
+          "color": "#9D876E",
+          "lineHeight": 34,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 224,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 21,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "versionPill.background",
+          "type": "box",
+          "rect": [
+            62,
+            248,
+            112,
+            36
+          ],
+          "background": "#E7D7C3",
+          "radius": 18
+        },
+        {
+          "id": "versionPill.text",
+          "type": "text",
+          "rect": [
+            62,
+            248,
+            112,
+            36
+          ],
+          "text": "0.17.4",
+          "font": "Microsoft YaHei UI",
+          "size": 18,
+          "weight": 400,
+          "color": "#8D755A",
+          "lineHeight": 36,
+          "align": "center",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "binding": "version",
+          "baselineY": 272,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 18,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "mascot.cushion",
+          "type": "image",
+          "rect": [
+            52,
+            586,
+            272,
+            72
+          ],
+          "asset": "assets/cushion.png",
+          "fit": "fill"
+        },
+        {
+          "id": "mascot",
+          "type": "image",
+          "rect": [
+            38,
+            442,
+            300,
+            170
+          ],
+          "asset": "assets/mascot.png",
+          "fit": "fill"
+        },
+        {
+          "id": "paw",
+          "type": "image",
+          "rect": [
+            168,
+            658,
+            40,
+            40
+          ],
+          "asset": "assets/paw.png",
+          "fit": "fill"
+        },
+        {
+          "id": "footer.divider",
+          "type": "box",
+          "rect": [
+            380,
+            760,
+            832,
+            2
+          ],
+          "background": "#E6DCCC",
+          "radius": 0
+        },
+        {
+          "id": "footer.brand",
+          "type": "text",
+          "rect": [
+            400,
+            810,
+            220,
+            44
+          ],
+          "text": "小毛豆输入法",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#B39D83",
+          "lineHeight": 44,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 839,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "title",
+          "type": "text",
+          "rect": [
+            400,
+            118,
+            812,
+            60
+          ],
+          "text": "正在安装",
+          "font": "Microsoft YaHei UI",
+          "size": 40,
+          "weight": 700,
+          "color": "#4C3B2C",
+          "lineHeight": 60,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 163,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 41,
+            "fontBoundingBoxDescent": 10
+          }
+        },
+        {
+          "id": "subtitle",
+          "type": "text",
+          "rect": [
+            400,
+            181,
+            812,
+            38
+          ],
+          "text": "正在复制文件并配置输入环境。",
+          "font": "Microsoft YaHei UI",
+          "size": 22,
+          "weight": 400,
+          "color": "#9A856E",
+          "lineHeight": 38,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 208,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 22,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "steps.1.background",
+          "type": "box",
+          "rect": [
+            400,
+            234,
+            174,
+            48
+          ],
+          "background": "transparent",
+          "radius": 24
+        },
+        {
+          "id": "steps.1.label",
+          "type": "text",
+          "rect": [
+            400,
+            234,
+            174,
+            48
+          ],
+          "text": "1  安装位置",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#8F795C",
+          "lineHeight": 48,
+          "align": "center",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "stepState": "complete",
+          "baselineY": 265,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "steps.2.background",
+          "type": "box",
+          "rect": [
+            592,
+            234,
+            176,
+            48
+          ],
+          "background": "#EADBC8",
+          "radius": 24
+        },
+        {
+          "id": "steps.2.label",
+          "type": "text",
+          "rect": [
+            592,
+            234,
+            176,
+            48
+          ],
+          "text": "2  正在安装",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 700,
+          "color": "#6B5139",
+          "lineHeight": 48,
+          "align": "center",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "stepState": "active",
+          "baselineY": 265,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "steps.3.background",
+          "type": "box",
+          "rect": [
+            792,
+            234,
+            150,
+            48
+          ],
+          "background": "transparent",
+          "radius": 24
+        },
+        {
+          "id": "steps.3.label",
+          "type": "text",
+          "rect": [
+            792,
+            234,
+            150,
+            48
+          ],
+          "text": "3  完成",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#AA9985",
+          "lineHeight": 48,
+          "align": "center",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "stepState": "pending",
+          "baselineY": 265,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "notice",
+          "type": "text",
+          "rect": [
+            400,
+            315,
+            812,
+            38
+          ],
+          "text": "安装过程中请勿关闭计算机。",
+          "font": "Microsoft YaHei UI",
+          "size": 24,
+          "weight": 400,
+          "color": "#6B5845",
+          "lineHeight": 38,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 343,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 24,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "progressLabel",
+          "type": "text",
+          "rect": [
+            400,
+            375,
+            600,
+            40
+          ],
+          "text": "安装进度",
+          "font": "Microsoft YaHei UI",
+          "size": 25,
+          "weight": 700,
+          "color": "#5A4734",
+          "lineHeight": 40,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 404,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 25,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "progressValue",
+          "type": "text",
+          "rect": [
+            1092,
+            375,
+            120,
+            40
+          ],
+          "text": "37%",
+          "font": "Microsoft YaHei UI",
+          "size": 24,
+          "weight": 700,
+          "color": "#66503A",
+          "lineHeight": 40,
+          "align": "right",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "binding": "progressPercent",
+          "baselineY": 404,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 24,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "progressBar",
+          "type": "progress",
+          "rect": [
+            400,
+            444,
+            812,
+            22
+          ],
+          "background": "#E9DFD1",
+          "fill": "#BA9B79",
+          "radius": 11,
+          "value": 0.37,
+          "binding": "progress",
+          "fillRule": "width = rect.width * clamp(value,0,1)",
+          "animation": "none",
+          "referenceFillRect": [
+            400,
+            444,
+            300.4375,
+            22
+          ]
+        },
+        {
+          "id": "progressInfoCard",
+          "type": "box",
+          "rect": [
+            400,
+            500,
+            812,
+            208
+          ],
+          "background": "#F1E8DB",
+          "radius": 22
+        },
+        {
+          "id": "currentStep.label",
+          "type": "text",
+          "rect": [
+            428,
+            520,
+            740,
+            30
+          ],
+          "text": "当前步骤",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#A28C73",
+          "lineHeight": 30,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 542,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "currentStep.value",
+          "type": "text",
+          "rect": [
+            428,
+            558,
+            740,
+            38
+          ],
+          "text": "正在复制输入法文件…",
+          "font": "Microsoft YaHei UI",
+          "size": 24,
+          "weight": 400,
+          "color": "#66503A",
+          "lineHeight": 38,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "binding": "currentStep",
+          "baselineY": 586,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 24,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "installPath.label",
+          "type": "text",
+          "rect": [
+            428,
+            614,
+            740,
+            28
+          ],
+          "text": "安装位置",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#A28C73",
+          "lineHeight": 28,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 635,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "installPath.value",
+          "type": "text",
+          "rect": [
+            428,
+            650,
+            740,
+            34
+          ],
+          "text": "D:\\04 Applications\\",
+          "font": "Microsoft YaHei UI",
+          "size": 22,
+          "weight": 400,
+          "color": "#66503A",
+          "lineHeight": 34,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "binding": "directory",
+          "baselineY": 675,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 22,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "footer.back",
+          "type": "button",
+          "rect": [
+            658,
+            800,
+            160,
+            64
+          ],
+          "text": "上一步",
+          "font": "Microsoft YaHei UI",
+          "size": 23,
+          "weight": 400,
+          "lineHeight": 34,
+          "align": "center",
+          "verticalAlign": "middle",
+          "radius": 22,
+          "border": {
+            "width": 2,
+            "color": "#D8C6B0"
+          },
+          "enabled": false,
+          "visible": true,
+          "action": "back",
+          "states": {
+            "normal": {
+              "background": "#F9F5ED",
+              "color": "#7C644C",
+              "borderColor": "#D8C6B0"
+            },
+            "hover": {
+              "background": "#EEE2D2",
+              "color": "#6F563F",
+              "borderColor": "#C6AA89"
+            },
+            "pressed": {
+              "background": "#E1CEB7",
+              "color": "#4A3423",
+              "borderColor": "#B69672"
+            },
+            "disabled": {
+              "background": "#F2EDE5",
+              "color": "#B5A591",
+              "borderColor": "#E8E0D4"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          },
+          "baselineY": 842,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 23,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "footer.primary",
+          "type": "button",
+          "rect": [
+            834,
+            800,
+            188,
+            64
+          ],
+          "text": "安装中…",
+          "font": "Microsoft YaHei UI",
+          "size": 24,
+          "weight": 700,
+          "lineHeight": 34,
+          "align": "center",
+          "verticalAlign": "middle",
+          "radius": 22,
+          "border": {
+            "width": 2,
+            "color": "#D8C6B0"
+          },
+          "enabled": false,
+          "visible": true,
+          "action": null,
+          "states": {
+            "normal": {
+              "background": "#D5BDA7",
+              "color": "#4A3423",
+              "borderColor": "#D8C6B0"
+            },
+            "hover": {
+              "background": "#CBB095",
+              "color": "#4A3423",
+              "borderColor": "#C6AA89"
+            },
+            "pressed": {
+              "background": "#BFA084",
+              "color": "#4A3423",
+              "borderColor": "#B69672"
+            },
+            "disabled": {
+              "background": "#E7DCCD",
+              "color": "#B5A591",
+              "borderColor": "#E8E0D4"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          },
+          "baselineY": 843,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 24,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "footer.cancel",
+          "type": "button",
+          "rect": [
+            1038,
+            800,
+            160,
+            64
+          ],
+          "text": "取消",
+          "font": "Microsoft YaHei UI",
+          "size": 23,
+          "weight": 400,
+          "lineHeight": 34,
+          "align": "center",
+          "verticalAlign": "middle",
+          "radius": 22,
+          "border": {
+            "width": 2,
+            "color": "#D8C6B0"
+          },
+          "enabled": true,
+          "visible": true,
+          "action": "cancel",
+          "states": {
+            "normal": {
+              "background": "#F9F5ED",
+              "color": "#7C644C",
+              "borderColor": "#D8C6B0"
+            },
+            "hover": {
+              "background": "#EEE2D2",
+              "color": "#6F563F",
+              "borderColor": "#C6AA89"
+            },
+            "pressed": {
+              "background": "#E1CEB7",
+              "color": "#4A3423",
+              "borderColor": "#B69672"
+            },
+            "disabled": {
+              "background": "#F2EDE5",
+              "color": "#B5A591",
+              "borderColor": "#E8E0D4"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          },
+          "baselineY": 842,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 23,
+            "fontBoundingBoxDescent": 6
+          }
+        }
+      ],
+      "focusOrder": [
+        "footer.cancel",
+        "titleBar.minimize",
+        "titleBar.close"
+      ],
+      "buttonState": {
+        "back": false,
+        "primary": false,
+        "cancel": true,
+        "minimize": true,
+        "close": true
+      },
+      "onClose": "confirm-cancel-and-wait-for-host",
+      "onCancel": "request-cancel-from-host",
+      "hostCanDisableCancel": true
+    },
+    "finished": {
+      "id": "finished",
+      "name": "安装完成",
+      "elements": [
+        {
+          "id": "window.frame",
+          "type": "box",
+          "rect": [
+            0,
+            0,
+            1280,
+            900
+          ],
+          "background": "#FBF8F1",
+          "radius": 30,
+          "border": {
+            "color": "#CDBEAA",
+            "width": 2
+          }
+        },
+        {
+          "id": "titleBar.background",
+          "type": "box",
+          "rect": [
+            2,
+            2,
+            1276,
+            76
+          ],
+          "background": "#F2EBDF",
+          "radius": 0,
+          "cornerRadii": [
+            28,
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "titleBar.divider",
+          "type": "box",
+          "rect": [
+            2,
+            77,
+            1276,
+            2
+          ],
+          "background": "#E3D8C7",
+          "radius": 0
+        },
+        {
+          "id": "titleBar.drag",
+          "type": "drag-region",
+          "rect": [
+            76,
+            2,
+            1000,
+            74
+          ],
+          "interactive": true
+        },
+        {
+          "id": "titleBar.icon",
+          "type": "image",
+          "rect": [
+            30,
+            16,
+            44,
+            44
+          ],
+          "asset": "assets/titlebar-dog.png",
+          "fit": "fill"
+        },
+        {
+          "id": "titleBar.title",
+          "type": "text",
+          "rect": [
+            86,
+            18,
+            930,
+            44
+          ],
+          "text": "小毛豆输入法 0.17.4 安装",
+          "font": "Microsoft YaHei UI",
+          "size": 24,
+          "weight": 400,
+          "color": "#514438",
+          "lineHeight": 44,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "binding": "title",
+          "baselineY": 49,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 24,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "titleBar.minimize",
+          "type": "icon-button",
+          "rect": [
+            1076,
+            10,
+            64,
+            58
+          ],
+          "glyph": "minimize",
+          "paths": [
+            [
+              [
+                1097,
+                40
+              ],
+              [
+                1119,
+                40
+              ]
+            ]
+          ],
+          "color": "#8C7A65",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "enabled": true,
+          "visible": true,
+          "action": "minimize",
+          "states": {
+            "hover": {
+              "background": "#E7DAC8"
+            },
+            "pressed": {
+              "background": "#D9C6AD"
+            },
+            "disabled": {
+              "color": "#B8AA98"
+            },
+            "normal": {
+              "background": "transparent",
+              "color": "#8C7A65",
+              "borderColor": "transparent"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          },
+          "radius": 8,
+          "border": {
+            "width": 0,
+            "color": "transparent"
+          }
+        },
+        {
+          "id": "titleBar.close",
+          "type": "icon-button",
+          "rect": [
+            1188,
+            10,
+            64,
+            58
+          ],
+          "glyph": "close",
+          "paths": [
+            [
+              [
+                1212,
+                30
+              ],
+              [
+                1232,
+                50
+              ]
+            ],
+            [
+              [
+                1232,
+                30
+              ],
+              [
+                1212,
+                50
+              ]
+            ]
+          ],
+          "color": "#8C7A65",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "enabled": true,
+          "visible": true,
+          "action": "close",
+          "states": {
+            "hover": {
+              "background": "#E8C9BB"
+            },
+            "pressed": {
+              "background": "#D6A18A"
+            },
+            "disabled": {
+              "color": "#B8AA98"
+            },
+            "normal": {
+              "background": "transparent",
+              "color": "#8C7A65",
+              "borderColor": "transparent"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          },
+          "radius": 8,
+          "border": {
+            "width": 0,
+            "color": "transparent"
+          }
+        },
+        {
+          "id": "sideCard",
+          "type": "box",
+          "rect": [
+            28,
+            106,
+            320,
+            764
+          ],
+          "background": {
+            "type": "linear-gradient",
+            "angle": 180,
+            "stops": [
+              {
+                "at": 0,
+                "color": "#F0E5D5"
+              },
+              {
+                "at": 1,
+                "color": "#F6EEE2"
+              }
+            ]
+          },
+          "radius": 28
+        },
+        {
+          "id": "brand",
+          "type": "text",
+          "rect": [
+            62,
+            150,
+            260,
+            44
+          ],
+          "text": "小毛豆输入法",
+          "font": "Microsoft YaHei UI",
+          "size": 27,
+          "weight": 700,
+          "color": "#5A4734",
+          "lineHeight": 44,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 182,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 27,
+            "fontBoundingBoxDescent": 7
+          }
+        },
+        {
+          "id": "brandSub",
+          "type": "text",
+          "rect": [
+            62,
+            199,
+            260,
+            34
+          ],
+          "text": "输入法安装向导",
+          "font": "Microsoft YaHei UI",
+          "size": 21,
+          "weight": 400,
+          "color": "#9D876E",
+          "lineHeight": 34,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 224,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 21,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "versionPill.background",
+          "type": "box",
+          "rect": [
+            62,
+            248,
+            112,
+            36
+          ],
+          "background": "#E7D7C3",
+          "radius": 18
+        },
+        {
+          "id": "versionPill.text",
+          "type": "text",
+          "rect": [
+            62,
+            248,
+            112,
+            36
+          ],
+          "text": "0.17.4",
+          "font": "Microsoft YaHei UI",
+          "size": 18,
+          "weight": 400,
+          "color": "#8D755A",
+          "lineHeight": 36,
+          "align": "center",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "binding": "version",
+          "baselineY": 272,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 18,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "mascot.cushion",
+          "type": "image",
+          "rect": [
+            52,
+            586,
+            272,
+            72
+          ],
+          "asset": "assets/cushion.png",
+          "fit": "fill"
+        },
+        {
+          "id": "mascot",
+          "type": "image",
+          "rect": [
+            38,
+            442,
+            300,
+            170
+          ],
+          "asset": "assets/mascot.png",
+          "fit": "fill"
+        },
+        {
+          "id": "paw",
+          "type": "image",
+          "rect": [
+            168,
+            658,
+            40,
+            40
+          ],
+          "asset": "assets/paw.png",
+          "fit": "fill"
+        },
+        {
+          "id": "footer.divider",
+          "type": "box",
+          "rect": [
+            380,
+            760,
+            832,
+            2
+          ],
+          "background": "#E6DCCC",
+          "radius": 0
+        },
+        {
+          "id": "footer.brand",
+          "type": "text",
+          "rect": [
+            400,
+            810,
+            220,
+            44
+          ],
+          "text": "小毛豆输入法",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#B39D83",
+          "lineHeight": 44,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 839,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "title",
+          "type": "text",
+          "rect": [
+            400,
+            118,
+            812,
+            60
+          ],
+          "text": "安装完成",
+          "font": "Microsoft YaHei UI",
+          "size": 40,
+          "weight": 700,
+          "color": "#4C3B2C",
+          "lineHeight": 60,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 163,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 41,
+            "fontBoundingBoxDescent": 10
+          }
+        },
+        {
+          "id": "subtitle",
+          "type": "text",
+          "rect": [
+            400,
+            181,
+            812,
+            38
+          ],
+          "text": "小毛豆输入法已安装到你的电脑。",
+          "font": "Microsoft YaHei UI",
+          "size": 22,
+          "weight": 400,
+          "color": "#9A856E",
+          "lineHeight": 38,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 208,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 22,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "steps.1.background",
+          "type": "box",
+          "rect": [
+            400,
+            234,
+            174,
+            48
+          ],
+          "background": "transparent",
+          "radius": 24
+        },
+        {
+          "id": "steps.1.label",
+          "type": "text",
+          "rect": [
+            400,
+            234,
+            174,
+            48
+          ],
+          "text": "1  安装位置",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#8F795C",
+          "lineHeight": 48,
+          "align": "center",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "stepState": "complete",
+          "baselineY": 265,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "steps.2.background",
+          "type": "box",
+          "rect": [
+            592,
+            234,
+            176,
+            48
+          ],
+          "background": "transparent",
+          "radius": 24
+        },
+        {
+          "id": "steps.2.label",
+          "type": "text",
+          "rect": [
+            592,
+            234,
+            176,
+            48
+          ],
+          "text": "2  正在安装",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#8F795C",
+          "lineHeight": 48,
+          "align": "center",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "stepState": "complete",
+          "baselineY": 265,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "steps.3.background",
+          "type": "box",
+          "rect": [
+            792,
+            234,
+            150,
+            48
+          ],
+          "background": "#EADBC8",
+          "radius": 24
+        },
+        {
+          "id": "steps.3.label",
+          "type": "text",
+          "rect": [
+            792,
+            234,
+            150,
+            48
+          ],
+          "text": "3  完成",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 700,
+          "color": "#6B5139",
+          "lineHeight": 48,
+          "align": "center",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "stepState": "active",
+          "baselineY": 265,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "notice",
+          "type": "text",
+          "rect": [
+            400,
+            315,
+            812,
+            38
+          ],
+          "text": "点击「完成」关闭安装向导。",
+          "font": "Microsoft YaHei UI",
+          "size": 24,
+          "weight": 400,
+          "color": "#6B5845",
+          "lineHeight": 38,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 343,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 24,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "completeCard",
+          "type": "box",
+          "rect": [
+            400,
+            390,
+            812,
+            290
+          ],
+          "background": "#F1E8DB",
+          "radius": 22
+        },
+        {
+          "id": "successIcon",
+          "type": "check-icon",
+          "rect": [
+            432,
+            424,
+            52,
+            52
+          ],
+          "circle": {
+            "center": [
+              458,
+              450
+            ],
+            "radius": 26
+          },
+          "paths": [
+            [
+              [
+                446,
+                451
+              ],
+              [
+                455,
+                460
+              ],
+              [
+                471,
+                441
+              ]
+            ]
+          ],
+          "background": "#DCCBB4",
+          "color": "#6F573B",
+          "strokeWidth": 4,
+          "lineCap": "round",
+          "lineJoin": "round"
+        },
+        {
+          "id": "successTitle",
+          "type": "text",
+          "rect": [
+            508,
+            422,
+            650,
+            58
+          ],
+          "text": "安装成功",
+          "font": "Microsoft YaHei UI",
+          "size": 30,
+          "weight": 700,
+          "color": "#66503A",
+          "lineHeight": 58,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 462,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 30,
+            "fontBoundingBoxDescent": 8
+          }
+        },
+        {
+          "id": "installedPath.label",
+          "type": "text",
+          "rect": [
+            432,
+            508,
+            744,
+            32
+          ],
+          "text": "安装位置",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#A28C73",
+          "lineHeight": 32,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 531,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "installedPath.value",
+          "type": "text",
+          "rect": [
+            432,
+            548,
+            744,
+            40
+          ],
+          "text": "D:\\04 Applications\\",
+          "font": "Microsoft YaHei UI",
+          "size": 24,
+          "weight": 400,
+          "color": "#66503A",
+          "lineHeight": 40,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "binding": "directory",
+          "baselineY": 577,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 24,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "finishHint",
+          "type": "text",
+          "rect": [
+            432,
+            613,
+            744,
+            34
+          ],
+          "text": "可通过 Windows 输入法列表选择「小毛豆输入法」。",
+          "font": "Microsoft YaHei UI",
+          "size": 20,
+          "weight": 400,
+          "color": "#A28C73",
+          "lineHeight": 34,
+          "align": "left",
+          "verticalAlign": "middle",
+          "letterSpacing": 0,
+          "baselineY": 637,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 20,
+            "fontBoundingBoxDescent": 5
+          }
+        },
+        {
+          "id": "footer.back",
+          "type": "button",
+          "rect": [
+            658,
+            800,
+            160,
+            64
+          ],
+          "text": "上一步",
+          "font": "Microsoft YaHei UI",
+          "size": 23,
+          "weight": 400,
+          "lineHeight": 34,
+          "align": "center",
+          "verticalAlign": "middle",
+          "radius": 22,
+          "border": {
+            "width": 2,
+            "color": "#D8C6B0"
+          },
+          "enabled": false,
+          "visible": true,
+          "action": "back",
+          "states": {
+            "normal": {
+              "background": "#F9F5ED",
+              "color": "#7C644C",
+              "borderColor": "#D8C6B0"
+            },
+            "hover": {
+              "background": "#EEE2D2",
+              "color": "#6F563F",
+              "borderColor": "#C6AA89"
+            },
+            "pressed": {
+              "background": "#E1CEB7",
+              "color": "#4A3423",
+              "borderColor": "#B69672"
+            },
+            "disabled": {
+              "background": "#F2EDE5",
+              "color": "#B5A591",
+              "borderColor": "#E8E0D4"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          },
+          "baselineY": 842,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 23,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "footer.primary",
+          "type": "button",
+          "rect": [
+            834,
+            800,
+            188,
+            64
+          ],
+          "text": "完成",
+          "font": "Microsoft YaHei UI",
+          "size": 24,
+          "weight": 700,
+          "lineHeight": 34,
+          "align": "center",
+          "verticalAlign": "middle",
+          "radius": 22,
+          "border": {
+            "width": 2,
+            "color": "#D8C6B0"
+          },
+          "enabled": true,
+          "visible": true,
+          "action": "finish",
+          "states": {
+            "normal": {
+              "background": "#D5BDA7",
+              "color": "#4A3423",
+              "borderColor": "#D8C6B0"
+            },
+            "hover": {
+              "background": "#CBB095",
+              "color": "#4A3423",
+              "borderColor": "#C6AA89"
+            },
+            "pressed": {
+              "background": "#BFA084",
+              "color": "#4A3423",
+              "borderColor": "#B69672"
+            },
+            "disabled": {
+              "background": "#E7DCCD",
+              "color": "#B5A591",
+              "borderColor": "#E8E0D4"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          },
+          "baselineY": 843,
+          "fontMetrics": {
+            "fontBoundingBoxAscent": 24,
+            "fontBoundingBoxDescent": 6
+          }
+        },
+        {
+          "id": "footer.cancel",
+          "type": "button",
+          "rect": [
+            1038,
+            800,
+            160,
+            64
+          ],
+          "text": "取消",
+          "font": "Microsoft YaHei UI",
+          "size": 23,
+          "weight": 400,
+          "lineHeight": 34,
+          "align": "center",
+          "verticalAlign": "middle",
+          "radius": 22,
+          "border": {
+            "width": 2,
+            "color": "#D8C6B0"
+          },
+          "enabled": false,
+          "visible": false,
+          "action": "cancel",
+          "states": {
+            "normal": {
+              "background": "#F9F5ED",
+              "color": "#7C644C",
+              "borderColor": "#D8C6B0"
+            },
+            "hover": {
+              "background": "#EEE2D2",
+              "color": "#6F563F",
+              "borderColor": "#C6AA89"
+            },
+            "pressed": {
+              "background": "#E1CEB7",
+              "color": "#4A3423",
+              "borderColor": "#B69672"
+            },
+            "disabled": {
+              "background": "#F2EDE5",
+              "color": "#B5A591",
+              "borderColor": "#E8E0D4"
+            },
+            "focus": {
+              "outlineColor": "#A6815B",
+              "outlineWidth": 2,
+              "outlineOffset": 3
+            }
+          }
+        }
+      ],
+      "focusOrder": [
+        "footer.primary",
+        "titleBar.minimize",
+        "titleBar.close"
+      ],
+      "buttonState": {
+        "back": false,
+        "primary": true,
+        "cancel": false,
+        "minimize": true,
+        "close": true
+      },
+      "onClose": "finish",
+      "onPrimary": "close-installer-after-host-reports-success"
+    }
+  },
+  "textDefaults": {
+    "lineBreak": "none",
+    "overflow": "clip",
+    "kerning": "auto",
+    "letterSpacing": 0,
+    "fontSizeUnit": "px",
+    "fontRendering": "system text rasterization; screenshots are the canonical reference"
+  },
+  "referenceRenderer": {
+    "engine": "Chromium",
+    "version": "155.0.8059.80",
+    "deviceScaleFactor": 1,
+    "browserZoom": "100%",
+    "transparentWindowCorners": true,
+    "actualFonts": [
+      {
+        "familyName": "Microsoft YaHei UI",
+        "postScriptName": "MicrosoftYaHeiUI-Bold",
+        "isCustomFont": false,
+        "glyphCount": 6
+      },
+      {
+        "familyName": "Microsoft YaHei UI",
+        "postScriptName": "MicrosoftYaHeiUI",
+        "isCustomFont": false,
+        "glyphCount": 15
+      }
+    ]
+  }
+}
