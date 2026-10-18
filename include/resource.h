@@ -77,3 +77,7 @@
 #define IDR_DOG_TB_DECOR_HOVER       632
 #define IDR_DOG_TB_DECOR_PRESSED     633
 #define IDR_DOG_TB_DECOR_IDLE        634
+
+// Resting toolbar (resource/doggy/rest).
+#define IDR_DOG_REST_SLEEP          635
+#define IDR_DOG_REST_AWAKE          636

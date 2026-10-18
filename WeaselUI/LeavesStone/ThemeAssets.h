@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <windows.h>
 
@@ -41,6 +41,9 @@ enum class ThemeAssetId : size_t {
   DecorHover,
   DecorPressed,
   DecorIdle,
+  // Resting toolbar frames (resource/doggy/rest).
+  RestSleep,
+  RestAwake,
   Count
 };
 

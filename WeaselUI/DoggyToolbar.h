@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <windows.h>
 
@@ -15,8 +15,8 @@ enum class ToolbarAction {
   OpenSettings,
 };
 
-// Floating status bar anchored to the bottom-right corner of the work area:
-// a plush capsule with the mascot leaning on it and four buttons.
+// Status bar with the mascot lying on it. Two complete frames are swapped in
+// place: eyes closed while idle, eyes open while the pointer is on the bar.
 class DoggyToolbar {
  public:
   explicit DoggyToolbar(HINSTANCE instance);
@@ -31,7 +31,6 @@ class DoggyToolbar {
   HWND hwnd() const { return hwnd_; }
 
  private:
-  enum class State { Default, Hover, Pressed, Idle };
   enum class Hot { None, Mode, Rest, Skin, Settings };
 
   static LRESULT CALLBACK WindowProc(HWND hwnd,
@@ -43,26 +42,22 @@ class DoggyToolbar {
   void ReloadMetrics();
   void ApplyPlacement();
   void Render();
-  void SetState(State state);
-  void Wake();
+  void SetAwake(bool awake);
+  void PollPointer();
+  bool PointOnToolbar(int x, int y) const;
   Hot HitTest(int x, int y) const;
   ToolbarAction ActionFor(Hot hot) const;
-  RECT NativeRectToWindow(int x, int y, int width, int height) const;
-  bool PointInVisibleArea(int x, int y) const;
+  RECT SourceRectToWindow(int x, int y, int width, int height) const;
 
   HINSTANCE instance_ = nullptr;
   HWND hwnd_ = nullptr;
   ThemeAssets assets_;
   std::function<void(ToolbarAction)> handler_;
-  State state_ = State::Default;
   Hot hot_ = Hot::None;
-  Hot pressed_ = Hot::None;
-  bool ascii_mode_ = false;
+  bool awake_ = false;
+  bool pointer_inside_ = false;
   bool tracking_mouse_ = false;
-  bool hover_pending_ = false;
-  bool dragging_ = false;
-  POINT drag_origin_{0, 0};
-  RECT drag_window_{0, 0, 0, 0};
+  ULONGLONG pointer_changed_at_ = 0;
   float scale_ = 1.0f;
   RECT window_rect_{0, 0, 0, 0};
 };

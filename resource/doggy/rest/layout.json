@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "name": "小毛豆 · 趴在工具条上",
+  "license": "GPL-3.0-only",
+  "canvasPx": [
+    896,
+    480
+  ],
+  "assetScale": 2,
+  "canvasDip": [
+    448,
+    240
+  ],
+  "alpha": "straight / unassociated",
+  "rectFormat": "x,y,width,height",
+  "anchorPx": [
+    448,
+    296
+  ],
+  "anchorDip": [
+    224,
+    148
+  ],
+  "restingEdgeYpx": 296,
+  "dogRectPx": [
+    248,
+    96,
+    400,
+    221
+  ],
+  "panelRectPx": [
+    128,
+    288,
+    640,
+    160
+  ],
+  "states": {
+    "default": "toolbar-sleep.png",
+    "hover": "toolbar-awake.png"
+  },
+  "layers": {
+    "sleep": "layers/mascot-sleep.png",
+    "awake": "layers/mascot-awake.png",
+    "toolbar": "layers/toolbar.png",
+    "panel": "layers/panel.png",
+    "sleepDecoration": "layers/decoration-sleep.png",
+    "awakeDecoration": "layers/decoration-awake.png"
+  },
+  "controls": [
+    {
+      "name": "mode-zh",
+      "imageRectPx": [
+        258,
+        336,
+        64,
+        64
+      ],
+      "hitRectPx": [
+        246,
+        320,
+        96,
+        112
+      ],
+      "action": "open-mode-menu"
+    },
+    {
+      "name": "icon-moon",
+      "imageRectPx": [
+        358,
+        332,
+        72,
+        72
+      ],
+      "hitRectPx": [
+        346,
+        320,
+        96,
+        112
+      ],
+      "action": "toggle-night-mode"
+    },
+    {
+      "name": "icon-shirt",
+      "imageRectPx": [
+        462,
+        332,
+        72,
+        72
+      ],
+      "hitRectPx": [
+        450,
+        320,
+        96,
+        112
+      ],
+      "action": "open-skin-picker"
+    },
+    {
+      "name": "icon-gear",
+      "imageRectPx": [
+        566,
+        332,
+        72,
+        72
+      ],
+      "hitRectPx": [
+        554,
+        320,
+        96,
+        112
+      ],
+      "action": "open-settings"
+    }
+  ],
+  "behavior": {
+    "pointerEnter": "awake",
+    "pointerLeave": "sleep",
+    "enterDelayMs": 60,
+    "leaveDelayMs": 300,
+    "transition": "swap entire frame at same origin; no position/size animation",
+    "hitTest": "alpha >= 32 in dog or visible toolbar; transparent margin passes through"
+  },
+  "renderOrder": [
+    "toolbar or panel with native controls",
+    "mascot",
+    "optional decoration"
+  ],
+  "notes": [
+    "Both full frames share exactly the same alpha and all pixels outside the eye area.",
+    "Use full frames OR separate layers. Do not draw baked buttons twice.",
+    "The eye-only sleeping patch comes from the existing licensed sleeping mascot. No new image generation or screenshot extraction is used.",
+    "The source mascot retains its original head angle and appearance. Only its position relative to the toolbar changes."
+  ],
+  "provenance": [
+    {
+      "file": "outputs/doggy-skin/mascot-hover.png",
+      "sha256": "0c04547b0a05f66b5c14dd9c10158be63e87e34190fe4798886576f6e5b03092"
+    },
+    {
+      "file": "outputs/doggy-skin/mascot-idle.png",
+      "sha256": "8813d9a6753e8bad35a8f6ece683a6d598b209f9b1f62ef914bde6d523e128a9"
+    },
+    {
+      "file": "outputs/doggy-toolbar/layers/panel-normal.png",
+      "sha256": "2bba515910480df4241407974f4dc7981c374c807cced8a598f8b02eb9c9d718"
+    },
+    {
+      "file": "outputs/doggy-toolbar/controls/mode-zh.png",
+      "sha256": "17eb3e80b056f27bb8a6c95fca95f11aa73b59e7d8e253bad1ebcbc254e34b36"
+    },
+    {
+      "file": "outputs/doggy-toolbar/controls/icon-moon.png",
+      "sha256": "728fec700fa51d8c020e175e8b8ff905baecb88f766180c4e92ae80b0464df0c"
+    },
+    {
+      "file": "outputs/doggy-toolbar/controls/icon-shirt.png",
+      "sha256": "75fea4f94ecdda7f7f5861e8c366d6b73863d432baa34b4a2e6acf89ef553d3c"
+    },
+    {
+      "file": "outputs/doggy-toolbar/controls/icon-gear.png",
+      "sha256": "398cfbc105c5f74c03347897a98498d0749180a4608eb2b655104a579c5e85db"
+    }
+  ]
+}

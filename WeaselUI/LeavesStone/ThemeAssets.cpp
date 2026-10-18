@@ -1,4 +1,4 @@
-#include "ThemeAssets.h"
+﻿#include "ThemeAssets.h"
 
 #include <objidl.h>
 #include <wincodec.h>
@@ -22,7 +22,8 @@ constexpr std::array<int, static_cast<size_t>(ThemeAssetId::Count)>
         IDR_DOG_TOOLBAR_IDLE,   IDR_DOG_TB_MODE_BG,    IDR_DOG_TB_MODE_ZH,
         IDR_DOG_TB_MODE_EN,     IDR_DOG_TB_ICON_MOON,  IDR_DOG_TB_ICON_SHIRT,
         IDR_DOG_TB_ICON_GEAR,   IDR_DOG_TB_BTN_HOVER,  IDR_DOG_TB_BTN_PRESSED,
-        IDR_DOG_TB_DECOR_HOVER, IDR_DOG_TB_DECOR_PRESSED, IDR_DOG_TB_DECOR_IDLE};
+        IDR_DOG_TB_DECOR_HOVER, IDR_DOG_TB_DECOR_PRESSED, IDR_DOG_TB_DECOR_IDLE,
+        IDR_DOG_REST_SLEEP,     IDR_DOG_REST_AWAKE};
 
 // The candidate window is drawn both by WeaselServer.exe and, in this build, by
 // the text service inside the client process. GetModuleHandleW(nullptr) returns
