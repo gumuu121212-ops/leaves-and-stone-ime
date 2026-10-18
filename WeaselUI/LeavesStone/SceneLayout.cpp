@@ -93,13 +93,18 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   bar_width = std::min(bar_width, std::max(0.0f, work_width - 8.0f * scale));
   bar_width = std::max(bar_width, std::min(320.0f * scale, work_width));
 
-  const float anchor_x = bar_width * 0.605f;
-  const float mascot_left = anchor_x - content_offset_x;
-  const float mascot_right = mascot_left + content_width * mascot_scale;
-  const float window_left = std::min(0.0f, mascot_left);
-  const float window_right = std::max(bar_width, mascot_right);
+  // Put the mascot beside the bar instead of on top of it. Stacked above, the
+  // mascot pushed the candidates a whole head height below the caret, which is
+  // what made the bar look detached from the words being typed.
+  const float mascot_width = content_width * mascot_scale;
+  const float mascot_top_pad = 0.0f;
+  const float mascot_left = bar_width + 4.0f * scale;
+  const float mascot_right = mascot_left + mascot_width;
+  const float window_left = 0.0f;
+  const float window_right = mascot_right;
   const float window_width = window_right - window_left;
-  const float window_height = overhang + bar_height;
+  const float window_height =
+      std::max(bar_height, content_height * mascot_scale + mascot_top_pad);
 
   // Align the bar's left edge with the caret and drop it just under the line,
   // which is where the eye expects the candidates: the first candidate sits
@@ -116,12 +121,12 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   scene.window_bounds = {left, top, left + window_width, top + window_height};
 
   const float bar_left = left - window_left;
-  const float bar_top = top + overhang;
+  const float bar_top = top + window_height - bar_height;
   scene.bar = {bar_left, bar_top, bar_left + bar_width, bar_top + bar_height};
   scene.has_bar = true;
-  scene.mascot = {bar_left + mascot_left, bar_top - overhang,
+  scene.mascot = {bar_left + mascot_left, bar_top + bar_height - content_height * mascot_scale,
                   bar_left + mascot_left + content_width * mascot_scale,
-                  bar_top - overhang + content_height * mascot_scale};
+                  bar_top + bar_height};
 
   if (has_plaque) {
     const float available = std::max(0.0f, bar_width - pinyin_left - 20.0f);
