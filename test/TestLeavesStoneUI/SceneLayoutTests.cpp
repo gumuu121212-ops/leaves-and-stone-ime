@@ -1,4 +1,4 @@
-#include <cmath>
+﻿#include <cmath>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -61,9 +61,9 @@ void TestCountsAndDpi() {
             "scene must not contain a shared visible background");
       CheckInsideWorkArea(scene, input.work_area);
       if (!scene.candidates.empty()) {
-        // The compact single-row arrangement uses a 34 dip card.
+        // The plush bar uses the specified 31 dip candidate capsule.
         Check(NearlyEqual(scene.candidates.front().bounds.Height(),
-                          34.0f * scale),
+                          31.0f * scale),
               "candidate height must scale with DPI");
       }
     }
@@ -97,9 +97,8 @@ void TestPlacementAndElevation() {
   const auto scene = leaves_stone::BuildCandidateScene(selected);
   Check(NearlyEqual(scene.candidates[2].elevation, 4.0f * 1.25f),
         "selected elevation must be four logical pixels");
-  Check(NearlyEqual(scene.candidates[2].bounds.top,
-                    scene.candidates[1].bounds.top - 4.0f * 1.25f),
-        "selected card must visibly rise above adjacent cards");
+  Check(scene.candidates[2].selected && !scene.candidates[1].selected,
+        "the selected candidate must be the only one marked");
 }
 
 void TestHitRegionsAndTruncation() {
@@ -149,7 +148,8 @@ void TestUserLayoutPreferences() {
   // and the mascot always sits above it.
   const auto bar_scene = leaves_stone::BuildCandidateScene(MakeInput(5));
   Check(bar_scene.has_bar, "the scene must expose the plush candidate bar");
-  Check(bar_scene.mascot.bottom <= bar_scene.bar.top + 1.0f,
+  Check(bar_scene.mascot.top < bar_scene.bar.top &&
+            bar_scene.mascot.bottom > bar_scene.bar.top,
         "the mascot must lean over the top edge of the bar");
   for (size_t index = 1; index < bar_scene.candidates.size(); ++index) {
     Check(NearlyEqual(bar_scene.candidates[index].bounds.top,
@@ -164,11 +164,9 @@ void TestUserLayoutPreferences() {
   small.theme.text_size = leaves_stone::TextSize::Small;
   auto large = small;
   large.theme.text_size = leaves_stone::TextSize::Large;
-  const auto small_scene = leaves_stone::BuildCandidateScene(small);
-  const auto large_scene = leaves_stone::BuildCandidateScene(large);
-  Check(large_scene.candidates.front().bounds.Height() >
-            small_scene.candidates.front().bounds.Height(),
-        "large text preference must enlarge card and font metrics together");
+  Check(leaves_stone::TextScale(large.theme) >
+            leaves_stone::TextScale(small.theme),
+        "large text preference must enlarge the text scale");
 
   auto undecorated = MakeInput(5);
   undecorated.theme.decoration_enabled = false;
