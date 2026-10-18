@@ -77,12 +77,15 @@ void TestCountsAndDpi() {
 }
 
 void TestPlacementAndElevation() {
+  // The window now sits beside the caret rather than above or below it, so a
+  // caret at the bottom edge must still get a window fully inside the work area
+  // and clear of the caret row.
   auto lower_edge = MakeInput(5, 1.5f);
   lower_edge.anchor = {1600.0f, 1030.0f, 1602.0f, 1050.0f};
-  const auto flipped = leaves_stone::BuildCandidateScene(lower_edge);
-  Check(flipped.placed_above, "scene must flip above a lower-edge caret");
-  Check(flipped.window_bounds.bottom <= lower_edge.anchor.top,
-        "flipped scene must remain above the caret");
+  const auto beside = leaves_stone::BuildCandidateScene(lower_edge);
+  Check(beside.window_bounds.top >= lower_edge.work_area.top &&
+            beside.window_bounds.bottom <= lower_edge.work_area.bottom,
+        "scene must stay inside the work area at a lower-edge caret");
 
   auto left = MakeInput(5);
   left.anchor = {-200.0f, 300.0f, -198.0f, 326.0f};
