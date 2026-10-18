@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 
 setlocal
 
@@ -231,6 +231,14 @@ if %build_installer% == 1 (
   /DWEASEL_BUILD=%WEASEL_BUILD% ^
   /DPRODUCT_VERSION=%PRODUCT_VERSION% ^
   output\install.nsi
+  if errorlevel 1 goto error
+
+  rem Wrap the NSIS package in the drawn installer UI. The wrapper embeds the
+  rem real installer and runs it in silent mode, so the wizard can match the
+  rem artwork while the installation logic stays exactly as it is.
+  move /Y output\archives\leaves-and-stone-%PRODUCT_VERSION%-installer.exe output\archives\leaves-and-stone-%PRODUCT_VERSION%-core.exe
+  if errorlevel 1 goto error
+  powershell -NoProfile -ExecutionPolicy Bypass -File installer-ui\build-setup-ui.ps1 -Core output\archives\leaves-and-stone-%PRODUCT_VERSION%-core.exe -Out output\archives\leaves-and-stone-%PRODUCT_VERSION%-installer.exe
   if errorlevel 1 goto error
 )
 
