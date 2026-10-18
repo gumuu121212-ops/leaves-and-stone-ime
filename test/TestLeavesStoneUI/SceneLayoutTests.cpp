@@ -61,8 +61,9 @@ void TestCountsAndDpi() {
             "scene must not contain a shared visible background");
       CheckInsideWorkArea(scene, input.work_area);
       if (!scene.candidates.empty()) {
+        // The compact single-row arrangement uses a 34 dip card.
         Check(NearlyEqual(scene.candidates.front().bounds.Height(),
-                          64.0f * scale),
+                          34.0f * scale),
               "candidate height must scale with DPI");
       }
     }
