@@ -22,8 +22,8 @@ bool DrawDoggyToolbarArtwork(HDC target, const ThemeAssets& assets,
 
 // Status bar with the mascot lying on it. Two complete frames are swapped in
 // place: eyes closed while idle, eyes open while the pointer is on the bar.
-// Dragging keeps the full toolbar visible. Right-click hides it until the tray
-// menu restores it, independently of input-method focus notifications.
+// Dragging keeps the full toolbar visible. Right-click opens a Hide menu;
+// choosing Hide keeps it hidden until the tray menu restores it.
 class DoggyToolbar {
  public:
   explicit DoggyToolbar(HINSTANCE instance);
@@ -52,6 +52,7 @@ class DoggyToolbar {
   void ApplyPlacement();
   void ApplyBounds();
   void ApplyVisibility();
+  void ShowContextMenu(int x, int y);
   void ReflowForDisplay(UINT dpi = 0);
   RECT ContentRect() const;
   POINT HeadCenter() const;

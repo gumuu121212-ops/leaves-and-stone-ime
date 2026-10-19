@@ -176,6 +176,29 @@ void DoggyToolbar::SetUserHidden(bool hidden) {
   ApplyVisibility();
 }
 
+void DoggyToolbar::ShowContextMenu(int x, int y) {
+  HMENU menu = CreatePopupMenu();
+  if (!menu)
+    return;
+  constexpr UINT kHideCommand = 1;
+  if (!AppendMenuW(menu, MF_STRING, kHideCommand, L"隐藏")) {
+    DestroyMenu(menu);
+    return;
+  }
+  POINT point{x, y};
+  ClientToScreen(hwnd_, &point);
+  const UINT alignment = GetSystemMetrics(SM_MENUDROPALIGNMENT)
+                             ? TPM_RIGHTALIGN : TPM_LEFTALIGN;
+  const UINT selected = TrackPopupMenuEx(
+      menu, TPM_RETURNCMD | TPM_RIGHTBUTTON | alignment,
+      point.x, point.y, hwnd_, nullptr);
+  DestroyMenu(menu);
+  // A dismissed menu returns zero: opening it alone must never change the
+  // user's visibility preference or activate any of the toolbar buttons.
+  if (selected == kHideCommand)
+    SetUserHidden(true);
+}
+
 void DoggyToolbar::ApplyVisibility() {
   if (!hwnd_) return;
   const bool visible = active_ && !user_hidden_;
@@ -527,7 +550,7 @@ LRESULT DoggyToolbar::Handle(HWND hwnd,
       return 0;
     case WM_RBUTTONUP:
       if (PointOnToolbar(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam)))
-        SetUserHidden(true);
+        ShowContextMenu(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam));
       return 0;
     case WM_CANCELMODE:
     case WM_CAPTURECHANGED:

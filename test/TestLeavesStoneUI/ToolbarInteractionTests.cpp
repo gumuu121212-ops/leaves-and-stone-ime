@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <cmath>
 #include <iostream>
+#include <string>
 
 #include "include/ToolbarFocusState.h"
 #include "WeaselUI/DoggyToolbar.h"
@@ -26,6 +27,68 @@ void Pump(unsigned milliseconds) {
     }
     Sleep(1);
   } while (GetTickCount64() < end);
+}
+
+// Drive only this test window's modal menu queue; never inject physical input
+// or operate on another application's windows.
+struct ToolbarMenuProbe {
+  HWND owner;
+  WNDPROC previous = nullptr;
+  UINT_PTR timer = 0;
+  bool choose_hide;
+  bool opened = false;
+  bool visible_while_open = false;
+  bool has_hide_item = false;
+  unsigned ticks = 0;
+  static ToolbarMenuProbe* current;
+
+  static LRESULT CALLBACK Procedure(HWND window, UINT message,
+                                     WPARAM wparam, LPARAM lparam) {
+    auto& probe = *current;
+    if (message == WM_INITMENUPOPUP) {
+      probe.opened = true;
+      probe.visible_while_open = IsWindowVisible(window) != FALSE;
+      wchar_t label[32]{};
+      const auto menu = reinterpret_cast<HMENU>(wparam);
+      GetMenuStringW(menu, 0, label, 32, MF_BYPOSITION);
+      probe.has_hide_item = GetMenuItemCount(menu) == 1 &&
+                            std::wstring(label) == L"隐藏";
+    }
+    return CallWindowProcW(probe.previous, window, message, wparam, lparam);
+  }
+  static void CALLBACK OnTimer(HWND, UINT, UINT_PTR, DWORD) {
+    auto& probe = *current;
+    if (++probe.ticks > 30) { EndMenu(); return; }
+    if (!probe.opened || probe.ticks != 2) return;
+    if (probe.choose_hide) {
+      PostMessageW(probe.owner, WM_KEYDOWN, VK_DOWN, 0);
+      PostMessageW(probe.owner, WM_KEYDOWN, VK_RETURN, 0);
+    } else {
+      PostMessageW(probe.owner, WM_KEYDOWN, VK_ESCAPE, 0);
+    }
+  }
+  ToolbarMenuProbe(HWND window, bool hide) : owner(window), choose_hide(hide) {
+    current = this;
+    previous = reinterpret_cast<WNDPROC>(SetWindowLongPtrW(
+        owner, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(Procedure)));
+    timer = SetTimer(nullptr, 0, 10, OnTimer);
+  }
+  ~ToolbarMenuProbe() {
+    KillTimer(nullptr, timer);
+    SetWindowLongPtrW(owner, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(previous));
+    current = nullptr;
+  }
+};
+ToolbarMenuProbe* ToolbarMenuProbe::current = nullptr;
+
+void RightClickMenu(HWND window, int x, int y, bool hide) {
+  ToolbarMenuProbe probe(window, hide);
+  Mouse(window, WM_RBUTTONDOWN, x, y);
+  Mouse(window, WM_RBUTTONUP, x, y);
+  Check(probe.opened && probe.has_hide_item,
+        "right-click must open a menu containing the Hide item");
+  Check(probe.visible_while_open,
+        "opening the right-click menu must leave the toolbar visible");
 }
 void TestDeferredActivationWithoutKeys() {
   leaves_stone::DeferredToolbarActivation activation;
@@ -134,9 +197,12 @@ void TestRightClickHideSurvivesFocusChanges() {
   Mouse(toolbar.hwnd(), WM_LBUTTONUP, x, y);
   GetWindowRect(toolbar.hwnd(), &bounds);
   const HWND foreground = GetForegroundWindow();
-  Mouse(toolbar.hwnd(), WM_RBUTTONDOWN, x, y);
-  Mouse(toolbar.hwnd(), WM_RBUTTONUP, x, y);
-  Check(!IsWindowVisible(toolbar.hwnd()), "right-clicking the dog must immediately hide the toolbar");
+  RightClickMenu(toolbar.hwnd(), x, y, false);
+  Check(IsWindowVisible(toolbar.hwnd()),
+        "dismissing the context menu must not hide the toolbar");
+  RightClickMenu(toolbar.hwnd(), x, y, true);
+  Check(!IsWindowVisible(toolbar.hwnd()),
+        "choosing Hide from the context menu must hide the toolbar");
   Check(GetForegroundWindow() == foreground && actions == 0,
         "right-click hide must not activate the toolbar or click a button");
   toolbar.SetVisible(true);
@@ -160,8 +226,7 @@ void TestRightClickHideSurvivesFocusChanges() {
   const int button_y = static_cast<int>(std::lround(376 * scale));
   Mouse(toolbar.hwnd(), WM_LBUTTONDOWN, x, y);
   SendMessageW(toolbar.hwnd(), WM_DPICHANGED, MAKELONG(144, 144), 0);
-  Mouse(toolbar.hwnd(), WM_RBUTTONDOWN, button_x, button_y);
-  Mouse(toolbar.hwnd(), WM_RBUTTONUP, button_x, button_y);
+  RightClickMenu(toolbar.hwnd(), button_x, button_y, true);
   Check(!IsWindowVisible(toolbar.hwnd()) && GetCapture() != toolbar.hwnd() && actions == 0,
         "right-clicking a control during a DPI-changing drag must hide and cancel without clicking it");
 }
