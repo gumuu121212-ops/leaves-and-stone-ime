@@ -9,4 +9,5 @@ Resources/panel-plush.png
 Resources/Assets.xcassets/AppIcon.appiconset/icon.png
 *.xcuserstate
 xcuserdata/
+__pycache__/
 

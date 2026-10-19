@@ -55,7 +55,7 @@ struct LicenseView: View {
         let manager = FileManager.default
         guard let root = Bundle.main.url(forResource: "Notices", withExtension: nil),
               let files = manager.enumerator(at: root, includingPropertiesForKeys: [.isRegularFileKey]) else { return "许可文件未找到" }
-        return files.compactMap { $0 as? URL }.sorted { $0.path < $1.path }.compactMap { file in
+        return files.compactMap { $0 as? URL }.sorted { $0.path < $1.path }.compactMap { file -> String? in
             guard ["txt", "md", "", "license"].contains(file.pathExtension.lowercased()),
                   (try? file.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true,
                   let text = try? String(contentsOf: file, encoding: .utf8) else { return nil }

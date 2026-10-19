@@ -32,10 +32,10 @@
 
 **Interfaces:** Session(RimeApi*) owns one leaves_stone session. Apply(Action,string,index) returns Update{snapshot,text,delete_backward}; Read() returns preedit, candidates, selected index, ascii and paging flags.
 
-- [ ] Write real-engine tests for nihao, complete sentence, ipad, raw unknown, page navigation, Space, Return, Backspace, literal insertion and switching mode.
-- [ ] Demonstrate expected failure before implementing the session.
-- [ ] Implement minimal C++ session; prove tests with the installed librime in an isolated temporary profile.
-- [ ] Pin framework and data sources with digests; prepare licenses and precompiled dictionaries using the same engine on macOS.
+- [x] Write real-engine tests for nihao, complete sentence, ipad, raw unknown, page navigation, Space, Return, Backspace, literal insertion and switching mode.
+- [x] Demonstrate expected failure before implementing the session.
+- [x] Implement minimal C++ session; prove tests with the installed librime in an isolated temporary profile.
+- [x] Pin framework and data sources with digests; prepare licenses and precompiled dictionaries using the same engine on macOS.
 
 ### Task 2: Native extension and touch interface
 

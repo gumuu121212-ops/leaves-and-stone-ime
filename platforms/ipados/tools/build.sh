@@ -13,9 +13,12 @@ for runtime in sorted(devices,reverse=True):
         print(match["udid"]); break
 else: raise SystemExit("No available iPad simulator")
 ')"
+xcrun simctl boot "$DEVICE" || true
+xcrun simctl bootstatus "$DEVICE" -b
 xcodebuild -project Xiaomaodou.xcodeproj -scheme Xiaomaodou -configuration Debug \
   -destination "platform=iOS Simulator,id=$DEVICE" -derivedDataPath DerivedData \
-  -resultBundlePath .build/KeyboardTests.xcresult CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES test
+  -resultBundlePath .build/KeyboardTests.xcresult -parallel-testing-enabled NO \
+  CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES test
 xcrun xcresulttool export attachments --path .build/KeyboardTests.xcresult --output-path dist/previews
 xcodebuild -project Xiaomaodou.xcodeproj -scheme Xiaomaodou -configuration Release \
   -destination 'generic/platform=iOS' -archivePath .build/Xiaomaodou.xcarchive \

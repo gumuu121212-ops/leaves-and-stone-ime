@@ -9,7 +9,7 @@ private extension UIView {
     }
 }
 
-final class KeyboardTests: XCTestCase {
+@MainActor final class KeyboardTests: XCTestCase {
     private static let userURL = FileManager.default.temporaryDirectory
         .appendingPathComponent("maodou-tests-\(UUID().uuidString)")
 
@@ -73,6 +73,13 @@ final class KeyboardTests: XCTestCase {
             surface.onAction = { action in if case .select(0) = action { tapped = true } }
             surface.findButton("candidate-0")?.sendActions(for: .touchUpInside)
             XCTAssertTrue(tapped)
+            let image = UIGraphicsImageRenderer(size: surface.bounds.size).image { renderer in
+                surface.layer.render(in: renderer.cgContext)
+            }
+            let attachment = XCTAttachment(image: image)
+            attachment.name = "xiaomaodou-\(Int(width))pt"
+            attachment.lifetime = .keepAlways
+            add(attachment)
         }
     }
 
@@ -86,4 +93,43 @@ final class KeyboardTests: XCTestCase {
         RunLoop.main.run(until: Date().addingTimeInterval(0.5))
         XCTAssertEqual(count, 1)
     }
+
+    func testControllerTouchSelectionWritesThroughDocumentProxy() {
+        let controller = ProxyKeyboardController()
+        controller.loadViewIfNeeded()
+        controller.view.frame = CGRect(x: 0, y: 0, width: 768, height: 388)
+        controller.viewWillAppear(false)
+        controller.view.setNeedsLayout()
+        controller.view.layoutIfNeeded()
+        for key in "nihao" { controller.view.findButton("key-\(key)")?.sendActions(for: .touchUpInside) }
+        let candidate = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            controller.view.findButton("candidate-0")?.title(for: .normal) == "你好"
+        }, object: nil)
+        wait(for: [candidate], timeout: 10)
+        controller.view.findButton("candidate-0")?.sendActions(for: .touchUpInside)
+        let commit = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in controller.proxy.text == "你好" }, object: nil)
+        wait(for: [commit], timeout: 10)
+        controller.viewWillDisappear(false)
+        XCTAssertEqual(controller.proxy.text, "你好")
+    }
+}
+
+private final class ProxyKeyboardController: KeyboardViewController {
+    let proxy = TestDocumentProxy()
+    override var textDocumentProxy: UITextDocumentProxy { proxy }
+}
+
+private final class TestDocumentProxy: NSObject, UITextDocumentProxy {
+    var text = ""
+    var documentIdentifier = UUID()
+    var documentContextBeforeInput: String? { text }
+    var documentContextAfterInput: String? { "" }
+    var documentInputMode: UITextInputMode? { nil }
+    var selectedText: String? { nil }
+    var hasText: Bool { !text.isEmpty }
+    func insertText(_ text: String) { self.text += text }
+    func deleteBackward() { if !text.isEmpty { text.removeLast() } }
+    func adjustTextPosition(byCharacterOffset offset: Int) {}
+    func setMarkedText(_ markedText: String?, selectedRange: NSRange) {}
+    func unmarkText() {}
 }
