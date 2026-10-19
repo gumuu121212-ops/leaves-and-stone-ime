@@ -156,6 +156,61 @@ void TestBarTracksCaretWithoutMascotGap() {
   CheckInsideWorkArea(negative_scene, secondary_monitor.work_area);
 }
 
+void TestSceneShiftedLeftWithCaret() {
+  for (const float scale : {1.0f, 1.25f, 1.5f, 1.7f, 2.0f}) {
+    auto input = MakeInput(5, scale);
+    input.work_area = {0.0f, 0.0f, 4000.0f, 2160.0f};
+    input.has_next_page = true;
+    for (const bool inline_preedit : {false, true}) {
+      input.preedit = inline_preedit ? L"" : L"jintian";
+      const auto scene = leaves_stone::BuildCandidateScene(input);
+      Check(NearlyEqual(scene.bar.left, input.anchor.left - 64.0f * scale),
+            "the whole scene must start 64 dip to the left of the caret");
+      Check(NearlyEqual(scene.bar.top, input.anchor.bottom + 4.0f * scale),
+            "the horizontal adjustment must preserve the vertical caret gap");
+      Check(NearlyEqual(scene.mascot.left + 102.0f * scale,
+                        scene.bar.left + scene.bar.Width() * 0.605f) &&
+                NearlyEqual(scene.bar.top - scene.mascot.top, 102.0f * scale),
+            "the mascot must move with the bar and keep its paw baseline");
+      const auto& card = scene.candidates.front();
+      const auto hit = leaves_stone::HitTest(
+          scene, {(card.bounds.left + card.bounds.right) / 2.0f,
+                  (card.bounds.top + card.bounds.bottom) / 2.0f});
+      Check(hit && hit->kind == leaves_stone::HitKind::Candidate &&
+                hit->candidate_index == 0,
+            "the shifted first candidate must retain its click target");
+      const auto& next = scene.controls.back().bounds;
+      const auto next_hit = leaves_stone::HitTest(
+          scene, {(next.left + next.right) / 2.0f,
+                  (next.top + next.bottom) / 2.0f});
+      Check(next_hit && next_hit->kind == leaves_stone::HitKind::NextPage,
+            "the shifted next-page control must retain its click target");
+      CheckInsideWorkArea(scene, input.work_area);
+    }
+
+    input.anchor.left = 20.0f;
+    input.anchor.right = 22.0f;
+    auto scene = leaves_stone::BuildCandidateScene(input);
+    Check(NearlyEqual(scene.window_bounds.left, input.work_area.left),
+          "a leftward offset must stop at the monitor's left edge");
+    CheckInsideWorkArea(scene, input.work_area);
+
+    input.work_area = {-4000.0f, -2160.0f, 0.0f, 0.0f};
+    input.anchor = {-3200.0f, -1300.0f, -3198.0f, -1274.0f};
+    scene = leaves_stone::BuildCandidateScene(input);
+    Check(NearlyEqual(scene.bar.left, input.anchor.left - 64.0f * scale),
+          "the leftward offset must also apply on a negative-coordinate monitor");
+    CheckInsideWorkArea(scene, input.work_area);
+
+    input.anchor = {-3990.0f, -40.0f, -3988.0f, -14.0f};
+    scene = leaves_stone::BuildCandidateScene(input);
+    Check(scene.placed_above &&
+              NearlyEqual(scene.window_bounds.left, input.work_area.left),
+          "left-edge clamping must also work when the bar flips above the caret");
+    CheckInsideWorkArea(scene, input.work_area);
+  }
+}
+
 void TestHitRegionsAndFullText() {
   auto input = MakeInput(5);
   input.candidates[0].text = L"这是一个非常非常长的候选文本";
@@ -289,6 +344,7 @@ int RunSceneLayoutTests() {
   TestCountsAndDpi();
   TestPlacementAndElevation();
   TestBarTracksCaretWithoutMascotGap();
+  TestSceneShiftedLeftWithCaret();
   TestHitRegionsAndFullText();
   TestCompletePhrasesAndOverflow();
   TestUserLayoutPreferences();

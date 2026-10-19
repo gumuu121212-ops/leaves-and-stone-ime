@@ -142,7 +142,10 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   // The mascot overhang extends upward; adding it below the caret leaves a
   // large empty gap between inline preedit and the actual candidates.
   const float caret_gap = 4.0f * scale;
-  float left = input.anchor.left + window_left;
+  // Move the entire scene left as one unit; keep the mascot and all hit
+  // regions aligned, and let the work-area clamp limit the shift at an edge.
+  const float caret_left_offset = 64.0f * scale;
+  float left = input.anchor.left - caret_left_offset + window_left;
   float top = input.anchor.bottom + caret_gap - overhang;
   if (left + window_width > input.work_area.right)
     left = input.work_area.right - window_width;
