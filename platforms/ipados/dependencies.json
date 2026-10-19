@@ -1,0 +1,23 @@
+{
+  "librime": {
+    "repository": "ghostflyby/librime-xcframework",
+    "tag": "1.17.0-pack.10.0.0",
+    "commit": "19be74c28f92d083569a27eb7ab73ae3b54b5036",
+    "asset": "librime-static.xcframework.zip",
+    "sha256": "9e9923112ee9cee9bb53c25b41e51a2d7ea2ab3d91f34c7c99682224a23718ac",
+    "notices_sha256": "74c7e7a0ac34671903d4aca4cc0fec0187daf3dc747d01bf782bb0be703b08f1"
+  },
+  "luna_pinyin": {
+    "repository": "rime/rime-luna-pinyin",
+    "commit": "56b934b099dfbeab842320f13aa8b461a6ab3e42",
+    "file": "luna_pinyin.dict.yaml",
+    "sha256": "75bcf6eb3ff62b129882ed89cc22b2d80a5347aa72bcfa2ccc839bac298e7314"
+  },
+  "essay": {
+    "repository": "rime/rime-essay",
+    "commit": "054920de4f54c9e5994276a96a4fc2a35cb51aa3",
+    "file": "essay.txt",
+    "sha256": "3e8512ebaa6657e35961b1f5762060717c647e3bf471d5e3b86e783b4e934ffb"
+  },
+  "opencc_manifest_sha256": "7d110a56f7493d45d07079ba822d861547bcf9e096d592a9710ed97a2ef3245c"
+}

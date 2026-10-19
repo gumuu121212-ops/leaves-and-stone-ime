@@ -1,0 +1,35 @@
+name: Xiaomaodou iPadOS
+
+on:
+  push:
+    paths:
+      - 'platforms/ipados/**'
+      - '.github/workflows/ipados-ci.yml'
+      - 'output/data/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ipados-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native:
+    name: Apple native input engine
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record Apple toolchain
+        run: xcodebuild -version
+      - name: Build dictionaries and test real Rime input
+        run: bash platforms/ipados/tools/build-native.sh
+      - name: Upload verified native resources
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipados-native-${{ github.sha }}
+          path: |
+            platforms/ipados/Resources/Rime
+            platforms/ipados/Resources/Notices
+          if-no-files-found: error
