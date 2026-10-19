@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Globals.h"
+#include "CaretPosition.h"
 #include <WeaselIPC.h>
 #include <WeaselIPCData.h>
 
@@ -212,6 +213,7 @@ class WeaselTSF : public ITfTextInputProcessorEx,
   com_ptr<CCompartmentEventSink> _pConvertionCompartmentSink;
 
   com_ptr<ITfComposition> _pComposition;
+  leaves_stone::CaretPositionState _caretPositionState;
 
   com_ptr<CLangBarItemButton> _pLangBarButton;
 

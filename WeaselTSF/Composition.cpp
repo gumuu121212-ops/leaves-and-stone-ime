@@ -142,8 +142,10 @@ class CGetTextExtentEditSession : public CEditSession {
                             com_ptr<ITfContextView> pContextView,
                             com_ptr<ITfComposition> pComposition,
                             bool enhancedPosition,
-                            bool inlinePreedit)
-      : CEditSession(pTextService, pContext) {
+                            bool inlinePreedit,
+                            leaves_stone::CaretPositionState& caretPositionState)
+      : CEditSession(pTextService, pContext),
+        _caretPositionState(caretPositionState) {
     _pContextView = pContextView;
     _pComposition = pComposition;
     _enhancedPosition = enhancedPosition;
@@ -158,11 +160,12 @@ class CGetTextExtentEditSession : public CEditSession {
   com_ptr<ITfComposition> _pComposition;
   bool _enhancedPosition;
   bool _inlinePreedit;
+  leaves_stone::CaretPositionState& _caretPositionState;
 };
 
 STDAPI CGetTextExtentEditSession::DoEditSession(TfEditCookie ec) {
   RECT rc{};
-  const bool found = leaves_stone::ResolveCaretRect(
+  const bool found = _caretPositionState.Resolve(
       _inlinePreedit, [&](leaves_stone::CaretRange kind, RECT& candidate) {
         com_ptr<ITfRange> range;
         TfAnchor anchor = TF_ANCHOR_START;
@@ -229,6 +232,9 @@ STDAPI CGetTextExtentEditSession::DoEditSession(TfEditCookie ec) {
       }
     }
     _pTextService->_SetCompositionPosition(rc);
+  } else if (_inlinePreedit) {
+    leaves_stone::WriteTsfDiagnostic("caret-deferred",
+                                    "inline=1 no_usable_layout=1");
   }
   return S_OK;
 }
@@ -242,7 +248,8 @@ BOOL WeaselTSF::_UpdateCompositionWindow(com_ptr<ITfContext> pContext) {
   pEditSession.Attach(
       new CGetTextExtentEditSession(this, pContext, pContextView, _pComposition,
                                     _cand->style().enhanced_position,
-                                    _cand->style().inline_preedit));
+                                    _cand->style().inline_preedit,
+                                    _caretPositionState));
   if (pEditSession == NULL) {
     return FALSE;
   }
@@ -438,10 +445,12 @@ void WeaselTSF::_AbortComposition(bool clear) {
 
 void WeaselTSF::_FinalizeComposition() {
   _pComposition = nullptr;
+  _caretPositionState.Reset();
 }
 
 void WeaselTSF::_SetComposition(com_ptr<ITfComposition> pComposition) {
   _pComposition = pComposition;
+  _caretPositionState.Reset();
 }
 
 BOOL WeaselTSF::_IsComposing() {
