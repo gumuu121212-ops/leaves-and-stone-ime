@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <rime_api.h>
+#include <rime_levers_api.h>
 
 namespace fs = std::filesystem;
 
@@ -163,6 +164,36 @@ void RunRimeIntegrationTest() {
   rime->initialize(nullptr);
   if (rime->start_maintenance(True))
     rime->join_maintenance_thread();
+
+  // The deployer enumerates all named schema files, not just schema_list.
+  // A dictionary-only dependency must never become a selectable input method.
+  auto* levers_module = rime->find_module("levers");
+  Expect(levers_module && levers_module->get_api,
+         "librime settings API must be available");
+  if (levers_module && levers_module->get_api) {
+    auto* levers = reinterpret_cast<RimeLeversApi*>(levers_module->get_api());
+    auto* settings = levers->switcher_settings_init();
+    auto* custom = reinterpret_cast<RimeCustomSettings*>(settings);
+    Expect(settings != nullptr, "input method settings must initialize");
+    // A fresh profile has no custom settings yet; Load may return false for
+    // that missing file while still populating the available schema list.
+    if (settings)
+      levers->load_settings(custom);
+    RimeSchemaList available = {0};
+    Expect(settings && levers->get_available_schema_list(settings, &available),
+           "the actual input method settings list must be available");
+    bool has_main_schema = false;
+    for (size_t i = 0; i < available.size; ++i) {
+      const std::string id = available.list[i].schema_id;
+      has_main_schema = has_main_schema || id == "leaves_stone";
+      Expect(id != "leaves_stone_english",
+             "the dictionary dependency must not be a selectable input method");
+    }
+    Expect(has_main_schema, "the main pinyin input method must remain selectable");
+    levers->schema_list_destroy(&available);
+    if (settings)
+      levers->custom_settings_destroy(custom);
+  }
 
   const RimeSessionId session = rime->create_session();
   Expect(session != 0, "librime must create a test session");

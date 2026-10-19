@@ -78,8 +78,8 @@ translator:
     - xform/([jqxy])v/$1u/
 
 # Exact names only: partial English spellings must not displace pinyin.
-# echo_translator supplies the original input only when all translators have
-# no result, so unmatched Latin text remains selectable without fake UI rows.
+# echo_translator supplies a low-priority original-text alternative, so
+# unmatched Latin text remains selectable through the normal engine path.
 english:
   dictionary: leaves_stone_english
   enable_completion: false
