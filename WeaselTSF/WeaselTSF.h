@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "CaretPosition.h"
+#include "DeferredToolbarActivation.h"
 #include <WeaselIPC.h>
 #include <WeaselIPCData.h>
 
@@ -190,6 +191,7 @@ class WeaselTSF : public ITfTextInputProcessorEx,
   HRESULT _HandleCompartment(REFGUID guidCompartment);
 
   void _Reconnect();
+  void _ScheduleToolbarActivation();
   std::wstring _GetRootDir();
 
   bool isImmersive() const {
@@ -226,7 +228,10 @@ class WeaselTSF : public ITfTextInputProcessorEx,
 
   /* Weasel Related */
   weasel::Client m_client;
+  unsigned _server_retry = 0;
   DWORD _activateFlags;
+  leaves_stone::DeferredToolbarActivation _toolbar_activation;
+  bool _toolbar_profile_active = false;
 
   /* IME status */
   weasel::Status _status;

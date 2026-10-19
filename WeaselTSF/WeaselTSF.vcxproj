@@ -483,6 +483,7 @@
     <ClInclude Include="CandidateList.h" />
     <ClInclude Include="Compartment.h" />
     <ClInclude Include="LeavesStoneInputState.h" />
+    <ClInclude Include="DeferredToolbarActivation.h" />
     <ClInclude Include="ctffunc.h" />
     <ClInclude Include="DisplayAttributeInfo.h" />
     <ClInclude Include="EditSession.h" />

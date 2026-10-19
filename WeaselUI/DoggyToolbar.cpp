@@ -1,7 +1,10 @@
 ﻿#include "DoggyToolbar.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
+#include <fstream>
+#include <string>
 
 #include <gdiplus.h>
 #include <windowsx.h>
@@ -44,6 +47,53 @@ constexpr UINT_PTR kPollTimer = 1;
 constexpr int kPollMilliseconds = 30;
 constexpr int kRightMarginDip = 28;
 constexpr int kBottomMarginDip = 6;
+constexpr int kHeadLeft = 248, kHeadTop = 96;
+constexpr int kHeadWidth = 400, kHeadHeight = 221;
+constexpr int kDockDurationMs = 140;
+constexpr int kSnapDistanceDip = 18;
+
+void LogToolbar(const char* event, HWND window, ToolbarEdge edge) {
+  static std::atomic<unsigned> count{0};
+  if (count.fetch_add(1) >= 96) return;
+  wchar_t temp[MAX_PATH]{};
+  const DWORD length = GetTempPathW(MAX_PATH, temp);
+  if (!length || length >= MAX_PATH) return;
+  const std::wstring path = std::wstring(temp) + L"leaves-stone-toolbar.log";
+  std::ofstream out(path.c_str(), std::ios::app | std::ios::binary);
+  if (out) out << GetTickCount64() << " pid=" << GetCurrentProcessId()
+               << " event=" << event << " visible=" << (IsWindowVisible(window) ? 1 : 0)
+               << " edge=" << static_cast<int>(edge) << '\n';
+}
+
+RECT WorkAreaAt(POINT point) {
+  MONITORINFO info{};
+  info.cbSize = sizeof(info);
+  const HMONITOR monitor = MonitorFromPoint(point, MONITOR_DEFAULTTONEAREST);
+  if (monitor && GetMonitorInfoW(monitor, &info)) return info.rcWork;
+  RECT work{0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN)};
+  SystemParametersInfoW(SPI_GETWORKAREA, 0, &work, 0);
+  return work;
+}
+
+RECT OutsideEdge(RECT rect, const RECT& work, ToolbarEdge edge) {
+  LONG dx = 0, dy = 0;
+  if (edge == ToolbarEdge::Left) dx = work.left - rect.right - 1;
+  if (edge == ToolbarEdge::Right) dx = work.right - rect.left + 1;
+  if (edge == ToolbarEdge::Top) dy = work.top - rect.bottom - 1;
+  if (edge == ToolbarEdge::Bottom) dy = work.bottom - rect.top + 1;
+  OffsetRect(&rect, dx, dy);
+  return rect;
+}
+
+RECT InterpolateRect(const RECT& from, const RECT& to, float progress) {
+  const float rest = 1.0f - progress;
+  const float eased = 1.0f - rest * rest * rest;
+  const auto value = [eased](LONG a, LONG b) {
+    return static_cast<LONG>(std::lround(a + (b - a) * eased));
+  };
+  return {value(from.left, to.left), value(from.top, to.top),
+           value(from.right, to.right), value(from.bottom, to.bottom)};
+}
 
 struct ControlRect {
   RECT rect;
@@ -78,6 +128,58 @@ bool DrawBitmap(HDC target,
 
 }  // namespace
 
+bool DrawDoggyToolbarArtwork(HDC target, const ThemeAssets& assets,
+                             bool awake, bool head_only, int width, int height) {
+  if (!target || width <= 0 || height <= 0) return false;
+  EnsureGdiplus();
+  {
+    Gdiplus::Graphics clear(target);
+    clear.SetCompositingMode(Gdiplus::CompositingModeSourceCopy);
+    clear.Clear(Gdiplus::Color(0, 0, 0, 0));
+  }
+  const auto* frame = assets.Get(head_only
+      ? (awake ? ThemeAssetId::RestHeadAwake : ThemeAssetId::RestHeadSleep)
+      : (awake ? ThemeAssetId::RestAwake : ThemeAssetId::RestSleep));
+  if (!frame) return false;
+  if (!head_only) {
+    const bool drawn = DrawBitmap(target, frame, 0, 0, width, height);
+    const auto* decor = assets.Get(awake ? ThemeAssetId::RestDecorAwake
+                                        : ThemeAssetId::RestDecorSleep);
+    return DrawBitmap(target, decor, 0, 0, width, height) && drawn;
+  }
+  // Reuse the approved dog, with its existing alpha. Rotate its head 180
+  // degrees at draw time; never regenerate or rotate the button labels.
+  DIBSECTION dib{};
+  if (!GetObjectW(frame->handle, sizeof(dib), &dib) || !dib.dsBm.bmBits)
+    return false;
+  if (frame->width < kHeadLeft + kHeadWidth || frame->height < kHeadTop + kHeadHeight)
+    return false;
+  BITMAPINFO info{};
+  info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+  info.bmiHeader.biWidth = kHeadWidth;
+  info.bmiHeader.biHeight = -kHeadHeight;
+  info.bmiHeader.biPlanes = 1;
+  info.bmiHeader.biBitCount = 32;
+  void* rotated_pixels = nullptr;
+  HBITMAP rotated = CreateDIBSection(target, &info, DIB_RGB_COLORS,
+                                      &rotated_pixels, nullptr, 0);
+  if (!rotated || !rotated_pixels) {
+    if (rotated) DeleteObject(rotated);
+    return false;
+  }
+  const auto* input = static_cast<const DWORD*>(dib.dsBm.bmBits);
+  auto* output = static_cast<DWORD*>(rotated_pixels);
+  const int stride = dib.dsBm.bmWidthBytes / 4;
+  for (int y = 0; y < kHeadHeight; ++y)
+    for (int x = 0; x < kHeadWidth; ++x)
+      output[y * kHeadWidth + x] = input[
+          (kHeadTop + kHeadHeight - 1 - y) * stride + kHeadLeft + kHeadWidth - 1 - x];
+  const ThemeBitmap head{rotated, kHeadWidth, kHeadHeight};
+  const bool drawn = DrawBitmap(target, &head, 0, 0, width, height);
+  DeleteObject(rotated);
+  return drawn;
+}
+
 DoggyToolbar::DoggyToolbar(HINSTANCE instance) : instance_(instance) {}
 
 DoggyToolbar::~DoggyToolbar() {
@@ -111,10 +213,12 @@ bool DoggyToolbar::Create(std::function<void(ToolbarAction)> handler) {
   Render();
   // Hidden until the input method is actually selected.
   SetTimer(hwnd_, kPollTimer, kPollMilliseconds, nullptr);
+  LogToolbar("created", hwnd_, dock_edge_);
   return true;
 }
 
 void DoggyToolbar::Destroy() {
+  CancelPointer();
   if (hwnd_) {
     KillTimer(hwnd_, kPollTimer);
     DestroyWindow(hwnd_);
@@ -127,7 +231,10 @@ void DoggyToolbar::SetVisible(bool visible) {
   if (!hwnd_)
     return;
   ShowWindow(hwnd_, visible ? SW_SHOWNOACTIVATE : SW_HIDE);
+  LogToolbar(visible ? "show" : "hide", hwnd_, dock_edge_);
   if (!visible) {
+    CancelPointer();
+    CompleteDock();
     pointer_inside_ = false;
     hot_ = Hot::None;
     SetAwake(false);
@@ -138,22 +245,34 @@ void DoggyToolbar::SetAsciiMode(bool) {
   // The supplied frames bake the mode cap, so there is nothing to relabel.
 }
 
-void DoggyToolbar::ReloadMetrics() {
+bool DoggyToolbar::HeadOnly() const {
+  return dock_edge_ != ToolbarEdge::None && dock_stage_ != DockStage::Hide;
+}
+
+void DoggyToolbar::ReloadMetrics(UINT requested_dpi) {
+  if (!requested_dpi && hwnd_) {
+    using WindowDpi = UINT(WINAPI*)(HWND);
+    static const auto window_dpi = reinterpret_cast<WindowDpi>(
+        GetProcAddress(GetModuleHandleW(L"user32.dll"), "GetDpiForWindow"));
+    if (window_dpi) requested_dpi = window_dpi(hwnd_);
+  }
   HDC screen = GetDC(nullptr);
   const int dpi = screen ? GetDeviceCaps(screen, LOGPIXELSX) : 96;
   if (screen)
     ReleaseDC(nullptr, screen);
-  const float dip_scale = static_cast<float>(dpi) / 96.0f;
-  scale_ = dip_scale * kSourceToDip * kUserScale;
-  const int width = static_cast<int>(std::lround(kCanvasPxWidth * scale_));
-  const int height = static_cast<int>(std::lround(kCanvasPxHeight * scale_));
-  window_rect_ = {0, 0, width, height};
+  const float dip_scale = static_cast<float>(requested_dpi ? requested_dpi : dpi) / 96.0f;
+  if (requested_dpi || !hwnd_) scale_ = dip_scale * kSourceToDip * kUserScale;
+  const int width = static_cast<int>(std::lround((HeadOnly() ? kHeadWidth : kCanvasPxWidth) * scale_));
+  const int height = static_cast<int>(std::lround((HeadOnly() ? kHeadHeight : kCanvasPxHeight) * scale_));
+  window_rect_.right = window_rect_.left + width;
+  window_rect_.bottom = window_rect_.top + height;
 }
 
 void DoggyToolbar::ApplyPlacement() {
   RECT work = {0, 0, GetSystemMetrics(SM_CXSCREEN),
                GetSystemMetrics(SM_CYSCREEN)};
   SystemParametersInfoW(SPI_GETWORKAREA, 0, &work, 0);
+  work_area_ = work;
   const float dip = scale_ / (kSourceToDip * kUserScale);
   const int width = window_rect_.right - window_rect_.left;
   const int height = window_rect_.bottom - window_rect_.top;
@@ -169,6 +288,182 @@ void DoggyToolbar::ApplyPlacement() {
   window_rect_ = {x, y, x + width, y + height};
 }
 
+void DoggyToolbar::ApplyBounds() {
+  SetWindowPos(hwnd_, HWND_TOPMOST, window_rect_.left, window_rect_.top,
+                 window_rect_.right - window_rect_.left,
+                 window_rect_.bottom - window_rect_.top, SWP_NOACTIVATE);
+  Render();
+}
+
+RECT DoggyToolbar::ContentRect() const {
+  if (HeadOnly())
+    return {0, 0, window_rect_.right - window_rect_.left,
+                   window_rect_.bottom - window_rect_.top};
+  return SourceRectToWindow(kPanelLeft, kDogTop, kPanelWidth,
+                             kPanelTop + kPanelHeight - kDogTop);
+}
+
+POINT DoggyToolbar::HeadCenter() const {
+  if (HeadOnly()) return {(window_rect_.left + window_rect_.right) / 2,
+                          (window_rect_.top + window_rect_.bottom) / 2};
+  return {window_rect_.left + static_cast<LONG>(std::lround(448 * scale_)),
+           window_rect_.top + static_cast<LONG>(std::lround(194 * scale_))};
+}
+
+void DoggyToolbar::ReflowForDisplay(UINT dpi) {
+  if (button_down_ || dock_stage_ != DockStage::None) {
+    metrics_pending_ = true;
+    return;
+  }
+  metrics_pending_ = false;
+  CompleteDock();
+  const POINT center = HeadCenter();
+  ReloadMetrics(dpi);
+  work_area_ = WorkAreaAt(center);
+  if (HeadOnly()) {
+    const SIZE size{window_rect_.right - window_rect_.left,
+                     window_rect_.bottom - window_rect_.top};
+    window_rect_ = ToolbarPeekRect(center, size, work_area_, dock_edge_);
+  } else {
+    const POINT current_center = HeadCenter();
+    OffsetRect(&window_rect_, center.x - current_center.x, center.y - current_center.y);
+    window_rect_ = ClampToolbarWindow(window_rect_, ContentRect(), work_area_);
+  }
+  ApplyBounds();
+}
+
+void DoggyToolbar::CancelPointer() {
+  button_down_ = false;
+  dragging_ = false;
+  pressed_ = Hot::None;
+  if (hwnd_ && GetCapture() == hwnd_) ReleaseCapture();
+  if (hwnd_ && metrics_pending_ && dock_stage_ == DockStage::None)
+    ReflowForDisplay();
+}
+
+void DoggyToolbar::BeginPointer(int x, int y) {
+  if (dock_stage_ != DockStage::None || !PointOnToolbar(x, y)) return;
+  button_down_ = true;
+  dragging_ = false;
+  undocked_this_drag_ = false;
+  pressed_ = HeadOnly() ? Hot::None : HitTest(x, y);
+  press_point_ = {x, y};
+  ClientToScreen(hwnd_, &press_point_);
+  press_window_ = window_rect_;
+  SetCapture(hwnd_);
+}
+
+void DoggyToolbar::MovePointer(int x, int y) {
+  if (!button_down_) return;
+  POINT cursor{x, y};
+  ClientToScreen(hwnd_, &cursor);
+  LONG dx = cursor.x - press_point_.x;
+  LONG dy = cursor.y - press_point_.y;
+  if (!dragging_ && std::abs(dx) < GetSystemMetrics(SM_CXDRAG) &&
+      std::abs(dy) < GetSystemMetrics(SM_CYDRAG)) return;
+  if (HeadOnly()) {
+    const LONG inward = dock_edge_ == ToolbarEdge::Left ? dx :
+                          dock_edge_ == ToolbarEdge::Right ? -dx :
+                          dock_edge_ == ToolbarEdge::Top ? dy : -dy;
+    const int pull_distance = static_cast<int>(std::lround(
+        8.0f * scale_ / (kSourceToDip * kUserScale)));
+    if (inward < pull_distance) {
+      dragging_ = true;
+      const SIZE head{press_window_.right - press_window_.left,
+                       press_window_.bottom - press_window_.top};
+      const POINT center{(press_window_.left + press_window_.right) / 2 + dx,
+                           (press_window_.top + press_window_.bottom) / 2 + dy};
+      window_rect_ = ToolbarPeekRect(center, head, work_area_, dock_edge_);
+      ApplyBounds();
+      return;
+    }
+    dock_edge_ = ToolbarEdge::None;
+    undocked_this_drag_ = true;
+    LogToolbar("pulled-out", hwnd_, dock_edge_);
+    ReloadMetrics();
+    const LONG width = window_rect_.right - window_rect_.left;
+    const LONG height = window_rect_.bottom - window_rect_.top;
+    window_rect_.left = cursor.x - static_cast<LONG>(std::lround(448 * scale_));
+    window_rect_.top = cursor.y - static_cast<LONG>(std::lround(194 * scale_));
+    window_rect_.right = window_rect_.left + width;
+    window_rect_.bottom = window_rect_.top + height;
+    press_window_ = window_rect_;
+    press_point_ = cursor;
+    dx = dy = 0;
+  }
+  if (!dragging_ || undocked_this_drag_) {
+    dragging_ = true;
+    pressed_ = Hot::None;
+    SetAwake(true);
+  }
+  window_rect_ = press_window_;
+  OffsetRect(&window_rect_, dx, dy);
+  work_area_ = WorkAreaAt(cursor);
+  window_rect_ = ClampToolbarWindow(window_rect_, ContentRect(), work_area_);
+  ApplyBounds();
+}
+
+void DoggyToolbar::FinishPointer(int x, int y) {
+  if (!button_down_) return;
+  const bool dragged = dragging_;
+  const bool pulled_out = undocked_this_drag_;
+  const bool display_changed = metrics_pending_;
+  const Hot pressed = pressed_;
+  CancelPointer();
+  if (dragged && !HeadOnly() && !pulled_out) {
+    RECT content = ContentRect();
+    OffsetRect(&content, window_rect_.left, window_rect_.top);
+    const int threshold = static_cast<int>(std::lround(
+        kSnapDistanceDip * scale_ / (kSourceToDip * kUserScale)));
+    const auto edge = NearbyToolbarEdge(content, work_area_, threshold);
+    if (edge != ToolbarEdge::None) Dock(edge);
+  } else if (!dragged && !display_changed && !HeadOnly() && pressed != Hot::None && pressed == HitTest(x, y) && handler_) {
+    handler_(ActionFor(pressed));
+  }
+}
+
+void DoggyToolbar::Dock(ToolbarEdge edge) {
+  const POINT center = HeadCenter();
+  const SIZE head{static_cast<LONG>(std::lround(kHeadWidth * scale_)),
+                   static_cast<LONG>(std::lround(kHeadHeight * scale_))};
+  dock_final_ = ToolbarPeekRect(center, head, work_area_, edge);
+  dock_edge_ = edge;
+  LogToolbar("dock", hwnd_, dock_edge_);
+  dock_stage_ = DockStage::Hide;
+  dock_from_ = window_rect_;
+  dock_to_ = OutsideEdge(window_rect_, work_area_, edge);
+  dock_started_at_ = GetTickCount64();
+}
+
+void DoggyToolbar::AdvanceDock() {
+  if (dock_stage_ == DockStage::None) return;
+  const float progress = (std::min)(1.0f, static_cast<float>(
+      GetTickCount64() - dock_started_at_) / kDockDurationMs);
+  window_rect_ = InterpolateRect(dock_from_, dock_to_, progress);
+  if (progress >= 1.0f) {
+    if (dock_stage_ == DockStage::Hide) {
+      dock_stage_ = DockStage::Peek;
+      dock_from_ = OutsideEdge(dock_final_, work_area_, dock_edge_);
+      dock_to_ = dock_final_;
+      window_rect_ = dock_from_;
+      dock_started_at_ = GetTickCount64();
+    } else {
+      dock_stage_ = DockStage::None;
+      window_rect_ = dock_final_;
+    }
+  }
+  ApplyBounds();
+  if (dock_stage_ == DockStage::None && metrics_pending_) ReflowForDisplay();
+}
+
+void DoggyToolbar::CompleteDock() {
+  if (dock_stage_ == DockStage::None) return;
+  dock_stage_ = DockStage::None;
+  window_rect_ = dock_final_;
+  ApplyBounds();
+  if (metrics_pending_) ReflowForDisplay();
+}
+
 RECT DoggyToolbar::SourceRectToWindow(int x, int y, int width, int height) const {
   RECT rect;
   rect.left = static_cast<LONG>(std::lround(x * scale_));
@@ -179,6 +474,9 @@ RECT DoggyToolbar::SourceRectToWindow(int x, int y, int width, int height) const
 }
 
 bool DoggyToolbar::PointOnToolbar(int x, int y) const {
+  if (HeadOnly()) return x >= 0 && y >= 0 &&
+      x < window_rect_.right - window_rect_.left &&
+      y < window_rect_.bottom - window_rect_.top;
   // Dog or visible bar; the transparent margin must pass clicks through.
   const RECT dog = SourceRectToWindow(kDogLeft, kDogTop, kDogWidth, kDogHeight);
   const RECT panel =
@@ -191,6 +489,7 @@ bool DoggyToolbar::PointOnToolbar(int x, int y) const {
 }
 
 DoggyToolbar::Hot DoggyToolbar::HitTest(int x, int y) const {
+  if (HeadOnly()) return Hot::None;
   const struct {
     const ControlRect* control;
     Hot hot;
@@ -232,6 +531,8 @@ void DoggyToolbar::SetAwake(bool awake) {
 void DoggyToolbar::PollPointer() {
   if (!hwnd_ || !IsWindowVisible(hwnd_))
     return;
+  if (dock_stage_ != DockStage::None) { AdvanceDock(); return; }
+  if (dragging_) return;
   POINT cursor = {0, 0};
   if (!GetCursorPos(&cursor))
     return;
@@ -285,22 +586,21 @@ void DoggyToolbar::Render() {
   }
   const HGDIOBJ previous = SelectObject(memory, bitmap);
 
-  {
-    Gdiplus::Graphics clear(memory);
-    clear.SetCompositingMode(Gdiplus::CompositingModeSourceCopy);
-    Gdiplus::SolidBrush transparent(Gdiplus::Color(0, 0, 0, 0));
-    clear.FillRectangle(&transparent, 0, 0, width, height);
+  DrawDoggyToolbarArtwork(memory, assets_, awake_, HeadOnly(), width, height);
+  // Clip pixels to this monitor's work area. In particular, sliding toward the
+  // bottom edge must not draw the disappearing bar over the Windows taskbar.
+  auto* argb = static_cast<DWORD*>(pixels);
+  const int visible_left = std::clamp<LONG>(work_area_.left - window_rect_.left, 0, width);
+  const int visible_right = std::clamp<LONG>(work_area_.right - window_rect_.left, 0, width);
+  for (int y = 0; y < height; ++y) {
+    auto* row = argb + y * width;
+    if (window_rect_.top + y < work_area_.top || window_rect_.top + y >= work_area_.bottom) {
+      std::fill(row, row + width, 0);
+    } else {
+      std::fill(row, row + visible_left, 0);
+      std::fill(row + visible_right, row + width, 0);
+    }
   }
-
-  // Swap the whole frame; both share the same canvas and alpha.
-  const ThemeAssetId frame =
-      awake_ ? ThemeAssetId::RestAwake : ThemeAssetId::RestSleep;
-  DrawBitmap(memory, assets_.Get(frame), 0, 0, width, height);
-  // The little marks above the head live on their own layer: motion lines while
-  // awake, drifting z's while asleep.
-  const ThemeAssetId decoration =
-      awake_ ? ThemeAssetId::RestDecorAwake : ThemeAssetId::RestDecorSleep;
-  DrawBitmap(memory, assets_.Get(decoration), 0, 0, width, height);
 
   POINT destination = {window_rect_.left, window_rect_.top};
   SIZE size = {width, height};
@@ -346,6 +646,7 @@ LRESULT DoggyToolbar::Handle(HWND hwnd,
       }
       return 0;
     case WM_MOUSEMOVE: {
+      MovePointer(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam));
       if (!tracking_mouse_) {
         TRACKMOUSEEVENT track = {sizeof(track), TME_LEAVE, hwnd_, 0};
         TrackMouseEvent(&track);
@@ -356,15 +657,31 @@ LRESULT DoggyToolbar::Handle(HWND hwnd,
     case WM_MOUSELEAVE:
       tracking_mouse_ = false;
       return 0;
+    case WM_LBUTTONDOWN:
+      BeginPointer(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam));
+      return 0;
     case WM_LBUTTONUP: {
-      const int x = GET_X_LPARAM(lparam);
-      const int y = GET_Y_LPARAM(lparam);
-      const Hot hot = HitTest(x, y);
-      if (hot != Hot::None && handler_)
-        handler_(ActionFor(hot));
+      FinishPointer(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam));
       return 0;
     }
+    case WM_CANCELMODE:
+    case WM_CAPTURECHANGED:
+      CancelPointer();
+      return 0;
+    case WM_DPICHANGED:
+      ReflowForDisplay(LOWORD(wparam));
+      return 0;
+    case WM_DISPLAYCHANGE:
+    case WM_SETTINGCHANGE:
+      ReflowForDisplay();
+      return 0;
+    case WM_NCHITTEST: {
+      POINT point{GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam)};
+      ScreenToClient(hwnd_, &point);
+      return PointOnToolbar(point.x, point.y) ? HTCLIENT : HTTRANSPARENT;
+    }
     case WM_DESTROY:
+      CancelPointer();
       hwnd_ = nullptr;
       return 0;
     default:

@@ -12,6 +12,7 @@ STDAPI WeaselTSF::OnUninitDocumentMgr(ITfDocumentMgr* pDocMgr) {
 STDAPI WeaselTSF::OnSetFocus(ITfDocumentMgr* pDocMgrFocus,
                              ITfDocumentMgr* pDocMgrPrevFocus) {
   _InitTextEditSink(pDocMgrFocus);
+  if (pDocMgrFocus) _ScheduleToolbarActivation();
 
   com_ptr<ITfDocumentMgr> pCandidateListDocumentMgr;
   com_ptr<ITfContext> pTfContext = _GetUIContextDocument();

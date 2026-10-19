@@ -197,6 +197,7 @@ int RunSettingsStoreTests();
 int RunInputStateTests();
 int RunCaretPositionTests();
 int RunToolbarVisibilityTests();
+int RunToolbarInteractionTests();
 
 int main(int argc, char* argv[]) {
   const std::string filter =
@@ -217,6 +218,8 @@ int main(int argc, char* argv[]) {
     failures += RunCaretPositionTests();
   if (filter.empty() || filter == "ToolbarVisibility")
     failures += RunToolbarVisibilityTests();
+  if (filter.empty() || filter == "ToolbarInteraction")
+    failures += RunToolbarInteractionTests();
   if (failures == 0)
     std::cout << "TestLeavesStoneUI: PASS\n";
   return failures == 0 ? 0 : 1;

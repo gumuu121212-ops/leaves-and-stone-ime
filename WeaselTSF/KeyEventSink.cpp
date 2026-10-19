@@ -64,8 +64,9 @@ void WeaselTSF::_ProcessKeyEvent(WPARAM wParam, LPARAM lParam, BOOL* pfEaten) {
 
 STDAPI WeaselTSF::OnSetFocus(BOOL fForeground) {
   if (fForeground)
-    m_client.FocusIn();
+    _ScheduleToolbarActivation();
   else {
+    _toolbar_activation.Stop();
     m_client.FocusOut();
     _AbortComposition();
   }

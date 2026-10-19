@@ -4,6 +4,9 @@
 
 - toolbar-sleep.png：默认闭眼趴着休息。
 - toolbar-awake.png：鼠标移入睁眼。
+- mascot-sleep.png / mascot-awake.png：原交付包中同画布的独立狗图层，用于贴边探头。两文件原样复制，未重新生成；运行时从图内 (248,96,400,221) 取出主体并旋转 180°，不包含胶囊或按钮。
+
+独立图层校验值：`mascot-sleep.png` 为 `FFB7F8D23CE629C67DD1C6FBBC25DD5C37490E286DE910D4A469A2012B085697`，`mascot-awake.png` 为 `152D78E78F7B2302543DDBD23738FFBC0F35D392699CACEE127E532B76C04F6E`。来源与本目录完整工具栏相同，沿用 GPL-3.0-only 和用户已确认的照片衍生授权。
 
 复用此前已交付的狗、眼镜、毛绒工具条和按钮。没有采用本轮重新生成的另一只狗，没有从截图或概念预览抠图。睁眼图采用原 mascot-hover；闭眼图只将原 mascot-idle 的两处眼睛局部合入，头部外形、毛发、眼镜、鼻子和爪子均保持睁眼原图。仅有眼区 RGB 改变，alpha、轮廓及工具条逐像素一致。
 

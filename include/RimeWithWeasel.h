@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <WeaselIPC.h>
 #include <WeaselUI.h>
+#include <ToolbarFocusState.h>
 #include <functional>
 #include <map>
 #include <string>
@@ -57,7 +58,7 @@ class RimeWithWeaselHandler : public weasel::RequestHandler {
   virtual void FocusOut(DWORD param, WeaselSessionId ipc_id);
   // Lets the host show or hide its status bar with the input method.
   void SetActiveChangedCallback(std::function<void(bool)> callback) {
-    m_active_changed = callback;
+    m_toolbar_focus.Bind(std::move(callback));
   }
   virtual void UpdateInputPosition(RECT const& rc, WeaselSessionId ipc_id);
   virtual void StartMaintenance();
@@ -103,8 +104,7 @@ class RimeWithWeaselHandler : public weasel::RequestHandler {
   AppOptionsByAppName m_app_options;
   weasel::UI* m_ui;  // reference
   DWORD m_active_session;
-  WeaselSessionId m_focused_session = 0;
-  std::function<void(bool)> m_active_changed;
+  leaves_stone::ToolbarFocusState m_toolbar_focus;
   bool m_disabled;
   std::string m_last_schema_id;
   std::string m_last_app_name;

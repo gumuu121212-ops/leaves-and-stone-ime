@@ -6,6 +6,7 @@
 #include "WeaselUI/LeavesStone/SceneLayout.h"
 #include "WeaselUI/LeavesStone/SceneRenderer.h"
 #include "WeaselUI/LeavesStone/ThemeAssets.h"
+#include "WeaselUI/DoggyToolbar.h"
 
 namespace {
 int failures = 0;
@@ -60,6 +61,58 @@ struct DibTarget {
       DeleteDC(dc);
   }
 };
+
+void TestDockedHeadRotation() {
+  leaves_stone::ThemeAssets assets;
+  if (!assets.Load(GetModuleHandleW(nullptr))) {
+    Check(false, "docked artwork must load the approved original frames"); return;
+  }
+  std::vector<unsigned char> sleeping_alpha;
+  for (const bool awake : {false, true}) {
+    DibTarget target(400, 221);
+    Check(leaves_stone::DrawDoggyToolbarArtwork(target.dc, assets, awake, true, 400, 221),
+          "the docked toolbar must draw the original head with true alpha");
+    const auto* source = assets.Get(awake ? leaves_stone::ThemeAssetId::RestHeadAwake
+                                         : leaves_stone::ThemeAssetId::RestHeadSleep);
+    DIBSECTION original{};
+    GetObjectW(source->handle, sizeof(original), &original);
+    if (!original.dsBm.bmBits || !target.pixels) {
+      Check(false, "rotation checks need the real source and destination pixels"); return;
+    }
+    const auto* input = static_cast<const unsigned int*>(original.dsBm.bmBits);
+    const auto* output = static_cast<const unsigned int*>(target.pixels);
+    bool alpha_matches = true;
+    for (int i = 0; i < 400 * 221; ++i) {
+      const auto alpha = static_cast<unsigned char>(output[i] >> 24);
+      if (!awake) sleeping_alpha.push_back(alpha);
+      else if (sleeping_alpha[i] != alpha) alpha_matches = false;
+    }
+    Check(alpha_matches, "hover eye states must keep the docked silhouette pixel-aligned");
+    int checked = 0;
+    int mismatches = 0;
+    for (int y = 20; y < 201; y += 17) {
+      for (int x = 20; x < 380; x += 19) {
+        const auto expected = input[(96 + 220 - y) * source->width + 248 + 399 - x];
+        if ((expected >> 24) < 250) continue;
+        ++checked;
+        const auto actual = output[y * 400 + x];
+        for (unsigned shift : {0u, 8u, 16u, 24u})
+          if (std::abs(static_cast<int>((actual >> shift) & 255) -
+                        static_cast<int>((expected >> shift) & 255)) > 5) ++mismatches;
+      }
+    }
+    Check(checked > 20 && mismatches == 0,
+          "sleeping and awake heads must match a 180-degree rotation of the approved pixels (" +
+              std::to_string(checked) + " samples, " + std::to_string(mismatches) + " channel differences)");
+  }
+  DibTarget small(148, 98);
+  const DWORD before = GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS);
+  for (int frame = 0; frame < 100; ++frame)
+    Check(leaves_stone::DrawDoggyToolbarArtwork(small.dc, assets, frame % 2 != 0, true, 148, 98),
+          "repeated sleeping/awake head frames must remain drawable");
+  Check(GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS) <= before,
+        "redrawing rotated heads must not leak temporary bitmaps or device contexts");
+}
 
 void TestFirstFrameWithoutAnimationTimer() {
   leaves_stone::ThemeAssets assets;
@@ -165,8 +218,8 @@ void TestResourceLifecycle() {
   leaves_stone::ThemeAssets assets;
   Check(assets.Load(GetModuleHandleW(nullptr)),
         "all compiled theme assets must decode through WIC");
-  Check(assets.LoadedBitmapCount() == 34,
-        "the runtime skin must expose all fifteen decoded layers");
+  Check(assets.LoadedBitmapCount() == 36,
+        "the runtime skin must expose all thirty-six decoded layers");
 
   const auto scene = MakeScene();
   DibTarget target(static_cast<int>(scene.window_bounds.Width()),
@@ -271,6 +324,7 @@ void TestAppearanceAnimationPolicy() {
 
 int RunRendererSmokeTests() {
   const HRESULT initialized = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+  TestDockedHeadRotation();
   TestFirstFrameWithoutAnimationTimer();
   TestResourceLifecycle();
   TestHitRouting();

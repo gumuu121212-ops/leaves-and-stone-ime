@@ -52,6 +52,7 @@
     <ClCompile Include="InputStateTests.cpp" />
     <ClCompile Include="CaretPositionTests.cpp" />
     <ClCompile Include="ToolbarVisibilityTests.cpp" />
+    <ClCompile Include="ToolbarInteractionTests.cpp" />
     <ClCompile Include="RendererSmokeTests.cpp" />
     <ClCompile Include="SceneLayoutTests.cpp" />
     <ClCompile Include="SettingsStoreTests.cpp" />
