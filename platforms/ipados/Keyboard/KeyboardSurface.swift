@@ -1,8 +1,9 @@
 import UIKit
 
 enum KeyboardAction {
-    case key(String), literal(String), select(Int)
-    case space, enter, backspace, mode, nextPage, previousPage, dismiss
+    case key(String), literal(String), punctuation(String, ascii: String), select(Int, revision: UInt64)
+    case backspace(repeating: Bool)
+    case space, enter, mode, nextPage, previousPage, dismiss
 }
 
 class MaodouKeyButton: UIButton {
@@ -64,14 +65,14 @@ final class KeyboardSurface: UIView {
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    func preferredHeight(for width: CGFloat) -> CGFloat { width >= 600 ? 388 : 320 }
+    func preferredHeight(for width: CGFloat) -> CGFloat { width >= 600 ? 404 : 336 }
 
     func render(_ newState: KeyboardState) {
-        let changedWords = state.candidates != newState.candidates || state.selected != newState.selected
+        let changedWords = state.candidates != newState.candidates || state.selected != newState.selected || state.revision != newState.revision
         let changedMode = state.ascii != newState.ascii
         state = newState
         preedit.text = newState.error ?? (newState.preedit.isEmpty ?
-            (newState.ascii ? "English · 小毛豆" : "中文拼音 · 小毛豆") : newState.preedit)
+            (newState.ready ? (newState.ascii ? "English · 小毛豆" : "中文拼音 · 小毛豆") : "小毛豆准备中") : newState.preedit)
         previous.isEnabled = newState.previousPage
         nextPageButton.isEnabled = newState.nextPage
         previous.alpha = previous.isEnabled ? 1 : 0.3
@@ -88,18 +89,18 @@ final class KeyboardSurface: UIView {
         let isWide = bounds.width >= 600
         if wide != isWide { wide = isWide; rebuildKeys() }
         let width = bounds.width
-        panel.frame = CGRect(x: 6, y: 63, width: max(0, width - 12), height: 53)
+        panel.frame = CGRect(x: 6, y: 79, width: max(0, width - 12), height: 53)
         let dogWidth: CGFloat = isWide ? 137 : 119
-        mascot.frame = CGRect(x: width - dogWidth - 24, y: 64 - dogWidth * 221 / 400,
+        mascot.frame = CGRect(x: width - dogWidth - 24, y: 80 - dogWidth * 221 / 400,
                              width: dogWidth, height: dogWidth * 221 / 400)
-        preeditScroll.frame = CGRect(x: 16, y: 30, width: max(1, width - dogWidth - 56), height: 24)
+        preeditScroll.frame = CGRect(x: 16, y: 46, width: max(1, width - dogWidth - 56), height: 24)
         let textSize = preedit.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: 24))
         preedit.frame = CGRect(x: 0, y: 0, width: max(textSize.width, preeditScroll.bounds.width), height: 24)
         preeditScroll.contentSize = preedit.bounds.size
         preeditScroll.contentOffset.x = max(0, preedit.bounds.width - preeditScroll.bounds.width)
-        candidateScroll.frame = CGRect(x: 14, y: 70, width: max(1, width - 106), height: 39)
-        previous.frame = CGRect(x: width - 84, y: 74, width: 32, height: 32)
-        nextPageButton.frame = CGRect(x: width - 49, y: 74, width: 32, height: 32)
+        candidateScroll.frame = CGRect(x: 14, y: 86, width: max(1, width - 106), height: 39)
+        previous.frame = CGRect(x: width - 84, y: 90, width: 32, height: 32)
+        nextPageButton.frame = CGRect(x: width - 49, y: 90, width: 32, height: 32)
         var wordX: CGFloat = 0
         for button in wordButtons {
             let size = button.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: 39))
@@ -109,7 +110,7 @@ final class KeyboardSurface: UIView {
         candidateScroll.contentSize = CGSize(width: wordX, height: 39)
         let gap: CGFloat = isWide ? 8 : 4
         let margin: CGFloat = isWide ? 12 : 5
-        let top: CGFloat = 124
+        let top: CGFloat = 140
         let height = max(0, (bounds.height - top - 8 - CGFloat(rows.count - 1) * gap) / CGFloat(max(1, rows.count)))
         for (rowIndex, row) in rows.enumerated() {
             let visible = row.filter { !$0.0.isHidden }
@@ -159,6 +160,7 @@ final class KeyboardSurface: UIView {
 
     private func rebuildCandidates() {
         wordButtons.forEach { $0.removeFromSuperview() }
+        let revision = state.revision
         wordButtons = state.candidates.enumerated().map { index, word in
             let button = UIButton(type: .custom)
             button.setTitle(word, for: .normal)
@@ -170,7 +172,7 @@ final class KeyboardSurface: UIView {
             button.layer.cornerRadius = 17
             button.accessibilityIdentifier = "candidate-\(index)"
             button.accessibilityLabel = word
-            button.addAction(UIAction { [weak self] _ in self?.emit(.select(index)) }, for: .touchUpInside)
+            button.addAction(UIAction { [weak self] _ in self?.emit(.select(index, revision: revision)) }, for: .touchUpInside)
             candidateScroll.addSubview(button)
             return button
         }
@@ -196,7 +198,7 @@ final class KeyboardSurface: UIView {
                                  id: "key-" + text) { [weak self] in
                     guard let self else { return }
                     if letters {
-                        self.emit(.key(self.state.ascii && self.uppercase ? text.uppercased() : text))
+                        self.emit(.key(self.uppercase ? text.uppercased() : text))
                         if self.uppercase { self.uppercase = false; self.rebuildKeys(); self.setNeedsLayout() }
                     } else { self.emit(.literal(text)) }
                 }
@@ -230,22 +232,25 @@ final class KeyboardSurface: UIView {
         let erase = RepeatKeyButton(type: .custom)
         decorate(erase, title: nil, symbol: "delete.left")
         erase.accessibilityIdentifier = "backspace"; erase.accessibilityLabel = "退格，按住连续删除"
-        erase.onRepeat = { [weak self] in self?.emit(.backspace) }
+        erase.onRepeat = { [weak self] repeating in self?.emit(.backspace(repeating: repeating)) }
         addSubview(erase); keyButtons.append(erase); third.append((erase, 1.35)); rows.append(third)
         let panelSwitch = button(panelMode == 0 ? "123" : "ABC", id: "panel") { [weak self] in
             guard let self else { return }; self.panelMode = self.panelMode == 0 ? 1 : 0
             self.rebuildKeys(); self.setNeedsLayout()
         }
+        panelSwitch.titleLabel?.font = .systemFont(ofSize: 16)
+        panelSwitch.titleLabel?.adjustsFontSizeToFitWidth = true
+        panelSwitch.titleLabel?.minimumScaleFactor = 0.75
         decorate(globeButton, title: nil, symbol: "globe")
         addSubview(globeButton); keyButtons.append(globeButton)
         let mode = button(state.ascii ? "A" : "中", id: "mode") { [weak self] in self?.emit(.mode) }
         let comma = button(state.ascii ? "," : "，", id: "comma") { [weak self] in
-            guard let self else { return }; self.emit(.literal(self.state.ascii ? "," : "，"))
+            self?.emit(.punctuation("，", ascii: ","))
         }
         let space = button(state.ascii ? "space" : "空格", id: "space") { [weak self] in self?.emit(.space) }
         space.titleLabel?.font = .systemFont(ofSize: 16)
         let period = button(state.ascii ? "." : "。", id: "period") { [weak self] in
-            guard let self else { return }; self.emit(.literal(self.state.ascii ? "." : "。"))
+            self?.emit(.punctuation("。", ascii: "."))
         }
         let enter = button(enterTitle, id: "enter") { [weak self] in self?.emit(.enter) }
         enter.titleLabel?.font = .systemFont(ofSize: 16)
@@ -257,9 +262,10 @@ final class KeyboardSurface: UIView {
 }
 
 final class RepeatKeyButton: MaodouKeyButton {
-    var onRepeat: (() -> Void)?
+    var onRepeat: ((Bool) -> Void)?
     private var delay: Timer?
     private var repeatTimer: Timer?
+    private var generation: UInt64 = 0
     override init(frame: CGRect) {
         super.init(frame: frame)
         addTarget(self, action: #selector(beginRepeat), for: .touchDown)
@@ -267,17 +273,27 @@ final class RepeatKeyButton: MaodouKeyButton {
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     @objc private func beginRepeat() {
-        cancelRepeat(); onRepeat?()
+        cancelRepeat()
+        let token = generation
+        onRepeat?(false)
+        guard token == generation else { return }
         delay = Timer(timeInterval: 0.35, repeats: false) { [weak self] _ in
-            guard let self else { return }
-            self.onRepeat?()
-            let timer = Timer(timeInterval: 0.07, repeats: true) { [weak self] _ in self?.onRepeat?() }
+            guard let self, token == self.generation else { return }
+            self.onRepeat?(true)
+            guard token == self.generation else { return }
+            let timer = Timer(timeInterval: 0.07, repeats: true) { [weak self] _ in
+                guard let self, token == self.generation else { return }
+                self.onRepeat?(true)
+            }
             self.repeatTimer = timer
             RunLoop.main.add(timer, forMode: .common)
         }
         if let delay { RunLoop.main.add(delay, forMode: .common) }
     }
-    @objc func cancelRepeat() { delay?.invalidate(); repeatTimer?.invalidate(); delay = nil; repeatTimer = nil }
+    @objc func cancelRepeat() {
+        generation &+= 1
+        delay?.invalidate(); repeatTimer?.invalidate(); delay = nil; repeatTimer = nil
+    }
     override func didMoveToWindow() { super.didMoveToWindow(); if window == nil { cancelRepeat() } }
     deinit { delay?.invalidate(); repeatTimer?.invalidate() }
 }

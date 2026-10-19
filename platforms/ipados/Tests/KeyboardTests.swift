@@ -28,9 +28,10 @@ private extension UIView {
         let selected = expectation(description: "real Chinese commit")
         var requestedSelection = false
         service.onDelivery = { delivery in
-            if !requestedSelection, delivery.state.candidates.first == "你好" {
+            if !requestedSelection, delivery.state.candidates.first == "你好",
+               delivery.state.preedit.filter({ $0.isLetter }) == "nihao" {
                 requestedSelection = true
-                service.send(.select, index: 0)
+                service.send(.select, index: 0, expectedRevision: delivery.state.revision)
             }
             if delivery.text == "你好" { selected.fulfill() }
         }
@@ -43,15 +44,20 @@ private extension UIView {
         let service = service()
         let finished = expectation(description: "new document candidate")
         var inserted: [String] = []
+        var switched = false
         service.onDelivery = { delivery in
             if !delivery.text.isEmpty { inserted.append(delivery.text) }
+            if !switched, delivery.state.candidates.first == "你好",
+               delivery.state.preedit.filter({ $0.isLetter }) == "nihao" {
+                switched = true
+                service.send(.select, index: 0, expectedRevision: delivery.state.revision)
+                service.invalidateContext()
+                for key in "ipad" { service.send(.key, text: String(key)) }
+            }
             if delivery.state.candidates.first == "iPad" { finished.fulfill() }
         }
         service.start()
         for key in "nihao" { service.send(.key, text: String(key)) }
-        service.send(.select, index: 0)
-        service.invalidateContext()
-        for key in "ipad" { service.send(.key, text: String(key)) }
         wait(for: [finished], timeout: 10)
         XCTAssertTrue(inserted.isEmpty, "The old document's commit must never reach the new proxy")
     }
@@ -78,7 +84,7 @@ private extension UIView {
             }
             XCTAssertEqual(surface.findButton("candidate-0")?.title(for: .normal), "输入文字的时候")
             var tapped = false
-            surface.onAction = { action in if case .select(0) = action { tapped = true } }
+            surface.onAction = { action in if case .select(0, _) = action { tapped = true } }
             surface.findButton("candidate-0")?.sendActions(for: .touchUpInside)
             XCTAssertTrue(tapped)
             let image = UIGraphicsImageRenderer(size: surface.bounds.size).image { renderer in
@@ -94,7 +100,7 @@ private extension UIView {
     func testBackspaceRepeatStopsAfterCancellation() {
         let button = RepeatKeyButton()
         var count = 0
-        button.onRepeat = { count += 1 }
+        button.onRepeat = { _ in count += 1 }
         button.sendActions(for: .touchDown)
         XCTAssertEqual(count, 1)
         button.sendActions(for: .touchCancel)

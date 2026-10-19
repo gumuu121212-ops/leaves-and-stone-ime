@@ -18,3 +18,9 @@ Ruling: execute inline in the existing feature checkout, using the separate plat
 
 Ruling: production keyboard composition stays inside its header; only final commits enter the host proxy. Recheck document identifier and context at both command and insertion boundaries, in addition to the serial service's epoch check.
 
+Independent whole-change review found stale candidate index, held-delete after focus changes, queued mode semantics, selected-text omission and dog-top clipping. Run 39218151189 / job 117946806219 reproduced all five with real simulator assertions; normal controller touch selection, first keys and the SwiftUI setup window passed. Actual setup and four production-surface renders were exported and inspected. Two further focus-boundary cases (silent focus move during repeat, synchronous host focus move during insertion) were added in f51caba for RED verification. Fixes in the working tree have been independently rechecked; Apple GREEN and arm64 archive remain pending. Fixes include queue revisions, queue-side case/punctuation resolution, selectedText/selection callbacks, cancellation generation, and checking document ID after host writes.
+
+Visual inspection: the 320pt number toggle needed a smaller 16pt label to avoid truncating 123; the setup call-to-action now uses white on dark brown. The dog header baseline moves down 16pt to retain all fur. Original source artwork is unchanged.
+
+RED verified for the last two focus cases: f980d22 run 39219330202 / job 117950670201 produced SAFEb after synchronous host focus change and deleted SAFE after silent focus change. The tests therefore exercise real failures before fixes. All seven findings have production fixes and independent read-only re-review with no remaining material finding. Full GREEN simulator run, SDK-matched simulator choice, and unsigned device archive are the next gate. Mac/signing availability is still not answered; no device installation has been claimed.
+

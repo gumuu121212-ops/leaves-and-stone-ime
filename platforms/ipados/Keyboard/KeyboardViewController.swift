@@ -11,6 +11,7 @@ class KeyboardViewController: UIInputViewController {
         let identifier: UUID
         let before: String?
         let after: String?
+        let selected: String?
     }
 
     override func loadView() {
@@ -62,16 +63,23 @@ class KeyboardViewController: UIInputViewController {
         updateReturnTitle()
     }
 
+    override func selectionDidChange(_ textInput: UITextInput?) {
+        super.selectionDidChange(textInput)
+        if !writing { synchronizeDocument() }
+    }
+
     private func stamp() -> DocumentStamp {
         let proxy = textDocumentProxy
         return DocumentStamp(identifier: proxy.documentIdentifier,
-                             before: proxy.documentContextBeforeInput, after: proxy.documentContextAfterInput)
+                             before: proxy.documentContextBeforeInput, after: proxy.documentContextAfterInput,
+                             selected: proxy.selectedText)
     }
 
     @discardableResult private func synchronizeDocument() -> Bool {
         let current = stamp()
         defer { observed = current }
         guard let previous = observed, current != previous else { return false }
+        surface.stopInteraction()
         input.invalidateContext()
         surface.render(KeyboardState())
         return true
@@ -81,20 +89,30 @@ class KeyboardViewController: UIInputViewController {
         // UIKit may report a new field after an engine command has completed.
         // Validate the proxy again at the final insertion boundary.
         guard !synchronizeDocument() else { return }
+        let originalDocument = observed?.identifier
         writing = true
         if !delivery.text.isEmpty { textDocumentProxy.insertText(delivery.text) }
         if delivery.deleteBackward { textDocumentProxy.deleteBackward() }
-        observed = stamp()
+        let after = stamp()
         writing = false
+        observed = after
+        if after.identifier != originalDocument {
+            surface.stopInteraction()
+            input.invalidateContext()
+            surface.render(KeyboardState())
+            return
+        }
         surface.render(delivery.state)
     }
 
     private func handle(_ action: KeyboardAction) {
-        synchronizeDocument()
+        let changed = synchronizeDocument()
+        if case .backspace(let repeating) = action, repeating && changed { return }
         switch action {
         case .key(let text): input.send(.key, text: text)
         case .literal(let text): input.send(.literal, text: text)
-        case .select(let index): input.send(.select, index: index)
+        case .select(let index, let revision): input.send(.select, index: index, expectedRevision: revision)
+        case .punctuation(let chinese, let english): input.send(.literal, text: chinese, asciiText: english)
         case .space: input.send(.space)
         case .enter: input.send(.enter)
         case .backspace: input.send(.backspace)

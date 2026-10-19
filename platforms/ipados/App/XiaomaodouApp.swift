@@ -29,7 +29,7 @@ struct SetupView: View {
                     Button("打开系统设置") {
                         guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
                         UIApplication.shared.open(url)
-                    }.buttonStyle(.borderedProminent).tint(Color(MaodouTheme.muted))
+                    }.buttonStyle(.borderedProminent).tint(Color(MaodouTheme.ink)).foregroundColor(.white)
                     Text("离线拼音，无需开启「允许完全访问」。密码框或部分 App 会使用系统键盘。")
                         .font(.callout).foregroundColor(Color(MaodouTheme.muted))
                 }.padding(24).background(Color.white.opacity(0.65)).cornerRadius(24)

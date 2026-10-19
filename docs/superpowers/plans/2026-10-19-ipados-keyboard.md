@@ -43,16 +43,16 @@
 
 **Interfaces:** RimeBridge exposes snapshots and committed text. InputService serializes actions and stamps document epochs; only matching epochs may deliver text to the current proxy. KeyboardSurface emits typed actions and owns no engine state.
 
-- [ ] Write tests for serialized initial keys, document-epoch rejection, tap selection, variable widths and repeat cancellation.
-- [ ] Add UIKit surface with original awake/sleep frames, complete candidates and touch keys.
-- [ ] Add controller lifecycle and proxy integration, globe and dismiss actions; keep input state outside layout rebuilds.
-- [ ] Add host setup instructions and a text-entry field for device checking.
+- [x] Write tests for serialized initial keys, document-epoch rejection, tap selection, variable widths and repeat cancellation.
+- [x] Add UIKit surface with original awake/sleep frames, complete candidates and touch keys.
+- [x] Add controller lifecycle and proxy integration, globe and dismiss actions; keep input state outside layout rebuilds.
+- [x] Add host setup instructions and a text-entry field for device checking.
 
 ### Task 3: Xcode build, review and delivery
 
 **Files:** platforms/ipados/Xiaomaodou.xcodeproj, tools/generate_project.py, tools/build.sh, README.md, .github/workflows/ipados-ci.yml.
 
-- [ ] Generate a checked, deterministic native Xcode project with app, keyboard and test targets.
+- [x] Generate a checked, deterministic native Xcode project with app, keyboard and test targets.
 - [ ] Run simulator tests and capture a render from production UI where possible.
 - [ ] Build arm64 device product without claiming a missing developer signature exists.
 - [ ] Perform a fresh whole-change review and fix material findings.
