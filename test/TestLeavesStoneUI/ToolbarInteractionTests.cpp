@@ -54,7 +54,7 @@ struct ToolbarMenuProbe {
       const auto menu = reinterpret_cast<HMENU>(wparam);
       GetMenuStringW(menu, 0, label, 32, MF_BYPOSITION);
       probe.has_hide_item = GetMenuItemCount(menu) == 1 &&
-                            std::wstring(label) == L"隐藏";
+                            std::wstring(label) == L"\u9690\u85cf";
     }
     return CallWindowProcW(probe.previous, window, message, wparam, lparam);
   }

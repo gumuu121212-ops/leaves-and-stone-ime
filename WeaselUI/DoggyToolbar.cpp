@@ -181,7 +181,7 @@ void DoggyToolbar::ShowContextMenu(int x, int y) {
   if (!menu)
     return;
   constexpr UINT kHideCommand = 1;
-  if (!AppendMenuW(menu, MF_STRING, kHideCommand, L"隐藏")) {
+  if (!AppendMenuW(menu, MF_STRING, kHideCommand, L"\u9690\u85cf")) {
     DestroyMenu(menu);
     return;
   }
