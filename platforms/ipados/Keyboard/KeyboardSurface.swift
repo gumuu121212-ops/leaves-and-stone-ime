@@ -20,7 +20,7 @@ final class KeyboardSurface: UIView {
     private let preeditScroll = UIScrollView()
     private let candidateScroll = UIScrollView()
     private let previous = MaodouKeyButton(type: .custom)
-    private let next = MaodouKeyButton(type: .custom)
+    private let nextPageButton = MaodouKeyButton(type: .custom)
     private var rows: [[(UIButton, CGFloat)]] = []
     private var keyButtons: [UIButton] = []
     private var wordButtons: [UIButton] = []
@@ -53,7 +53,7 @@ final class KeyboardSurface: UIView {
         candidateScroll.showsHorizontalScrollIndicator = false
         candidateScroll.delaysContentTouches = false
         for (button, symbol, action) in [(previous, "chevron.left", KeyboardAction.previousPage),
-                                           (next, "chevron.right", KeyboardAction.nextPage)] {
+                                           (nextPageButton, "chevron.right", KeyboardAction.nextPage)] {
             decorate(button, title: nil, symbol: symbol)
             button.layer.cornerRadius = 16
             button.accessibilityLabel = symbol == "chevron.left" ? "上一页候选" : "下一页候选"
@@ -73,9 +73,9 @@ final class KeyboardSurface: UIView {
         preedit.text = newState.error ?? (newState.preedit.isEmpty ?
             (newState.ascii ? "English · 小毛豆" : "中文拼音 · 小毛豆") : newState.preedit)
         previous.isEnabled = newState.previousPage
-        next.isEnabled = newState.nextPage
+        nextPageButton.isEnabled = newState.nextPage
         previous.alpha = previous.isEnabled ? 1 : 0.3
-        next.alpha = next.isEnabled ? 1 : 0.3
+        nextPageButton.alpha = nextPageButton.isEnabled ? 1 : 0.3
         if changedWords { rebuildCandidates() }
         if changedMode { rebuildKeys() }
         spaceButton?.setTitle(newState.ascii ? "space" : "空格", for: .normal)
@@ -99,7 +99,7 @@ final class KeyboardSurface: UIView {
         preeditScroll.contentOffset.x = max(0, preedit.bounds.width - preeditScroll.bounds.width)
         candidateScroll.frame = CGRect(x: 14, y: 70, width: max(1, width - 106), height: 39)
         previous.frame = CGRect(x: width - 84, y: 74, width: 32, height: 32)
-        next.frame = CGRect(x: width - 49, y: 74, width: 32, height: 32)
+        nextPageButton.frame = CGRect(x: width - 49, y: 74, width: 32, height: 32)
         var wordX: CGFloat = 0
         for button in wordButtons {
             let size = button.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: 39))
