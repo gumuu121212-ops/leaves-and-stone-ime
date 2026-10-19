@@ -18,11 +18,12 @@ enum class ToolbarAction {
 
 // The same drawing path is used for the real layered window and its previews.
 bool DrawDoggyToolbarArtwork(HDC target, const ThemeAssets& assets,
-                             bool awake, bool head_only, int width, int height);
+                             bool awake, bool head_only, int width, int height,
+                             ToolbarEdge edge = ToolbarEdge::Right);
 
 // Status bar with the mascot lying on it. Two complete frames are swapped in
 // place: eyes closed while idle, eyes open while the pointer is on the bar.
-// Dragging to an edge hides the capsule and leaves a rotated head; hovering
+// Dragging to an edge hides the capsule and leaves a side-peeking head; hovering
 // only wakes it, and pulling inward restores the complete toolbar.
 class DoggyToolbar {
  public:

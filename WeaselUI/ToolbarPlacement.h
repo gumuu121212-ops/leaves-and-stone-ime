@@ -43,8 +43,8 @@ inline RECT ToolbarPeekRect(POINT center, SIZE head, const RECT& work,
                       (std::max)(work.left, work.right - head.cx));
   LONG y = std::clamp(center.y - head.cy / 2, work.top,
                       (std::max)(work.top, work.bottom - head.cy));
-  if (edge == ToolbarEdge::Left) x = work.left - head.cx / 10;
-  if (edge == ToolbarEdge::Right) x = work.right - head.cx + head.cx / 10;
+  if (edge == ToolbarEdge::Left) x = work.left - head.cx * 22 / 100;
+  if (edge == ToolbarEdge::Right) x = work.right - head.cx + head.cx * 22 / 100;
   if (edge == ToolbarEdge::Top) y = work.top - head.cy / 10;
   if (edge == ToolbarEdge::Bottom) y = work.bottom - head.cy + head.cy / 10;
   return {x, y, x + head.cx, y + head.cy};

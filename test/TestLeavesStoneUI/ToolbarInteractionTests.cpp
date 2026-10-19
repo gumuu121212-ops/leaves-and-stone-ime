@@ -69,8 +69,11 @@ void TestPlacementAcrossMonitors() {
       const auto rect = leaves_stone::ToolbarPeekRect({-900, -500}, head, work, edge);
       const LONG overlap_x = (std::min)(rect.right, work.right) - (std::max)(rect.left, work.left);
       const LONG overlap_y = (std::min)(rect.bottom, work.bottom) - (std::max)(rect.top, work.top);
-      Check(overlap_x >= head.cx * 0.9f && overlap_y >= head.cy * 0.9f,
-            "edge peeking must keep the face visible at every DPI");
+      Check(overlap_x >= head.cx * 0.75f && overlap_y >= head.cy * 0.75f,
+            "edge peeking must keep most of the face visible at every DPI");
+      if (edge == leaves_stone::ToolbarEdge::Left || edge == leaves_stone::ToolbarEdge::Right)
+        Check(overlap_x <= head.cx * 0.8f,
+              "side peeking must hide the outer cheek behind the vertical edge");
       Check(rect.right - rect.left == head.cx && rect.bottom - rect.top == head.cy,
             "docking must preserve the original head proportions");
     }
@@ -101,6 +104,10 @@ void TestDockAndPullOut() {
   RECT head{}; GetWindowRect(toolbar.hwnd(), &head);
   Check(head.right - head.left < (before.right - before.left) / 2,
         "releasing at the monitor edge must hide the capsule and leave only the head");
+  const POINT margin{(head.left + head.right) / 2, head.top + 1};
+  Check(SendMessageW(toolbar.hwnd(), WM_NCHITTEST, 0,
+             MAKELPARAM(static_cast<WORD>(margin.x), static_cast<WORD>(margin.y))) == HTTRANSPARENT,
+        "transparent head margins must pass clicks through to the application");
   const int hx = (head.right - head.left) * 3 / 4;
   const int hy = (head.bottom - head.top) / 2;
   Mouse(toolbar.hwnd(), WM_MOUSEMOVE, hx, hy);

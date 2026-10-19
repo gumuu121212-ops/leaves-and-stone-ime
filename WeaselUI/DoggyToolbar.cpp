@@ -1,4 +1,4 @@
-﻿#include "DoggyToolbar.h"
+#include "DoggyToolbar.h"
 
 #include <algorithm>
 #include <atomic>
@@ -47,8 +47,7 @@ constexpr UINT_PTR kPollTimer = 1;
 constexpr int kPollMilliseconds = 30;
 constexpr int kRightMarginDip = 28;
 constexpr int kBottomMarginDip = 6;
-constexpr int kHeadLeft = 248, kHeadTop = 96;
-constexpr int kHeadWidth = 400, kHeadHeight = 221;
+constexpr int kHeadWidth = 400, kHeadHeight = 400;
 constexpr int kDockDurationMs = 140;
 constexpr int kSnapDistanceDip = 18;
 
@@ -129,7 +128,8 @@ bool DrawBitmap(HDC target,
 }  // namespace
 
 bool DrawDoggyToolbarArtwork(HDC target, const ThemeAssets& assets,
-                             bool awake, bool head_only, int width, int height) {
+                             bool awake, bool head_only, int width, int height,
+                             ToolbarEdge edge) {
   if (!target || width <= 0 || height <= 0) return false;
   EnsureGdiplus();
   {
@@ -147,36 +147,35 @@ bool DrawDoggyToolbarArtwork(HDC target, const ThemeAssets& assets,
                                         : ThemeAssetId::RestDecorSleep);
     return DrawBitmap(target, decor, 0, 0, width, height) && drawn;
   }
-  // Reuse the approved dog, with its existing alpha. Rotate its head 180
-  // degrees at draw time; never regenerate or rotate the button labels.
+  if (edge != ToolbarEdge::Left)
+    return DrawBitmap(target, frame, 0, 0, width, height);
+  // The two baked frames share the same silhouette and differ only in the eyes.
+  // Preserve the upright pose; the left edge alone mirrors it horizontally.
   DIBSECTION dib{};
   if (!GetObjectW(frame->handle, sizeof(dib), &dib) || !dib.dsBm.bmBits)
     return false;
-  if (frame->width < kHeadLeft + kHeadWidth || frame->height < kHeadTop + kHeadHeight)
-    return false;
   BITMAPINFO info{};
   info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-  info.bmiHeader.biWidth = kHeadWidth;
-  info.bmiHeader.biHeight = -kHeadHeight;
+  info.bmiHeader.biWidth = static_cast<LONG>(frame->width);
+  info.bmiHeader.biHeight = -static_cast<LONG>(frame->height);
   info.bmiHeader.biPlanes = 1;
   info.bmiHeader.biBitCount = 32;
-  void* rotated_pixels = nullptr;
-  HBITMAP rotated = CreateDIBSection(target, &info, DIB_RGB_COLORS,
-                                      &rotated_pixels, nullptr, 0);
-  if (!rotated || !rotated_pixels) {
-    if (rotated) DeleteObject(rotated);
+  void* composed_pixels = nullptr;
+  HBITMAP composed = CreateDIBSection(target, &info, DIB_RGB_COLORS,
+                                      &composed_pixels, nullptr, 0);
+  if (!composed || !composed_pixels) {
+    if (composed) DeleteObject(composed);
     return false;
   }
   const auto* input = static_cast<const DWORD*>(dib.dsBm.bmBits);
-  auto* output = static_cast<DWORD*>(rotated_pixels);
+  auto* output = static_cast<DWORD*>(composed_pixels);
   const int stride = dib.dsBm.bmWidthBytes / 4;
-  for (int y = 0; y < kHeadHeight; ++y)
-    for (int x = 0; x < kHeadWidth; ++x)
-      output[y * kHeadWidth + x] = input[
-          (kHeadTop + kHeadHeight - 1 - y) * stride + kHeadLeft + kHeadWidth - 1 - x];
-  const ThemeBitmap head{rotated, kHeadWidth, kHeadHeight};
+  for (UINT y = 0; y < frame->height; ++y)
+    for (UINT x = 0; x < frame->width; ++x)
+      output[y * frame->width + x] = input[y * stride + frame->width - 1 - x];
+  const ThemeBitmap head{composed, frame->width, frame->height};
   const bool drawn = DrawBitmap(target, &head, 0, 0, width, height);
-  DeleteObject(rotated);
+  DeleteObject(composed);
   return drawn;
 }
 
@@ -474,9 +473,19 @@ RECT DoggyToolbar::SourceRectToWindow(int x, int y, int width, int height) const
 }
 
 bool DoggyToolbar::PointOnToolbar(int x, int y) const {
-  if (HeadOnly()) return x >= 0 && y >= 0 &&
-      x < window_rect_.right - window_rect_.left &&
-      y < window_rect_.bottom - window_rect_.top;
+  if (HeadOnly()) {
+    const int width = window_rect_.right - window_rect_.left;
+    const int height = window_rect_.bottom - window_rect_.top;
+    if (x < 0 || y < 0 || x >= width || y >= height) return false;
+    const auto* head = assets_.Get(ThemeAssetId::RestHeadAwake);
+    DIBSECTION dib{};
+    if (!head || !GetObjectW(head->handle, sizeof(dib), &dib) || !dib.dsBm.bmBits) return false;
+    int sx = x * head->width / width;
+    const int sy = y * head->height / height;
+    if (dock_edge_ == ToolbarEdge::Left) sx = head->width - 1 - sx;
+    const auto* pixels = static_cast<const DWORD*>(dib.dsBm.bmBits);
+    return (pixels[sy * (dib.dsBm.bmWidthBytes / 4) + sx] >> 24) > 16;
+  }
   // Dog or visible bar; the transparent margin must pass clicks through.
   const RECT dog = SourceRectToWindow(kDogLeft, kDogTop, kDogWidth, kDogHeight);
   const RECT panel =
@@ -599,7 +608,7 @@ void DoggyToolbar::Render() {
   }
   const HGDIOBJ previous = SelectObject(memory, bitmap);
 
-  DrawDoggyToolbarArtwork(memory, assets_, awake_, HeadOnly(), width, height);
+  DrawDoggyToolbarArtwork(memory, assets_, awake_, HeadOnly(), width, height, dock_edge_);
   // Clip pixels to this monitor's work area. In particular, sliding toward the
   // bottom edge must not draw the disappearing bar over the Windows taskbar.
   auto* argb = static_cast<DWORD*>(pixels);

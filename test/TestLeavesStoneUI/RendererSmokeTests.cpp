@@ -62,56 +62,74 @@ struct DibTarget {
   }
 };
 
-void TestDockedHeadRotation() {
+void TestDockedHeadPose() {
   leaves_stone::ThemeAssets assets;
   if (!assets.Load(GetModuleHandleW(nullptr))) {
     Check(false, "docked artwork must load the approved original frames"); return;
   }
   std::vector<unsigned char> sleeping_alpha;
   for (const bool awake : {false, true}) {
-    DibTarget target(400, 221);
-    Check(leaves_stone::DrawDoggyToolbarArtwork(target.dc, assets, awake, true, 400, 221),
-          "the docked toolbar must draw the original head with true alpha");
-    const auto* source = assets.Get(awake ? leaves_stone::ThemeAssetId::RestHeadAwake
-                                         : leaves_stone::ThemeAssetId::RestHeadSleep);
+    const auto* source = assets.Get(leaves_stone::ThemeAssetId::RestHeadAwake);
+    const int width = static_cast<int>(source->width);
+    const int height = static_cast<int>(source->height);
+    DibTarget target(width, height);
+    Check(leaves_stone::DrawDoggyToolbarArtwork(target.dc, assets, awake, true, width, height),
+          "the docked toolbar must draw a transparent upright side-peeking head");
     DIBSECTION original{};
     GetObjectW(source->handle, sizeof(original), &original);
     if (!original.dsBm.bmBits || !target.pixels) {
-      Check(false, "rotation checks need the real source and destination pixels"); return;
+      Check(false, "pose checks need the real source and destination pixels"); return;
     }
     const auto* input = static_cast<const unsigned int*>(original.dsBm.bmBits);
     const auto* output = static_cast<const unsigned int*>(target.pixels);
     bool alpha_matches = true;
-    for (int i = 0; i < 400 * 221; ++i) {
+    int changed_pixels = 0;
+    int outside_eye_changes = 0;
+    int transparent = 0, feathered = 0, opaque = 0;
+    for (int i = 0; i < width * height; ++i) {
       const auto alpha = static_cast<unsigned char>(output[i] >> 24);
+      if (!alpha) ++transparent;
+      else if (alpha >= 250) ++opaque;
+      else ++feathered;
       if (!awake) sleeping_alpha.push_back(alpha);
       else if (sleeping_alpha[i] != alpha) alpha_matches = false;
-    }
-    Check(alpha_matches, "hover eye states must keep the docked silhouette pixel-aligned");
-    int checked = 0;
-    int mismatches = 0;
-    for (int y = 20; y < 201; y += 17) {
-      for (int x = 20; x < 380; x += 19) {
-        const auto expected = input[(96 + 220 - y) * source->width + 248 + 399 - x];
-        if ((expected >> 24) < 250) continue;
-        ++checked;
-        const auto actual = output[y * 400 + x];
-        for (unsigned shift : {0u, 8u, 16u, 24u})
-          if (std::abs(static_cast<int>((actual >> shift) & 255) -
-                        static_cast<int>((expected >> shift) & 255)) > 5) ++mismatches;
+      if (output[i] != input[i]) {
+        ++changed_pixels;
+        const int x = i % width, y = i / width;
+        if (x < width / 4 || x > width * 4 / 5 ||
+            y < height / 3 || y > height * 7 / 10) ++outside_eye_changes;
       }
     }
-    Check(checked > 20 && mismatches == 0,
-          "sleeping and awake heads must match a 180-degree rotation of the approved pixels (" +
-              std::to_string(checked) + " samples, " + std::to_string(mismatches) + " channel differences)");
+    Check(alpha_matches, "hover eye states must keep the docked silhouette pixel-aligned");
+    Check(transparent > width * height / 10 && opaque > width * height / 4 && feathered > 100,
+          "side-peeking sprites must have clear margins and genuine feathered alpha (" +
+              std::to_string(transparent) + ", " + std::to_string(opaque) + ", " + std::to_string(feathered) + ")");
+    if (awake)
+      Check(changed_pixels == 0,
+            "right-edge peeking must preserve the upright source, never invert its face");
+    else
+      Check(changed_pixels > 500 && changed_pixels < width * height / 8 &&
+                outside_eye_changes == 0,
+            "sleeping must change only the eyes and keep the approved fur, nose and glasses still");
+    DibTarget left_target(width, height);
+    Check(leaves_stone::DrawDoggyToolbarArtwork(left_target.dc, assets, awake, true,
+                width, height, leaves_stone::ToolbarEdge::Left),
+          "left-edge peeking must draw the inward-looking mirrored pose");
+    const auto* left_pixels = static_cast<const unsigned int*>(left_target.pixels);
+    bool mirror_matches = true;
+    for (int y = 0; y < height; ++y) for (int x = 0; x < width; ++x)
+      if (left_pixels[y * width + width - 1 - x] != output[y * width + x])
+        mirror_matches = false;
+    Check(mirror_matches, "changing screen sides must mirror horizontally without inverting the head");
   }
   DibTarget head_target(148, 98);
   const DWORD before = GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS);
   for (int frame = 0; frame < 100; ++frame)
-    Check(leaves_stone::DrawDoggyToolbarArtwork(head_target.dc, assets, frame % 2 != 0, true, 148, 98),
+    Check(leaves_stone::DrawDoggyToolbarArtwork(head_target.dc, assets, frame % 2 != 0, true, 148, 98,
+              frame % 3 == 0 ? leaves_stone::ToolbarEdge::Left : leaves_stone::ToolbarEdge::Right),
           "repeated sleeping/awake head frames must remain drawable");
   Check(GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS) <= before,
-        "redrawing rotated heads must not leak temporary bitmaps or device contexts");
+        "redrawing side-peeking heads must not leak temporary bitmaps or device contexts");
 }
 
 void TestFirstFrameWithoutAnimationTimer() {
@@ -324,7 +342,7 @@ void TestAppearanceAnimationPolicy() {
 
 int RunRendererSmokeTests() {
   const HRESULT initialized = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
-  TestDockedHeadRotation();
+  TestDockedHeadPose();
   TestFirstFrameWithoutAnimationTimer();
   TestResourceLifecycle();
   TestHitRouting();
