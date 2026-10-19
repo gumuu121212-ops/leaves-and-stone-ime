@@ -15,7 +15,7 @@ else: raise SystemExit("No available iPad simulator")
 ')"
 xcodebuild -project Xiaomaodou.xcodeproj -scheme Xiaomaodou -configuration Debug \
   -destination "platform=iOS Simulator,id=$DEVICE" -derivedDataPath DerivedData \
-  -resultBundlePath .build/KeyboardTests.xcresult CODE_SIGNING_ALLOWED=NO test
+  -resultBundlePath .build/KeyboardTests.xcresult CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES test
 xcrun xcresulttool export attachments --path .build/KeyboardTests.xcresult --output-path dist/previews
 xcodebuild -project Xiaomaodou.xcodeproj -scheme Xiaomaodou -configuration Release \
   -destination 'generic/platform=iOS' -archivePath .build/Xiaomaodou.xcarchive \

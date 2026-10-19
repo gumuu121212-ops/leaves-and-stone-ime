@@ -61,7 +61,7 @@ final class InputService {
                 }
                 self.bridge = try MDRimeBridge(dataPath: dataURL.path, userPath: self.userURL.path)
                 guard let bridge = self.bridge else { return }
-                self.emit(bridge.applyAction(.clear, text: "", index: 0), token: token)
+                self.emit(bridge.apply(.clear, text: "", index: 0), token: token)
             } catch {
                 self.emitFailure(token: token)
             }
@@ -74,7 +74,7 @@ final class InputService {
         Self.queue.async { [weak self] in
             guard let self else { return }
             guard let bridge = self.bridge else { self.emitFailure(token: token); return }
-            self.emit(bridge.applyAction(action, text: text, index: index), token: token)
+            self.emit(bridge.apply(action, text: text, index: index), token: token)
         }
     }
 
@@ -99,5 +99,11 @@ final class InputService {
             guard let self, token == self.epoch else { return }
             self.onDelivery?(InputDelivery(state: KeyboardState(error: "词库暂未就绪，请重新打开键盘")))
         }
+    }
+
+    deinit {
+        // Destroying a session also calls the process-wide Rime API.
+        let retainedBridge = bridge
+        Self.queue.async { withExtendedLifetime(retainedBridge) {} }
     }
 }
