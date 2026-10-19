@@ -46,8 +46,6 @@ enum class ThemeAssetId : size_t {
   RestAwake,
   RestDecorSleep,
   RestDecorAwake,
-  RestHeadSleep,
-  RestHeadAwake,
   Count
 };
 

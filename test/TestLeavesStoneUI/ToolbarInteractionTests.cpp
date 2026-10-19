@@ -13,7 +13,8 @@ void Check(bool ok, const char* message) {
 }
 void Mouse(HWND window, UINT message, int x, int y) {
   SendMessageW(window, message,
-               message == WM_LBUTTONUP ? 0 : MK_LBUTTON,
+               message == WM_RBUTTONDOWN ? MK_RBUTTON :
+                   (message == WM_LBUTTONUP || message == WM_RBUTTONUP ? 0 : MK_LBUTTON),
                MAKELPARAM(static_cast<WORD>(x), static_cast<WORD>(y)));
 }
 void Pump(unsigned milliseconds) {
@@ -58,132 +59,9 @@ void TestPlacementAcrossMonitors() {
   auto clamped = leaves_stone::ClampToolbarWindow({-2200, -1300, -1752, -1060}, content, work);
   Check(clamped.left == -1984 && clamped.top == -1128,
         "clamping must use visible artwork and negative monitor coordinates");
-  Check(leaves_stone::NearbyToolbarEdge({-1910, -900, -1600, -700}, work, 18) == leaves_stone::ToolbarEdge::Left,
-        "the nearest screen edge must be detected on a negative-coordinate monitor");
-  Check(leaves_stone::NearbyToolbarEdge({-1200, -800, -800, -500}, work, 18) == leaves_stone::ToolbarEdge::None,
-        "a freely placed toolbar must not dock away from an edge");
-  for (const float dpi : {1.0f, 1.25f, 1.5f, 2.0f}) {
-    const SIZE head{static_cast<LONG>(160 * dpi), static_cast<LONG>(100 * dpi)};
-    for (const auto edge : {leaves_stone::ToolbarEdge::Left, leaves_stone::ToolbarEdge::Top,
-                            leaves_stone::ToolbarEdge::Right, leaves_stone::ToolbarEdge::Bottom}) {
-      const auto rect = leaves_stone::ToolbarPeekRect({-900, -500}, head, work, edge);
-      const LONG overlap_x = (std::min)(rect.right, work.right) - (std::max)(rect.left, work.left);
-      const LONG overlap_y = (std::min)(rect.bottom, work.bottom) - (std::max)(rect.top, work.top);
-      Check(overlap_x >= head.cx * 0.75f && overlap_y >= head.cy * 0.75f,
-            "edge peeking must keep most of the face visible at every DPI");
-      if (edge == leaves_stone::ToolbarEdge::Left || edge == leaves_stone::ToolbarEdge::Right)
-        Check(overlap_x <= head.cx * 0.8f,
-              "side peeking must hide the outer cheek behind the vertical edge");
-      Check(rect.right - rect.left == head.cx && rect.bottom - rect.top == head.cy,
-            "docking must preserve the original head proportions");
-    }
-  }
+
 }
 
-void TestDockAndPullOut() {
-  int actions = 0;
-  leaves_stone::DoggyToolbar toolbar(GetModuleHandleW(nullptr));
-  if (!toolbar.Create([&](leaves_stone::ToolbarAction) { ++actions; })) {
-    Check(false, "docking test must create the real toolbar"); return;
-  }
-  // Keep native test windows off the user's screen while exercising their real
-  // visibility, sizing, capture and timer messages. No physical input is sent.
-  SetWindowRgn(toolbar.hwnd(), CreateRectRgn(0, 0, 0, 0), FALSE);
-  toolbar.SetVisible(true);
-  RECT before{}; GetWindowRect(toolbar.hwnd(), &before);
-  const float scale = (before.right - before.left) / 896.0f;
-  const int x = static_cast<int>(std::lround(448 * scale));
-  const int y = static_cast<int>(std::lround(194 * scale));
-  RECT work{}; SystemParametersInfoW(SPI_GETWORKAREA, 0, &work, 0);
-  const int target_x = work.left - static_cast<int>(std::lround(128 * scale));
-  const int target_y = work.top + 200 - static_cast<int>(std::lround(96 * scale));
-  Mouse(toolbar.hwnd(), WM_LBUTTONDOWN, x, y);
-  Mouse(toolbar.hwnd(), WM_MOUSEMOVE, x + target_x - before.left, y + target_y - before.top);
-  Mouse(toolbar.hwnd(), WM_LBUTTONUP, x, y);
-  Pump(420);
-  RECT head{}; GetWindowRect(toolbar.hwnd(), &head);
-  Check(head.right - head.left < (before.right - before.left) / 2,
-        "releasing at the monitor edge must hide the capsule and leave only the head");
-  const POINT margin{(head.left + head.right) / 2, head.top + 1};
-  Check(SendMessageW(toolbar.hwnd(), WM_NCHITTEST, 0,
-             MAKELPARAM(static_cast<WORD>(margin.x), static_cast<WORD>(margin.y))) == HTTRANSPARENT,
-        "transparent head margins must pass clicks through to the application");
-  const int hx = (head.right - head.left) * 3 / 4;
-  const int hy = (head.bottom - head.top) / 2;
-  Mouse(toolbar.hwnd(), WM_MOUSEMOVE, hx, hy);
-  Pump(100);
-  RECT hovered{}; GetWindowRect(toolbar.hwnd(), &hovered);
-  Check(EqualRect(&head, &hovered), "hovering the docked head must not expand the toolbar");
-  Mouse(toolbar.hwnd(), WM_LBUTTONDOWN, hx, hy);
-  Mouse(toolbar.hwnd(), WM_MOUSEMOVE, hx, hy + 25);
-  Mouse(toolbar.hwnd(), WM_LBUTTONUP, hx, hy);
-  RECT slid{}; GetWindowRect(toolbar.hwnd(), &slid);
-  Check(slid.top == head.top + 25 && slid.right - slid.left == head.right - head.left,
-        "dragging along an edge must move the head without expanding it");
-  Mouse(toolbar.hwnd(), WM_LBUTTONDOWN, hx, hy);
-  Mouse(toolbar.hwnd(), WM_MOUSEMOVE, hx + 70, hy);
-  Mouse(toolbar.hwnd(), WM_LBUTTONUP, x, y);
-  Pump(350);
-  RECT restored{}; GetWindowRect(toolbar.hwnd(), &restored);
-  Check(restored.right - restored.left == before.right - before.left &&
-            restored.bottom - restored.top == before.bottom - before.top,
-        "pulling the head away must restore the full toolbar without instantly redocking");
-  Check(actions == 0, "docking and pulling out must never click a toolbar control");
-  toolbar.SetVisible(false);
-  SendMessageW(toolbar.hwnd(), WM_DISPLAYCHANGE, 0, 0);
-  SendMessageW(toolbar.hwnd(), WM_TIMER, 1, 0);
-  Check(!IsWindowVisible(toolbar.hwnd()), "display changes must not show an inactive toolbar");
-}
-
-void TestOtherDockEdgesAndCancellation() {
-  for (const auto edge : {leaves_stone::ToolbarEdge::Top,
-                          leaves_stone::ToolbarEdge::Right,
-                          leaves_stone::ToolbarEdge::Bottom}) {
-    leaves_stone::DoggyToolbar toolbar(GetModuleHandleW(nullptr));
-    if (!toolbar.Create([](leaves_stone::ToolbarAction) {})) {
-      Check(false, "other-edge test must create the real toolbar"); return;
-    }
-    SetWindowRgn(toolbar.hwnd(), CreateRectRgn(0, 0, 0, 0), FALSE);
-    toolbar.SetVisible(true);
-    RECT before{}; GetWindowRect(toolbar.hwnd(), &before);
-    const float scale = (before.right - before.left) / 896.0f;
-    const int x = static_cast<int>(std::lround(448 * scale));
-    const int y = static_cast<int>(std::lround(194 * scale));
-    RECT work{}; SystemParametersInfoW(SPI_GETWORKAREA, 0, &work, 0);
-    int left = work.left + 250;
-    int top = work.top + 180;
-    if (edge == leaves_stone::ToolbarEdge::Top)
-      top = work.top - static_cast<int>(std::lround(96 * scale));
-    if (edge == leaves_stone::ToolbarEdge::Right)
-      left = work.right - static_cast<int>(std::lround(768 * scale));
-    if (edge == leaves_stone::ToolbarEdge::Bottom)
-      top = work.bottom - static_cast<int>(std::lround(448 * scale));
-    Mouse(toolbar.hwnd(), WM_LBUTTONDOWN, x, y);
-    Mouse(toolbar.hwnd(), WM_MOUSEMOVE, x + left - before.left, y + top - before.top);
-    Mouse(toolbar.hwnd(), WM_LBUTTONUP, x, y);
-    Pump(390);
-    RECT head{}; GetWindowRect(toolbar.hwnd(), &head);
-    Check(head.right - head.left < (before.right - before.left) / 2,
-          "top, right and bottom docking must also leave a head-only window");
-    const int hx = (head.right - head.left) / 2;
-    const int hy = (head.bottom - head.top) / 2;
-    const int dx = edge == leaves_stone::ToolbarEdge::Right ? -70 : 0;
-    const int dy = edge == leaves_stone::ToolbarEdge::Top ? 70 :
-                     edge == leaves_stone::ToolbarEdge::Bottom ? -70 : 0;
-    Mouse(toolbar.hwnd(), WM_LBUTTONDOWN, hx, hy);
-    Mouse(toolbar.hwnd(), WM_MOUSEMOVE, hx + dx, hy + dy);
-    Mouse(toolbar.hwnd(), WM_LBUTTONUP, x, y);
-    RECT restored{}; GetWindowRect(toolbar.hwnd(), &restored);
-    Check(restored.right - restored.left == before.right - before.left,
-          "pulling inward from each edge must restore the full toolbar");
-    Mouse(toolbar.hwnd(), WM_LBUTTONDOWN, x, y);
-    SendMessageW(toolbar.hwnd(), WM_DPICHANGED, MAKELONG(144, 144), 0);
-    SendMessageW(toolbar.hwnd(), WM_CANCELMODE, 0, 0);
-    Check(GetCapture() != toolbar.hwnd(),
-          "cancelling a drag during a DPI change must release capture safely");
-    toolbar.SetVisible(false);
-  }
-}
 void TestFocusBeforeToolbarCreation() {
   leaves_stone::ToolbarFocusState focus;
   focus.FocusIn(42);
@@ -206,6 +84,82 @@ void TestFocusBeforeToolbarCreation() {
   focus.Bind([&](bool active) { toolbar.SetVisible(active); });
   Check(!IsWindowVisible(toolbar.hwnd()),
         "rebinding after deactivation must not resurrect the toolbar");
+}
+void TestDragKeepsFullToolbarAtEveryEdge() {
+  for (int edge = 0; edge < 4; ++edge) {
+    leaves_stone::DoggyToolbar toolbar(GetModuleHandleW(nullptr));
+    if (!toolbar.Create([](leaves_stone::ToolbarAction) {})) {
+      Check(false, "edge drag test must create the real toolbar"); return;
+    }
+    SetWindowRgn(toolbar.hwnd(), CreateRectRgn(0, 0, 0, 0), FALSE);
+    toolbar.SetVisible(true);
+    RECT before{}; GetWindowRect(toolbar.hwnd(), &before);
+    const float scale = (before.right - before.left) / 896.0f;
+    const int x = static_cast<int>(std::lround(448 * scale));
+    const int y = static_cast<int>(std::lround(194 * scale));
+    RECT work{}; SystemParametersInfoW(SPI_GETWORKAREA, 0, &work, 0);
+    int left = work.left + 250, top = work.top + 180;
+    if (edge == 0) left = work.left - static_cast<int>(std::lround(128 * scale));
+    if (edge == 1) top = work.top - static_cast<int>(std::lround(96 * scale));
+    if (edge == 2) left = work.right - static_cast<int>(std::lround(768 * scale));
+    if (edge == 3) top = work.bottom - static_cast<int>(std::lround(448 * scale));
+    Mouse(toolbar.hwnd(), WM_LBUTTONDOWN, x, y);
+    Mouse(toolbar.hwnd(), WM_MOUSEMOVE, x + left - before.left, y + top - before.top);
+    Mouse(toolbar.hwnd(), WM_LBUTTONUP, x, y);
+    Pump(400);
+    RECT after{}; GetWindowRect(toolbar.hwnd(), &after);
+    Check(after.right - after.left == before.right - before.left &&
+              after.bottom - after.top == before.bottom - before.top && IsWindowVisible(toolbar.hwnd()),
+          "releasing at any screen edge must leave the complete toolbar visible");
+    toolbar.SetVisible(false);
+  }
+}
+
+void TestRightClickHideSurvivesFocusChanges() {
+  int actions = 0;
+  leaves_stone::DoggyToolbar toolbar(GetModuleHandleW(nullptr));
+  if (!toolbar.Create([&](leaves_stone::ToolbarAction) { ++actions; })) {
+    Check(false, "right-click test must create the real toolbar"); return;
+  }
+  SetWindowRgn(toolbar.hwnd(), CreateRectRgn(0, 0, 0, 0), FALSE);
+  toolbar.SetVisible(true);
+  RECT bounds{}; GetWindowRect(toolbar.hwnd(), &bounds);
+  const float scale = (bounds.right - bounds.left) / 896.0f;
+  const int x = static_cast<int>(std::lround(448 * scale));
+  const int y = static_cast<int>(std::lround(194 * scale));
+  Mouse(toolbar.hwnd(), WM_RBUTTONUP, 0, 0);
+  Check(IsWindowVisible(toolbar.hwnd()), "right-clicking transparent margins must not hide the toolbar");
+  const HWND foreground = GetForegroundWindow();
+  Mouse(toolbar.hwnd(), WM_RBUTTONDOWN, x, y);
+  Mouse(toolbar.hwnd(), WM_RBUTTONUP, x, y);
+  Check(!IsWindowVisible(toolbar.hwnd()), "right-clicking the dog must immediately hide the toolbar");
+  Check(GetForegroundWindow() == foreground && actions == 0,
+        "right-click hide must not activate the toolbar or click a button");
+  toolbar.SetVisible(true);
+  Check(!IsWindowVisible(toolbar.hwnd()), "typing focus notifications must respect manual hiding");
+  toolbar.SetVisible(false);
+  toolbar.SetVisible(true);
+  SendMessageW(toolbar.hwnd(), WM_DISPLAYCHANGE, 0, 0);
+  SendMessageW(toolbar.hwnd(), WM_TIMER, 1, 0);
+  Check(!IsWindowVisible(toolbar.hwnd()), "focus and display changes must not undo manual hiding");
+  toolbar.SetUserHidden(false);
+  Check(IsWindowVisible(toolbar.hwnd()), "the tray show action must restore a manually hidden toolbar");
+  RECT restored{}; GetWindowRect(toolbar.hwnd(), &restored);
+  Check(EqualRect(&bounds, &restored), "hiding and restoring must preserve the dragged toolbar position");
+  toolbar.SetVisible(false);
+  toolbar.SetUserHidden(true);
+  toolbar.SetUserHidden(false);
+  Check(!IsWindowVisible(toolbar.hwnd()), "restoring the preference must not show an inactive input method");
+  toolbar.SetVisible(true);
+  Check(IsWindowVisible(toolbar.hwnd()), "the restored preference must apply when the IME is selected again");
+  const int button_x = static_cast<int>(std::lround(294 * scale));
+  const int button_y = static_cast<int>(std::lround(376 * scale));
+  Mouse(toolbar.hwnd(), WM_LBUTTONDOWN, x, y);
+  SendMessageW(toolbar.hwnd(), WM_DPICHANGED, MAKELONG(144, 144), 0);
+  Mouse(toolbar.hwnd(), WM_RBUTTONDOWN, button_x, button_y);
+  Mouse(toolbar.hwnd(), WM_RBUTTONUP, button_x, button_y);
+  Check(!IsWindowVisible(toolbar.hwnd()) && GetCapture() != toolbar.hwnd() && actions == 0,
+        "right-clicking a control during a DPI-changing drag must hide and cancel without clicking it");
 }
 void TestDragAndButtons() {
   int actions = 0;
@@ -267,7 +221,7 @@ int RunToolbarInteractionTests() {
   TestFocusBeforeToolbarCreation();
   TestDragAndButtons();
   TestReleaseOutsideBackgroundToolbar();
-  TestDockAndPullOut();
-  TestOtherDockEdgesAndCancellation();
+  TestDragKeepsFullToolbarAtEveryEdge();
+  TestRightClickHideSurvivesFocusChanges();
   return failures;
 }

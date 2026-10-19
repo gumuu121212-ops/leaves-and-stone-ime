@@ -1,4 +1,4 @@
-﻿// Theme artwork embedded into whichever module draws the candidate window.
+// Theme artwork embedded into whichever module draws the candidate window.
 // Paths are relative to this file, so every project can compile the same
 // resource script regardless of where its .vcxproj lives.
 #include "../../include/resource.h"
@@ -49,5 +49,3 @@ IDR_DOG_ICON_GEAR           RCDATA "../doggy/icons/icon-gear.png"
   IDR_DOG_REST_AWAKE          RCDATA "../doggy/rest/toolbar-awake.png"
   IDR_DOG_REST_DECOR_SLEEP    RCDATA "../doggy/rest/decoration-sleep.png"
   IDR_DOG_REST_DECOR_AWAKE    RCDATA "../doggy/rest/decoration-awake.png"
-  IDR_DOG_REST_HEAD_SLEEP     RCDATA "../doggy/rest/peek-sleep.png"
-  IDR_DOG_REST_HEAD_AWAKE     RCDATA "../doggy/rest/peek-awake.png"

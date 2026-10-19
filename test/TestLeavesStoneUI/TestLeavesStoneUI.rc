@@ -1,4 +1,4 @@
-﻿#include "../../include/resource.h"
+#include "../../include/resource.h"
 
 IDR_LS_LEAF_LEFT            RCDATA "../../resource/leaves-stone/leaf-left.png"
 IDR_LS_LEAF_RIGHT           RCDATA "../../resource/leaves-stone/leaf-right.png"
@@ -46,5 +46,3 @@ IDR_DOG_ICON_GEAR           RCDATA "../../resource/doggy/icons/icon-gear.png"
   IDR_DOG_REST_AWAKE          RCDATA "../../resource/doggy/rest/toolbar-awake.png"
   IDR_DOG_REST_DECOR_SLEEP    RCDATA "../../resource/doggy/rest/decoration-sleep.png"
   IDR_DOG_REST_DECOR_AWAKE    RCDATA "../../resource/doggy/rest/decoration-awake.png"
-  IDR_DOG_REST_HEAD_SLEEP     RCDATA "../../resource/doggy/rest/peek-sleep.png"
-  IDR_DOG_REST_HEAD_AWAKE     RCDATA "../../resource/doggy/rest/peek-awake.png"

@@ -33,6 +33,7 @@
 #define ID_WEASELTRAY_DISABLE_ASCII     40014
 #define ID_WEASELTRAY_RERUN_SERVICE     40015
 #define ID_WEASELTRAY_LOGDIR            40016
+#define ID_WEASELTRAY_SHOW_TOOLBAR      40017
 
 // Next default values for new objects
 //
@@ -83,5 +84,3 @@
 #define IDR_DOG_REST_AWAKE          636
 #define IDR_DOG_REST_DECOR_SLEEP    637
 #define IDR_DOG_REST_DECOR_AWAKE    638
-#define IDR_DOG_REST_HEAD_SLEEP     639
-#define IDR_DOG_REST_HEAD_AWAKE     640
