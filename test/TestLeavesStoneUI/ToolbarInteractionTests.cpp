@@ -129,6 +129,10 @@ void TestRightClickHideSurvivesFocusChanges() {
   const int y = static_cast<int>(std::lround(194 * scale));
   Mouse(toolbar.hwnd(), WM_RBUTTONUP, 0, 0);
   Check(IsWindowVisible(toolbar.hwnd()), "right-clicking transparent margins must not hide the toolbar");
+  Mouse(toolbar.hwnd(), WM_LBUTTONDOWN, x, y);
+  Mouse(toolbar.hwnd(), WM_MOUSEMOVE, x - 70, y - 40);
+  Mouse(toolbar.hwnd(), WM_LBUTTONUP, x, y);
+  GetWindowRect(toolbar.hwnd(), &bounds);
   const HWND foreground = GetForegroundWindow();
   Mouse(toolbar.hwnd(), WM_RBUTTONDOWN, x, y);
   Mouse(toolbar.hwnd(), WM_RBUTTONUP, x, y);
