@@ -74,7 +74,9 @@ int WeaselServerApp::Run() {
 void WeaselServerApp::SetupMenuHandlers() {
   std::filesystem::path dir = install_dir();
   m_server.AddMenuHandler(ID_WEASELTRAY_SHOW_TOOLBAR, [this]() {
-    if (m_toolbar) m_toolbar->SetUserHidden(false);
+    if (!m_toolbar) return false;
+    m_toolbar->SetUserHidden(false);
+    return true;
   });
   m_server.AddMenuHandler(ID_WEASELTRAY_QUIT,
                           [this] { return m_server.Stop() == 0; });
