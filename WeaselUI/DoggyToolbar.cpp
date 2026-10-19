@@ -532,11 +532,24 @@ void DoggyToolbar::PollPointer() {
   if (!hwnd_ || !IsWindowVisible(hwnd_))
     return;
   if (dock_stage_ != DockStage::None) { AdvanceDock(); return; }
-  if (dragging_) return;
   POINT cursor = {0, 0};
   if (!GetCursorPos(&cursor))
     return;
   ScreenToClient(hwnd_, &cursor);
+  if (button_down_) {
+    // WS_EX_NOACTIVATE keeps the typing application in the foreground. A
+    // background window's capture may stop delivering messages outside its
+    // visible area, so track only the drag that started on our own artwork.
+    MovePointer(cursor.x, cursor.y);
+    const int primary_button = GetSystemMetrics(SM_SWAPBUTTON) ? VK_RBUTTON : VK_LBUTTON;
+    if (!(GetAsyncKeyState(primary_button) & 0x8000)) {
+      // MovePointer may have moved or expanded the window underneath us.
+      GetCursorPos(&cursor);
+      ScreenToClient(hwnd_, &cursor);
+      FinishPointer(cursor.x, cursor.y);
+    }
+    return;
+  }
   const bool inside = PointOnToolbar(cursor.x, cursor.y);
   const ULONGLONG now = GetTickCount64();
   if (inside != pointer_inside_) {

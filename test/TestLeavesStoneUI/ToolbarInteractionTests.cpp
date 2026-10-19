@@ -231,6 +231,27 @@ void TestDragAndButtons() {
   SendMessageW(toolbar.hwnd(), WM_TIMER, 1, 0);
   Check(!IsWindowVisible(toolbar.hwnd()), "a hidden dragged toolbar must stay hidden");
 }
+
+void TestReleaseOutsideBackgroundToolbar() {
+  const int primary_button = GetSystemMetrics(SM_SWAPBUTTON) ? VK_RBUTTON : VK_LBUTTON;
+  // Do not interfere with a physical drag the user might be performing.
+  if (GetAsyncKeyState(primary_button) & 0x8000) return;
+  leaves_stone::DoggyToolbar toolbar(GetModuleHandleW(nullptr));
+  if (!toolbar.Create([](leaves_stone::ToolbarAction) {})) {
+    Check(false, "background release test must create the real toolbar"); return;
+  }
+  SetWindowRgn(toolbar.hwnd(), CreateRectRgn(0, 0, 0, 0), FALSE);
+  toolbar.SetVisible(true);
+  RECT bounds{}; GetWindowRect(toolbar.hwnd(), &bounds);
+  const float scale = (bounds.right - bounds.left) / 896.0f;
+  Mouse(toolbar.hwnd(), WM_LBUTTONDOWN,
+        static_cast<int>(std::lround(448 * scale)),
+        static_cast<int>(std::lround(194 * scale)));
+  SendMessageW(toolbar.hwnd(), WM_TIMER, 1, 0);
+  Check(GetCapture() != toolbar.hwnd(),
+        "pointer polling must finish a background drag when the release message was lost");
+  toolbar.SetVisible(false);
+}
 }  // namespace
 
 int RunToolbarInteractionTests() {
@@ -238,6 +259,7 @@ int RunToolbarInteractionTests() {
   TestPlacementAcrossMonitors();
   TestFocusBeforeToolbarCreation();
   TestDragAndButtons();
+  TestReleaseOutsideBackgroundToolbar();
   TestDockAndPullOut();
   TestOtherDockEdgesAndCancellation();
   return failures;

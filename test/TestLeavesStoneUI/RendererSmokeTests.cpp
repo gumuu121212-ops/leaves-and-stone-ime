@@ -105,10 +105,10 @@ void TestDockedHeadRotation() {
           "sleeping and awake heads must match a 180-degree rotation of the approved pixels (" +
               std::to_string(checked) + " samples, " + std::to_string(mismatches) + " channel differences)");
   }
-  DibTarget small(148, 98);
+  DibTarget head_target(148, 98);
   const DWORD before = GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS);
   for (int frame = 0; frame < 100; ++frame)
-    Check(leaves_stone::DrawDoggyToolbarArtwork(small.dc, assets, frame % 2 != 0, true, 148, 98),
+    Check(leaves_stone::DrawDoggyToolbarArtwork(head_target.dc, assets, frame % 2 != 0, true, 148, 98),
           "repeated sleeping/awake head frames must remain drawable");
   Check(GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS) <= before,
         "redrawing rotated heads must not leak temporary bitmaps or device contexts");
