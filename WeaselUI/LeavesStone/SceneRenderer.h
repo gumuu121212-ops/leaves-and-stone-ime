@@ -18,6 +18,8 @@ class SceneRenderer {
   SceneRenderer(const SceneRenderer&) = delete;
   SceneRenderer& operator=(const SceneRenderer&) = delete;
 
+  CandidateScene BuildScene(const SceneInput& input);
+
   bool Render(HDC target,
               const CandidateScene& scene,
               const ThemeAssets& assets,

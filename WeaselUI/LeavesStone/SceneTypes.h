@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <limits>
 #include <string>
 #include <vector>
@@ -31,6 +32,11 @@ struct RectF {
 struct CandidateInput {
   std::wstring text;
   std::wstring comment;
+};
+
+struct TextMetrics {
+  float width = 0.0f;
+  float height = 0.0f;
 };
 
 enum class ControlKind { PreviousPage, NextPage };
@@ -92,6 +98,8 @@ struct SceneInput {
   bool has_previous_page = false;
   bool has_next_page = false;
   ThemeConfig theme;
+  // Supplied by the renderer so layout uses the actual font and wrap metrics.
+  std::function<TextMetrics(const std::wstring&, float)> measure_candidate_text;
 };
 
 struct HitTarget {

@@ -246,7 +246,7 @@ void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
                                      : L"";
     input.candidates.push_back({m_ctx.cinfo.candies[index].str, comment});
   }
-  m_leaves_scene = leaves_stone::BuildCandidateScene(input);
+  m_leaves_scene = m_scene_renderer.BuildScene(input);
   // Record the caret rect the host reports so a window that refuses to follow
   // the text can be told apart from a host that never sends a new rect.
   {

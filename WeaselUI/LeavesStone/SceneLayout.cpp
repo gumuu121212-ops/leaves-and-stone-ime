@@ -63,12 +63,18 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   item_widths.reserve(visible_count);
   for (size_t i = 0; i < visible_count; ++i) {
     const float glyphs = static_cast<float>(input.candidates[i].text.size());
+    float text_width = glyphs * 16.0f * scale * text_scale;
+    if (input.measure_candidate_text) {
+      const auto measured =
+          input.measure_candidate_text(input.candidates[i].text, 0.0f);
+      if (measured.width > 0.0f)
+        text_width = measured.width;
+    }
     // The candidate text starts after the inline index (24 dip), so the width
     // has to reserve that offset plus a right padding; computing it from the
     // index width alone clipped every one-character candidate to "字...".
     item_widths.push_back(
-        std::max(24.0f * scale + glyphs * 16.0f * scale * text_scale +
-                     10.0f * scale,
+        std::max(24.0f * scale + text_width + 10.0f * scale,
                  44.0f * scale));
   }
 
@@ -108,7 +114,13 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
     const size_t line_count = std::max(
         size_t{1}, (input.candidates[i].text.size() + characters_per_line - 1) /
                        characters_per_line);
-    const float height = capsule_height * static_cast<float>(line_count);
+    float height = capsule_height * static_cast<float>(line_count);
+    if (input.measure_candidate_text) {
+      const auto measured = input.measure_candidate_text(
+          input.candidates[i].text, width - 26.0f * scale);
+      if (measured.height > 0.0f)
+        height = std::max(capsule_height, measured.height + 8.0f * scale);
+    }
     item_bounds.push_back({cursor, current_row_top, cursor + width,
                            current_row_top + height});
     current_row_height = std::max(current_row_height, height);

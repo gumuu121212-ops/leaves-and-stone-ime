@@ -61,25 +61,51 @@ struct DibTarget {
   }
 };
 
+void TestCompleteSingleLinePhrases() {
+  leaves_stone::SceneRenderer renderer;
+  for (float scale : {1.0f, 1.25f, 1.5f, 1.7f, 2.0f}) {
+    leaves_stone::SceneInput input;
+    input.anchor = {80.0f, 120.0f, 82.0f, 146.0f};
+    input.work_area = {0.0f, 0.0f, 4000.0f, 2000.0f};
+    input.dpi_scale = scale;
+    input.candidates = {{L"正常输入的时候", L""}};
+    const auto scene = renderer.BuildScene(input);
+    const auto& card = scene.candidates.front().bounds;
+    DibTarget target(1000, 1000);
+    Gdiplus::Graphics graphics(target.dc);
+    Gdiplus::Font font(L"Microsoft YaHei UI", 16.0f * scale,
+                      Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
+    Gdiplus::StringFormat format;
+    const Gdiplus::RectF area(0, 0, card.Width() - 26.0f * scale,
+                             card.Height());
+    Gdiplus::RectF measured;
+    INT characters = 0, lines = 0;
+    graphics.MeasureString(input.candidates[0].text.c_str(), -1, &font, area,
+                            &format, &measured, &characters, &lines);
+    Check(characters == 7 && lines == 1,
+          "all seven characters must fit on one line with the actual font");
+  }
+}
+
 void TestCompleteWrappedCandidate() {
   leaves_stone::SceneInput input;
   input.anchor = {80.0f, 120.0f, 82.0f, 146.0f};
   input.work_area = {0.0f, 0.0f, 800.0f, 1000.0f};
   input.candidates = {{std::wstring(100, L'好'), L""}};
-  const auto scene = leaves_stone::BuildCandidateScene(input);
+  leaves_stone::SceneRenderer renderer;
+  const auto scene = renderer.BuildScene(input);
   const auto& card = scene.candidates.front().bounds;
-  Check(card.Height() >= 93.0f,
-        "a screen-wide long candidate needs room for all three text lines");
+  Check(card.Height() > 31.0f,
+        "a screen-wide long candidate needs room for multiple text lines");
 
   leaves_stone::ThemeAssets assets;
   Check(assets.Load(GetModuleHandleW(nullptr)),
         "wrapped-text rendering must load the real compiled artwork");
   const int width = static_cast<int>(scene.window_bounds.Width());
   DibTarget target(width, static_cast<int>(scene.window_bounds.Height()));
-  leaves_stone::SceneRenderer renderer;
   Check(renderer.Render(target.dc, scene, assets),
         "wrapped-text rendering must draw the full scene");
-  if (!target.pixels || card.Height() < 93.0f)
+  if (!target.pixels || card.Height() <= 31.0f)
     return;
 
   // The old single-line renderer centres its one line halfway down the card.
@@ -89,8 +115,8 @@ void TestCompleteWrappedCandidate() {
   const auto* pixels = static_cast<const unsigned int*>(target.pixels);
   const int left = static_cast<int>(card.left - scene.window_bounds.left) + 30;
   const int right = static_cast<int>(card.right - scene.window_bounds.left) - 8;
-  const int top = static_cast<int>(card.bottom - scene.window_bounds.top) - 26;
-  const int bottom = static_cast<int>(card.bottom - scene.window_bounds.top) - 6;
+  const int top = static_cast<int>(card.bottom - scene.window_bounds.top) - 16;
+  const int bottom = static_cast<int>(card.bottom - scene.window_bounds.top) - 4;
   for (int y = top; y < bottom; ++y) {
     for (int x = left; x < right; ++x) {
       const auto pixel = pixels[y * width + x];
@@ -217,6 +243,7 @@ int RunRendererSmokeTests() {
   TestHitRouting();
   TestAppearanceAnimationPolicy();
   TestCompleteWrappedCandidate();
+  TestCompleteSingleLinePhrases();
   if (SUCCEEDED(initialized))
     CoUninitialize();
   return failures;

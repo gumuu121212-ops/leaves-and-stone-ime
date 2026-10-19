@@ -1,4 +1,5 @@
 #include "SceneRenderer.h"
+#include "SceneLayout.h"
 
 #include <algorithm>
 #include <cmath>
@@ -178,6 +179,38 @@ bool SceneRenderer::EnsureDeviceResources(float dpi_scale) {
   resource_dpi_scale_ = dpi_scale;
   ++resource_generation_;
   return true;
+}
+
+CandidateScene SceneRenderer::BuildScene(const SceneInput& source) {
+  SceneInput input = source;
+  const float scale = std::clamp(input.dpi_scale, 0.5f, 4.0f);
+  if (!EnsureDeviceResources(scale))
+    return BuildCandidateScene(source);
+  HDC dc = CreateCompatibleDC(nullptr);
+  if (!dc)
+    return BuildCandidateScene(source);
+  CandidateScene scene;
+  {
+    Gdiplus::Graphics graphics(dc);
+    graphics.SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
+    Gdiplus::StringFormat format;
+    format.SetTrimming(Gdiplus::StringTrimmingNone);
+    input.measure_candidate_text = [&](const std::wstring& text, float width) {
+      Gdiplus::RectF bounds;
+      if (width > 0.0f) {
+        graphics.MeasureString(text.c_str(), -1, candidate_font_,
+                                Gdiplus::RectF(0, 0, width, 100000.0f),
+                                &format, &bounds);
+      } else {
+        graphics.MeasureString(text.c_str(), -1, candidate_font_,
+                                Gdiplus::PointF(0, 0), &format, &bounds);
+      }
+      return TextMetrics{std::ceil(bounds.Width), std::ceil(bounds.Height)};
+    };
+    scene = BuildCandidateScene(input);
+  }
+  DeleteDC(dc);
+  return scene;
 }
 
 bool SceneRenderer::Render(HDC target,
