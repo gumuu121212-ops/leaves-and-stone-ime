@@ -5,6 +5,8 @@ $required = @(
   'default.yaml',
   'leaves_stone.schema.yaml',
   'leaves_stone.dict.yaml',
+  'leaves_stone_english.dict.yaml',
+  'leaves_stone_english.schema.yaml',
   'leaves_stone_theme.yaml',
   'weasel.yaml'
 )

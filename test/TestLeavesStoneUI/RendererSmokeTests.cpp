@@ -1,5 +1,6 @@
 #include <windows.h>
 
+#include <cmath>
 #include <iostream>
 #include <string>
 
@@ -219,6 +220,53 @@ void TestResourceLifecycle() {
         "theme assets must reload after a forced discard");
 }
 
+void TestSingleEnglishCandidate() {
+  leaves_stone::ThemeAssets assets;
+  Check(assets.Load(GetModuleHandleW(nullptr)),
+        "English candidate test must load the real artwork");
+  leaves_stone::SceneRenderer renderer;
+  for (float scale : {0.85f, 1.0f, 1.25f, 1.7f, 2.0f}) {
+    leaves_stone::SceneInput input;
+    input.anchor = {400.0f, 300.0f, 402.0f, 326.0f};
+    input.work_area = {0.0f, 0.0f, 1920.0f, 1080.0f};
+    input.dpi_scale = scale;
+    input.selected_index = 0;
+    input.candidates = {{L"iPad", L""}};
+    const auto scene = renderer.BuildScene(input);
+    Check(scene.candidates.size() == 1 && scene.candidates[0].selected &&
+              scene.candidates[0].display_text == L"iPad",
+          "the only English candidate must be complete and selected");
+    const auto& card = scene.candidates[0].bounds;
+    const auto hit = leaves_stone::HitTest(
+        scene, {(card.left + card.right) / 2, (card.top + card.bottom) / 2});
+    Check(hit && hit->kind == leaves_stone::HitKind::Candidate &&
+              hit->candidate_index == 0,
+          "the English capsule must retain engine candidate index zero");
+    const int width = static_cast<int>(std::ceil(scene.window_bounds.Width()));
+    DibTarget target(width,
+                     static_cast<int>(std::ceil(scene.window_bounds.Height())));
+    Check(renderer.Render(target.dc, scene, assets),
+          "the single English candidate must render through production code");
+    if (!target.pixels)
+      continue;
+    const auto* pixels = static_cast<const unsigned int*>(target.pixels);
+    int ink = 0;
+    for (int y = static_cast<int>(card.top - scene.window_bounds.top);
+         y < static_cast<int>(card.bottom - scene.window_bounds.top); ++y) {
+      // Skip the numeric label: verify ink from the Latin word itself.
+      for (int x = static_cast<int>(card.left - scene.window_bounds.left +
+                                    24.0f * scale);
+           x < static_cast<int>(card.right - scene.window_bounds.left); ++x) {
+        const auto pixel = pixels[y * width + x];
+        if ((pixel >> 24) > 128 && ((pixel >> 16) & 255) < 120 &&
+            ((pixel >> 8) & 255) < 110 && (pixel & 255) < 100)
+          ++ink;
+      }
+    }
+    Check(ink > 10, "iPad must leave visible text ink inside its capsule");
+  }
+}
+
 void TestHitRouting() {
   auto scene = MakeScene();
   const auto& candidate = scene.candidates[3].bounds;
@@ -278,6 +326,7 @@ int RunRendererSmokeTests() {
   TestAppearanceAnimationPolicy();
   TestCompleteWrappedCandidate();
   TestCompleteSingleLinePhrases();
+  TestSingleEnglishCandidate();
   if (SUCCEEDED(initialized))
     CoUninitialize();
   return failures;

@@ -32,6 +32,8 @@ compile_commands.json
 !/output/data/default.yaml
 !/output/data/leaves_stone.schema.yaml
 !/output/data/leaves_stone.dict.yaml
+!/output/data/leaves_stone_english.dict.yaml
+!/output/data/leaves_stone_english.schema.yaml
 !/output/data/leaves_stone_theme.yaml
 !/output/data/weasel.yaml
 /output/archives

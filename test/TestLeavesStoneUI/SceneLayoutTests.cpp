@@ -341,6 +341,16 @@ void TestUserLayoutPreferences() {
 }  // namespace
 
 int RunSceneLayoutTests() {
+  auto no_candidates = MakeInput(0);
+  // Inline preedit is already in the host: the scene receives neither pinyin
+  // nor candidates. It must not expose an empty cushion or paging targets.
+  no_candidates.preedit.clear();
+  const auto empty_scene = leaves_stone::BuildCandidateScene(no_candidates);
+  Check(!empty_scene.has_bar && empty_scene.controls.empty() &&
+            empty_scene.window_bounds.Width() == 0.0f,
+        "inline preedit without candidates must not create an empty panel");
+  Check(leaves_stone::BuildCandidateScene(MakeInput(0)).has_bar,
+        "non-inline preedit must remain visible even without candidates");
   TestCountsAndDpi();
   TestPlacementAndElevation();
   TestBarTracksCaretWithoutMascotGap();

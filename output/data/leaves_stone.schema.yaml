@@ -5,7 +5,9 @@
 schema:
   schema_id: leaves_stone
   name: "Leaves & Stone 拼音"
-  version: "1.0"
+  version: "1.1"
+  dependencies:
+    - leaves_stone_english
   author:
     - "Leaves & Stone contributors"
     - "Rime Developers"
@@ -42,6 +44,8 @@ engine:
   translators:
     - punct_translator
     - script_translator
+    - table_translator@english
+    - echo_translator
   filters:
     - simplifier
     - uniquifier
@@ -72,6 +76,16 @@ translator:
     - xform/([nl])v/$1ü/
     - xform/([nl])ue/$1üe/
     - xform/([jqxy])v/$1u/
+
+# Exact names only: partial English spellings must not displace pinyin.
+# echo_translator supplies the original input only when all translators have
+# no result, so unmatched Latin text remains selectable without fake UI rows.
+english:
+  dictionary: leaves_stone_english
+  enable_completion: false
+  enable_sentence: false
+  enable_user_dict: false
+  initial_quality: 0
 
 simplifier:
   option_name: simplification

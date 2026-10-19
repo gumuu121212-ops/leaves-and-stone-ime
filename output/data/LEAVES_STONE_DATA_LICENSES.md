@@ -13,3 +13,8 @@ build by the pinned Plum package manager.
 The upstream license texts and attribution files remain packaged alongside the
 application. Leaves & Stone's own configuration changes are distributed under
 the repository's GNU GPL v3.0 license.
+
+`leaves_stone_english.dict.yaml` is an original three-entry exact-name table
+for iPad, iPhone and iOS. It contains no imported English dictionary or other
+input method's data and is distributed under GPL-3.0-only. These product names
+are used only as input text; no affiliation with their trademark owner is implied.

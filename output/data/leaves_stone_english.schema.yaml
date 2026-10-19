@@ -1,0 +1,8 @@
+# Build-only dependency for the exact-name dictionary. Not in schema_list.
+# SPDX-License-Identifier: GPL-3.0-only
+schema:
+  schema_id: leaves_stone_english
+  name: "English names (dictionary dependency)"
+  version: "1.0"
+translator:
+  dictionary: leaves_stone_english

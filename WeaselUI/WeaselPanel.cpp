@@ -192,7 +192,8 @@ bool WeaselPanel::_UseLeavesStoneScene() const {
   // still draws the bar with its candidates. Refusing the scene under inline
   // preedit silently fell back to the classic white candidate list.
   const bool use_scene =
-      m_theme_assets_ready && !m_status.ascii_mode && schema_matches &&
+      m_theme_assets_ready && !hide_candidates && !m_status.ascii_mode &&
+      schema_matches &&
       (!m_ctx.preedit.str.empty() || !m_ctx.cinfo.candies.empty());
   LogLeavesStoneGate(m_theme_assets_ready, m_style.inline_preedit,
                      m_status.ascii_mode, m_status.schema_id,

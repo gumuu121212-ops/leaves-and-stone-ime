@@ -25,6 +25,11 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   scene.text_scale = text_scale;
   scene.has_visible_shared_background = false;
 
+  // Inline preedit is drawn by the host. If the engine has no candidates,
+  // there is no content for this window, including its decorative cushion.
+  if (input.preedit.empty() && input.candidates.empty())
+    return scene;
+
   const int page_size =
       NormalizeCandidateCount(input.requested_candidate_count, theme);
   const size_t visible_count =

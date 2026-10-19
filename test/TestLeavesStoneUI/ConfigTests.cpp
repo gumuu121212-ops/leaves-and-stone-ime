@@ -7,6 +7,7 @@
 #include <regex>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <rime_api.h>
@@ -78,6 +79,10 @@ void RunConfigTests() {
   const auto defaults = ReadRequired(data_root / "default.yaml");
   const auto schema = ReadRequired(data_root / "leaves_stone.schema.yaml");
   const auto dictionary = ReadRequired(data_root / "leaves_stone.dict.yaml");
+  const auto english_dictionary =
+      ReadRequired(data_root / "leaves_stone_english.dict.yaml");
+  const auto english_schema =
+      ReadRequired(data_root / "leaves_stone_english.schema.yaml");
   const auto theme = ReadRequired(data_root / "leaves_stone_theme.yaml");
   const auto weasel = ReadRequired(data_root / "weasel.yaml");
 
@@ -116,7 +121,8 @@ void RunConfigTests() {
   Expect(Matches(weasel, R"(inline_preedit:\s*true\s*$)"),
          "inline preedit must be enabled");
 
-  std::string packaged = defaults + schema + dictionary + theme + weasel;
+  std::string packaged = defaults + schema + dictionary + english_dictionary +
+                         english_schema + theme + weasel;
   std::transform(packaged.begin(), packaged.end(), packaged.begin(),
                  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
   const std::vector<std::string> forbidden_settings = {
@@ -182,6 +188,47 @@ void RunRimeIntegrationTest() {
     Expect(found_simplified_sentence,
            "jintiantianqihenhao must produce the Simplified Chinese candidate "
            "今天天气很好");
+
+    // Exercise the actual translators and selection path, rather than drawing
+    // synthetic English text over a scene with no engine candidates.
+    for (const auto& example :
+         std::vector<std::pair<std::string, std::string>>{
+             {"ipad", "iPad"}, {"iphone", "iPhone"}, {"ios", "iOS"},
+             {"i", "i"}, {"izzztest", "izzztest"}, {"nihao", u8"你好"}}) {
+      rime->clear_composition(session);
+      rime->simulate_key_sequence(session, example.first.c_str());
+      RIME_STRUCT(RimeContext, context);
+      const bool has_context = rime->get_context(session, &context) == True;
+      Expect(has_context && context.menu.num_candidates > 0,
+             example.first + " must have a selectable engine candidate");
+      if (has_context) {
+        Expect(context.menu.num_candidates > 0 &&
+                   context.menu.candidates[0].text &&
+                   std::string(context.menu.candidates[0].text) == example.second,
+               example.first + " must keep the expected first candidate");
+        rime->free_context(&context);
+      }
+      rime->process_key(session, ' ', 0);
+      RIME_STRUCT(RimeCommit, commit);
+      const bool committed = rime->get_commit(session, &commit) == True;
+      Expect(committed && commit.text &&
+                 std::string(commit.text) == example.second,
+             example.first + " must commit the displayed candidate with Space");
+      if (committed)
+        rime->free_commit(&commit);
+
+      rime->clear_composition(session);
+      rime->simulate_key_sequence(session, example.first.c_str());
+      Expect(rime->select_candidate_on_current_page(session, 0) == True,
+             example.first + " must support candidate click selection");
+      RIME_STRUCT(RimeCommit, clicked);
+      const bool click_committed = rime->get_commit(session, &clicked) == True;
+      Expect(click_committed && clicked.text &&
+                 std::string(clicked.text) == example.second,
+             example.first + " must commit the displayed candidate on click");
+      if (click_committed)
+        rime->free_commit(&clicked);
+    }
     rime->destroy_session(session);
   }
 
