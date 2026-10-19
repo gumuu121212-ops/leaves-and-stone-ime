@@ -61,6 +61,38 @@ struct DibTarget {
   }
 };
 
+void TestFirstFrameWithoutAnimationTimer() {
+  leaves_stone::ThemeAssets assets;
+  Check(assets.Load(GetModuleHandleW(nullptr)),
+        "the first candidate frame must load the real artwork");
+  leaves_stone::SceneRenderer renderer;
+  const auto scene = MakeScene();
+  const int width = static_cast<int>(scene.window_bounds.Width());
+  const int height = static_cast<int>(scene.window_bounds.Height());
+  DibTarget target(width, height);
+  if (!target.pixels) {
+    Check(false, "the first-frame test must create a real pixel buffer");
+    return;
+  }
+  // The host may keep processing text without dispatching WM_TIMER. Render
+  // the very first frame, with no warm-up frame and no message pumping.
+  Check(renderer.Render(target.dc, scene, assets,
+                        leaves_stone::CandidateAppearanceOpacity(0.0f)),
+        "the first candidate frame must render before any timer message");
+  const auto* pixels = static_cast<const unsigned int*>(target.pixels);
+  size_t visible_pixels = 0;
+  for (int i = 0; i < width * height; ++i)
+    if ((pixels[i] >> 24) >= 200)
+      ++visible_pixels;
+  Check(visible_pixels > static_cast<size_t>(width * height / 5),
+        "the first frame must contain legible opaque artwork without WM_TIMER");
+  Check(leaves_stone::CandidateAppearanceOpacity(5000.0f) == 1.0f,
+        "a delayed repaint must finish the fade without a timer callback");
+  Check(leaves_stone::CandidateAppearanceOpacity(-1.0f) >= 0.9f &&
+            leaves_stone::CandidateAppearanceOpacity(16.0f) >= 0.9f,
+        "early animation frames must never hide the candidate surface");
+}
+
 void TestCompleteSingleLinePhrases() {
   leaves_stone::SceneRenderer renderer;
   for (float scale : {1.0f, 1.25f, 1.5f, 1.7f, 2.0f}) {
@@ -239,6 +271,7 @@ void TestAppearanceAnimationPolicy() {
 
 int RunRendererSmokeTests() {
   const HRESULT initialized = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+  TestFirstFrameWithoutAnimationTimer();
   TestResourceLifecycle();
   TestHitRouting();
   TestAppearanceAnimationPolicy();

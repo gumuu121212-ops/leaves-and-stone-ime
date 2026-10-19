@@ -23,6 +23,7 @@ int NormalizeCandidateCount(int requested, const ThemeConfig& config);
 bool ShouldAnimateAppearance(bool was_visible,
                              bool is_visible,
                              const ThemeConfig& config);
+float CandidateAppearanceOpacity(float elapsed_ms);
 float TextScale(const ThemeConfig& config);
 
 }  // namespace leaves_stone

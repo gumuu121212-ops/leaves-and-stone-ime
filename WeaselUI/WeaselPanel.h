@@ -162,8 +162,9 @@ class WeaselPanel
   leaves_stone::settings::UserSettings m_leaves_settings;
   bool m_theme_assets_ready = false;
   bool m_leaves_scene_visible = false;
-  float m_scene_opacity = 1.0f;
   ULONGLONG m_scene_animation_start = 0;
+  ULONGLONG m_window_created_at = 0;
+  bool m_first_frame_logged = false;
   float bar_scale_ = 1.0;
   float dpiScaleLayout = 1.0f;
   int m_hoverIndex = -1;

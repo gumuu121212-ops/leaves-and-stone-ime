@@ -1,6 +1,7 @@
 ﻿#include "stdafx.h"
 #include "WeaselPanel.h"
 
+#include <atomic>
 #include <cmath>
 #include <fstream>
 #include <string>
@@ -119,6 +120,25 @@ void WeaselPanel::_ResizeWindow() {
 }
 
 namespace {
+void LogLeavesStoneFirstFrame(ULONGLONG created_at, float opacity, bool drawn) {
+  static std::atomic<unsigned> count{0};
+  if (count.fetch_add(1) >= 24)
+    return;
+  wchar_t temp[MAX_PATH]{};
+  const DWORD length = GetTempPathW(MAX_PATH, temp);
+  if (!length || length >= MAX_PATH)
+    return;
+  const std::wstring path = std::wstring(temp) + L"leaves-stone-first-frame.log";
+  std::ofstream out(path.c_str(), std::ios::app | std::ios::binary);
+  if (out) {
+    const ULONGLONG now = GetTickCount64();
+    out << now << " pid=" << GetCurrentProcessId()
+        << " tid=" << GetCurrentThreadId()
+        << " create_to_frame_ms=" << now - created_at
+        << " opacity=" << opacity << " drawn=" << drawn << '\n';
+  }
+}
+
 // Diagnostic for the candidate window. Nothing else exposes why the Leaves &
 // Stone scene was or was not used, so record the gate inputs in
 // %TEMP%\leaves-stone-ui.log, a bounded number of times and only once there is
@@ -274,12 +294,11 @@ void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
   }
 
   if (restart_animation && m_leaves_theme.animation_enabled) {
-    m_scene_opacity = 0.0f;
     m_scene_animation_start = GetTickCount64();
     SetTimer(LEAVES_ANIMATION_TIMER, 16, nullptr);
   } else if (!m_leaves_theme.animation_enabled) {
     KillTimer(LEAVES_ANIMATION_TIMER);
-    m_scene_opacity = 1.0f;
+    m_scene_animation_start = 0;
   }
 }
 
@@ -356,7 +375,7 @@ void WeaselPanel::Refresh() {
     _BuildLeavesStoneScene(animate_appearance);
     if (!use_leaves_scene) {
       KillTimer(LEAVES_ANIMATION_TIMER);
-      m_scene_opacity = 1.0f;
+      m_scene_animation_start = 0;
     }
     m_leaves_scene_visible = use_leaves_scene;
     _ResizeWindow();
@@ -1211,13 +1230,25 @@ void WeaselPanel::DoPaint(CDCHandle dc) {
     HGDIOBJ previous = bitmap ? ::SelectObject(memory_dc, bitmap) : nullptr;
     ::ReleaseDC(m_hWnd, screen_dc);
 
+    // Sample elapsed time on every paint, rather than waiting for WM_TIMER to
+    // change cached opacity. Hosts can process TSF input while timers are late.
+    const float opacity = m_leaves_theme.animation_enabled &&
+                                  m_scene_animation_start != 0
+                              ? leaves_stone::CandidateAppearanceOpacity(
+                                    static_cast<float>(GetTickCount64() -
+                                                       m_scene_animation_start))
+                              : 1.0f;
     const bool drawn = bitmap && m_scene_renderer.Render(
                                       memory_dc, m_leaves_scene,
-                                      m_theme_assets, m_scene_opacity);
+                                      m_theme_assets, opacity);
     if (drawn)
       _LayerUpdate(rcw, memory_dc);
     else
       ShowWindow(SW_HIDE);
+    if (!m_first_frame_logged) {
+      m_first_frame_logged = true;
+      LogLeavesStoneFirstFrame(m_window_created_at, opacity, drawn);
+    }
     if (previous)
       ::SelectObject(memory_dc, previous);
     if (bitmap)
@@ -1382,6 +1413,8 @@ LRESULT WeaselPanel::OnCreate(UINT uMsg,
                               BOOL& bHandled) {
   m_mouse_entry = false;
   m_hoverIndex = -1;
+  m_window_created_at = GetTickCount64();
+  m_first_frame_logged = false;
   m_leaves_settings = m_leaves_settings_store.Load();
   _ApplyLeavesStoneSettings();
   m_theme_assets_ready = m_theme_assets.Load(nullptr);
@@ -1400,6 +1433,7 @@ LRESULT WeaselPanel::OnDestroy(UINT uMsg,
   m_theme_assets.Discard();
   m_theme_assets_ready = false;
   m_leaves_scene_visible = false;
+  m_scene_animation_start = 0;
   delete m_layout;
   m_layout = NULL;
   return 0;
@@ -1423,13 +1457,7 @@ LRESULT WeaselPanel::OnAnimationTimer(UINT uMsg,
     return 0;
   }
   const ULONGLONG elapsed = GetTickCount64() - m_scene_animation_start;
-  // Parenthesised so the windows.h min macro cannot rewrite the call.
-  const float progress =
-      (std::min)(1.0f, static_cast<float>(elapsed) / 140.0f);
-  const float remaining = 1.0f - progress;
-  m_scene_opacity = 1.0f - remaining * remaining * remaining;
-  if (progress >= 1.0f) {
-    m_scene_opacity = 1.0f;
+  if (elapsed >= 140) {
     KillTimer(LEAVES_ANIMATION_TIMER);
   }
   RedrawWindow();

@@ -47,6 +47,14 @@ bool ShouldAnimateAppearance(bool was_visible,
   return config.animation_enabled && is_visible && !was_visible;
 }
 
+float CandidateAppearanceOpacity(float elapsed_ms) {
+  const float progress = std::clamp(elapsed_ms / 140.0f, 0.0f, 1.0f);
+  const float remaining = 1.0f - progress;
+  // Candidate text is functional UI: the first frame must already be readable
+  // even if the host postpones or filters the low-priority WM_TIMER messages.
+  return 0.9f + 0.1f * (1.0f - remaining * remaining * remaining);
+}
+
 float TextScale(const ThemeConfig& config) {
   switch (config.text_size) {
     case TextSize::Small:
