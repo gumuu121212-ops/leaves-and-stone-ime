@@ -239,6 +239,13 @@ bool SceneRenderer::Render(HDC target,
                           left_format_, &pinyin_brush);
     }
 
+    // Candidates retain their complete text. A screen-wide phrase may wrap
+    // inside its taller card; the single-line pinyin/index format would clip
+    // those extra lines or replace them with an ellipsis.
+    Gdiplus::StringFormat candidate_format;
+    candidate_format.SetAlignment(Gdiplus::StringAlignmentNear);
+    candidate_format.SetLineAlignment(Gdiplus::StringAlignmentCenter);
+    candidate_format.SetTrimming(Gdiplus::StringTrimmingNone);
     for (const auto& candidate : scene.candidates) {
       const Gdiplus::RectF item = LocalRect(scene, candidate.bounds);
       if (candidate.selected) {
@@ -262,7 +269,7 @@ bool SceneRenderer::Render(HDC target,
                                item.Width - 26.0f * scale, item.Height);
       Gdiplus::SolidBrush text_brush(Color(255, 0x44, 0x37, 0x2F, opacity));
       graphics.DrawString(candidate.display_text.c_str(), -1, candidate_font_,
-                          text_rect, left_format_, &text_brush);
+                          text_rect, &candidate_format, &text_brush);
     }
 
     if (scene.page_group.Width() > 0.0f && scene.controls.size() >= 2) {

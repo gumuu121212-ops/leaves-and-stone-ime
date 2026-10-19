@@ -36,6 +36,7 @@ struct DibTarget {
   HDC dc = nullptr;
   HBITMAP bitmap = nullptr;
   HGDIOBJ old_bitmap = nullptr;
+  void* pixels = nullptr;
 
   DibTarget(int width, int height) {
     dc = CreateCompatibleDC(nullptr);
@@ -46,7 +47,6 @@ struct DibTarget {
     info.bmiHeader.biPlanes = 1;
     info.bmiHeader.biBitCount = 32;
     info.bmiHeader.biCompression = BI_RGB;
-    void* pixels = nullptr;
     bitmap = CreateDIBSection(dc, &info, DIB_RGB_COLORS, &pixels, nullptr, 0);
     old_bitmap = SelectObject(dc, bitmap);
   }
@@ -60,6 +60,48 @@ struct DibTarget {
       DeleteDC(dc);
   }
 };
+
+void TestCompleteWrappedCandidate() {
+  leaves_stone::SceneInput input;
+  input.anchor = {80.0f, 120.0f, 82.0f, 146.0f};
+  input.work_area = {0.0f, 0.0f, 800.0f, 1000.0f};
+  input.candidates = {{std::wstring(100, L'好'), L""}};
+  const auto scene = leaves_stone::BuildCandidateScene(input);
+  const auto& card = scene.candidates.front().bounds;
+  Check(card.Height() >= 93.0f,
+        "a screen-wide long candidate needs room for all three text lines");
+
+  leaves_stone::ThemeAssets assets;
+  Check(assets.Load(GetModuleHandleW(nullptr)),
+        "wrapped-text rendering must load the real compiled artwork");
+  const int width = static_cast<int>(scene.window_bounds.Width());
+  DibTarget target(width, static_cast<int>(scene.window_bounds.Height()));
+  leaves_stone::SceneRenderer renderer;
+  Check(renderer.Render(target.dc, scene, assets),
+        "wrapped-text rendering must draw the full scene");
+  if (!target.pixels || card.Height() < 93.0f)
+    return;
+
+  // The old single-line renderer centres its one line halfway down the card.
+  // The final line of this complete phrase must instead leave actual text ink
+  // near the bottom, beyond the index and away from the cushion's edges.
+  int dark_pixels = 0;
+  const auto* pixels = static_cast<const unsigned int*>(target.pixels);
+  const int left = static_cast<int>(card.left - scene.window_bounds.left) + 30;
+  const int right = static_cast<int>(card.right - scene.window_bounds.left) - 8;
+  const int top = static_cast<int>(card.bottom - scene.window_bounds.top) - 26;
+  const int bottom = static_cast<int>(card.bottom - scene.window_bounds.top) - 6;
+  for (int y = top; y < bottom; ++y) {
+    for (int x = left; x < right; ++x) {
+      const auto pixel = pixels[y * width + x];
+      if ((pixel >> 24) > 128 && ((pixel >> 16) & 255) < 120 &&
+          ((pixel >> 8) & 255) < 110 && (pixel & 255) < 100)
+        ++dark_pixels;
+    }
+  }
+  Check(dark_pixels > 10,
+        "the last wrapped text line must be painted instead of clipped away");
+}
 
 void TestResourceLifecycle() {
   leaves_stone::ThemeAssets assets;
@@ -174,6 +216,7 @@ int RunRendererSmokeTests() {
   TestResourceLifecycle();
   TestHitRouting();
   TestAppearanceAnimationPolicy();
+  TestCompleteWrappedCandidate();
   if (SUCCEEDED(initialized))
     CoUninitialize();
   return failures;

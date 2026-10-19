@@ -1,6 +1,7 @@
 ﻿#include "SceneLayout.h"
 
 #include <algorithm>
+#include <cmath>
 #include <numeric>
 #include <utility>
 
@@ -11,13 +12,6 @@ float Clamp(float value, float low, float high) {
   if (high < low)
     return low;
   return std::max(low, std::min(value, high));
-}
-
-std::wstring TruncateCandidate(const std::wstring& value) {
-  constexpr size_t kMaximumCharacters = 6;
-  if (value.size() <= kMaximumCharacters)
-    return value;
-  return value.substr(0, kMaximumCharacters - 1) + L"\u2026";
 }
 
 }  // namespace
@@ -38,7 +32,7 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   const bool has_plaque = !input.preedit.empty();
 
   // Everything below is in dip and follows the supplied skin specification.
-  const float bar_height = 88.0f * scale;
+  const float minimum_bar_height = 88.0f * scale;
   const float pinyin_left = 33.0f * scale;
   const float pinyin_top = 10.0f * scale;
   const float row_top = 43.5f * scale;
@@ -65,20 +59,17 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   const float overhang = (mascot_baseline - content_top) * mascot_scale;
   const float content_offset_x = (mascot_anchor_x - content_left) * mascot_scale;
 
-  std::vector<std::wstring> display_texts;
   std::vector<float> item_widths;
-  display_texts.reserve(visible_count);
   item_widths.reserve(visible_count);
   for (size_t i = 0; i < visible_count; ++i) {
-    display_texts.push_back(TruncateCandidate(input.candidates[i].text));
-    const float glyphs = static_cast<float>(display_texts.back().size());
+    const float glyphs = static_cast<float>(input.candidates[i].text.size());
     // The candidate text starts after the inline index (24 dip), so the width
     // has to reserve that offset plus a right padding; computing it from the
     // index width alone clipped every one-character candidate to "字...".
     item_widths.push_back(
-        Clamp(24.0f * scale + glyphs * 16.0f * scale * text_scale +
-                  10.0f * scale,
-              44.0f * scale, 260.0f * scale));
+        std::max(24.0f * scale + glyphs * 16.0f * scale * text_scale +
+                     10.0f * scale,
+                 44.0f * scale));
   }
 
   float items_width = 0.0f;
@@ -92,6 +83,40 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
       first_left + items_width + item_gap + page_width + page_right;
   bar_width = std::min(bar_width, std::max(0.0f, work_width - 8.0f * scale));
   bar_width = std::max(bar_width, std::min(320.0f * scale, work_width));
+
+  // Grow to fit complete phrases. At the monitor boundary, continue whole
+  // candidates on a new row; a single screen-wide phrase can wrap internally.
+  // Reserve the paging capsule's space so no candidate overlaps its buttons.
+  const float row_right = bar_width - page_right - page_width - item_gap;
+  const float maximum_item_width = std::max(44.0f * scale,
+                                            row_right - first_left);
+  std::vector<RectF> item_bounds;
+  item_bounds.reserve(visible_count);
+  float cursor = first_left;
+  float current_row_top = row_top;
+  float current_row_height = capsule_height;
+  for (size_t i = 0; i < visible_count; ++i) {
+    const float width = std::min(item_widths[i], maximum_item_width);
+    if (cursor > first_left && cursor + width > row_right + 0.01f) {
+      current_row_top += current_row_height + 8.0f * scale;
+      current_row_height = capsule_height;
+      cursor = first_left;
+    }
+    const size_t characters_per_line = static_cast<size_t>(std::max(
+        1.0f, std::floor((width - 34.0f * scale) /
+                           (16.0f * scale * text_scale) + 0.001f)));
+    const size_t line_count = std::max(
+        size_t{1}, (input.candidates[i].text.size() + characters_per_line - 1) /
+                       characters_per_line);
+    const float height = capsule_height * static_cast<float>(line_count);
+    item_bounds.push_back({cursor, current_row_top, cursor + width,
+                           current_row_top + height});
+    current_row_height = std::max(current_row_height, height);
+    cursor += width + item_gap;
+  }
+  const float bar_height = std::max(
+      minimum_bar_height,
+      current_row_top + current_row_height + 13.5f * scale);
 
   const float anchor_x = bar_width * 0.605f;
   const float mascot_left = anchor_x - content_offset_x;
@@ -135,20 +160,19 @@ CandidateScene BuildCandidateScene(const SceneInput& input) {
   }
 
   scene.candidates.reserve(visible_count);
-  float cursor = bar_left + first_left;
   for (size_t i = 0; i < visible_count; ++i) {
     const bool selected = i == input.selected_index;
     CandidateCard card;
     card.candidate_index = i;
-    card.bounds = {cursor, bar_top + row_top, cursor + item_widths[i],
-                   bar_top + row_top + capsule_height};
+    const auto& bounds = item_bounds[i];
+    card.bounds = {bar_left + bounds.left, bar_top + bounds.top,
+                   bar_left + bounds.right, bar_top + bounds.bottom};
     card.full_text = input.candidates[i].text;
-    card.display_text = display_texts[i];
+    card.display_text = input.candidates[i].text;
     card.comment = input.candidates[i].comment;
     card.selected = selected;
     card.elevation = selected ? theme.selected_elevation_dip * scale : 0.0f;
     scene.candidates.push_back(std::move(card));
-    cursor += item_widths[i] + item_gap;
   }
 
   const float page_left = bar_left + bar_width - page_right - page_width;

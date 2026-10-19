@@ -156,15 +156,14 @@ void TestBarTracksCaretWithoutMascotGap() {
   CheckInsideWorkArea(negative_scene, secondary_monitor.work_area);
 }
 
-void TestHitRegionsAndTruncation() {
+void TestHitRegionsAndFullText() {
   auto input = MakeInput(5);
   input.candidates[0].text = L"这是一个非常非常长的候选文本";
   const auto scene = leaves_stone::BuildCandidateScene(input);
   Check(scene.candidates[0].full_text == input.candidates[0].text,
-        "full candidate text must survive visual truncation");
-  Check(scene.candidates[0].display_text.size() <
-            scene.candidates[0].full_text.size(),
-        "overlong candidate text must be visually truncated");
+        "full candidate text must be preserved");
+  Check(scene.candidates[0].display_text == input.candidates[0].text,
+        "long candidate text must be displayed completely without an ellipsis");
 
   for (size_t i = 0; i < scene.candidates.size(); ++i) {
     for (size_t j = i + 1; j < scene.candidates.size(); ++j) {
@@ -195,6 +194,62 @@ void TestHitRegionsAndTruncation() {
         (decoration.top + decoration.bottom) / 2.0f};
     Check(!leaves_stone::HitTest(scene, decoration_center),
           "decorations must remain click-through");
+  }
+}
+
+void TestCompletePhrasesAndOverflow() {
+  for (const float scale : {1.0f, 1.25f, 1.5f, 2.0f}) {
+    auto phrase = MakeInput(1, scale);
+    phrase.candidates[0].text = L"输入文字的时候";
+    auto scene = leaves_stone::BuildCandidateScene(phrase);
+    Check(scene.candidates[0].display_text == L"输入文字的时候",
+          "the user's seven-character phrase must not be shortened");
+    Check(scene.candidates[0].bounds.Width() >= 146.0f * scale,
+          "a complete seven-character phrase needs space after its index");
+
+    auto wide = MakeInput(1, scale);
+    wide.work_area = {0.0f, 0.0f, 4000.0f * scale, 1000.0f * scale};
+    wide.candidates[0].text = std::wstring(30, L'好');
+    scene = leaves_stone::BuildCandidateScene(wide);
+    Check(scene.candidates[0].bounds.Width() >= 514.0f * scale,
+          "a long phrase must grow past the old fixed capsule width");
+    Check(scene.candidates[0].display_text == wide.candidates[0].text,
+          "expanding a capsule must preserve its complete candidate text");
+
+    auto narrow = MakeInput(5, scale);
+    narrow.anchor = {80.0f, 120.0f, 82.0f, 146.0f};
+    narrow.work_area = {0.0f, 0.0f, 800.0f * scale, 1000.0f * scale};
+    for (auto& candidate : narrow.candidates)
+      candidate.text = std::wstring(20, L'好');
+    scene = leaves_stone::BuildCandidateScene(narrow);
+    Check(scene.candidates[1].bounds.top > scene.candidates[0].bounds.top,
+          "complete candidates that do not fit one row must continue below");
+    for (size_t i = 0; i < scene.candidates.size(); ++i) {
+      const auto& card = scene.candidates[i];
+      Check(card.display_text == narrow.candidates[i].text,
+            "wrapping rows must not abbreviate a candidate");
+      Check(card.bounds.right <= scene.page_group.left - 8.0f * scale &&
+                card.bounds.bottom <= scene.bar.bottom - 8.0f * scale,
+            "every complete candidate must stay clear of paging and bar edges");
+      for (size_t j = i + 1; j < scene.candidates.size(); ++j)
+        Check(!Overlaps(card.bounds, scene.candidates[j].bounds),
+              "wrapped candidate hit regions must not overlap");
+      const auto hit = leaves_stone::HitTest(
+          scene, {(card.bounds.left + card.bounds.right) / 2.0f,
+                  (card.bounds.top + card.bounds.bottom) / 2.0f});
+      Check(hit && hit->kind == leaves_stone::HitKind::Candidate &&
+                hit->candidate_index == i,
+            "wrapped candidates must keep their original selection indexes");
+    }
+    CheckInsideWorkArea(scene, narrow.work_area);
+
+    narrow.candidates.resize(1);
+    narrow.candidates[0].text = std::wstring(100, L'好');
+    scene = leaves_stone::BuildCandidateScene(narrow);
+    Check(scene.candidates[0].bounds.Height() > 31.0f * scale &&
+              scene.candidates[0].display_text == narrow.candidates[0].text,
+          "a phrase wider than the screen must wrap inside its capsule");
+    CheckInsideWorkArea(scene, narrow.work_area);
   }
 }
 
@@ -234,7 +289,8 @@ int RunSceneLayoutTests() {
   TestCountsAndDpi();
   TestPlacementAndElevation();
   TestBarTracksCaretWithoutMascotGap();
-  TestHitRegionsAndTruncation();
+  TestHitRegionsAndFullText();
+  TestCompletePhrasesAndOverflow();
   TestUserLayoutPreferences();
   return failures;
 }
