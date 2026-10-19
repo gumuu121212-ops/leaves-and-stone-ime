@@ -39,6 +39,8 @@ struct ToolbarMenuProbe {
   bool opened = false;
   bool visible_while_open = false;
   bool has_hide_item = false;
+  bool interaction_sent = false;
+  bool timed_out = false;
   unsigned ticks = 0;
   static ToolbarMenuProbe* current;
 
@@ -56,10 +58,16 @@ struct ToolbarMenuProbe {
     }
     return CallWindowProcW(probe.previous, window, message, wparam, lparam);
   }
-  static void CALLBACK OnTimer(HWND, UINT, UINT_PTR, DWORD) {
+  static void CALLBACK OnTimer(HWND, UINT, UINT_PTR timer_id, DWORD) {
+    if (!current || current->timer != timer_id) return;
     auto& probe = *current;
-    if (++probe.ticks > 30) { EndMenu(); return; }
+    if (++probe.ticks > 30) {
+      probe.timed_out = true;
+      EndMenu();
+      return;
+    }
     if (!probe.opened || probe.ticks != 2) return;
+    probe.interaction_sent = true;
     if (probe.choose_hide) {
       PostMessageW(probe.owner, WM_KEYDOWN, VK_DOWN, 0);
       PostMessageW(probe.owner, WM_KEYDOWN, VK_RETURN, 0);
@@ -89,6 +97,8 @@ void RightClickMenu(HWND window, int x, int y, bool hide) {
         "right-click must open a menu containing the Hide item");
   Check(probe.visible_while_open,
         "opening the right-click menu must leave the toolbar visible");
+  Check(probe.interaction_sent && !probe.timed_out,
+        "the menu must exit via the requested selection or Escape, not timeout");
 }
 void TestDeferredActivationWithoutKeys() {
   leaves_stone::DeferredToolbarActivation activation;
