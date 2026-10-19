@@ -1,0 +1,10 @@
+{
+  "display_name": "小毛豆输入法",
+  "product_slug": "LeavesAndStone",
+  "registry_root": "Software\\LeavesAndStone\\IME",
+  "user_data_subdir": "LeavesAndStone\\Rime",
+  "text_service_clsid": "6D54E957-F147-4DC0-87A2-EB2901B32AE7",
+  "language_profile_guid": "3D03165F-5628-4C21-BBBB-1F2CBA6F9253",
+  "candidate_ui_guid": "1E99C5D6-061E-4E55-9FAE-C08D344427C5"
+}
+

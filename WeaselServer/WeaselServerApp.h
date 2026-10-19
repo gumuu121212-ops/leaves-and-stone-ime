@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "resource.h"
 #include <resource.h>
@@ -12,6 +12,7 @@
 #include <winsparkle.h>
 
 #include "WeaselTrayIcon.h"
+#include "DoggyToolbar.h"
 
 namespace fs = std::filesystem;
 
@@ -37,7 +38,8 @@ class WeaselServerApp {
     // when checked manually, show testing versions too
     std::string feed_url = GetCustomResource("ManualUpdateFeedURL", "APPCAST");
     std::wstring channel{};
-    auto ret = RegGetStringValue(HKEY_CURRENT_USER, L"Software\\Rime\\Weasel",
+    auto ret = RegGetStringValue(HKEY_CURRENT_USER,
+                                 leaves_stone::product::kRegistryRoot,
                                  L"UpdateChannel", channel);
     if (!ret && channel == L"testing") {
       feed_url = GetCustomResource("TestingManualUpdateFeedURL", "APPCAST");
@@ -66,5 +68,6 @@ class WeaselServerApp {
   weasel::Server m_server;
   weasel::UI m_ui;
   WeaselTrayIcon tray_icon;
+  std::unique_ptr<leaves_stone::DoggyToolbar> m_toolbar;
   std::unique_ptr<RimeWithWeaselHandler> m_handler;
 };

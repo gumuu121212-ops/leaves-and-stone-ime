@@ -1,7 +1,9 @@
-﻿#pragma once
+#pragma once
 
-#define WEASEL_CODE_NAME "Weasel"
-#define WEASEL_REG_KEY L"Software\\Rime\\Weasel"
+#include <LeavesStoneProduct.h>
+
+#define WEASEL_CODE_NAME leaves_stone::product::kDisplayNameA
+#define WEASEL_REG_KEY leaves_stone::product::kRegistryRoot
 #define RIME_REG_KEY L"Software\\Rime"
 
 #define STRINGIZE(x) #x

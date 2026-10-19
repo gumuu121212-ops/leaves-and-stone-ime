@@ -190,6 +190,7 @@ void RimeWithWeaselHandler::Initialize() {
 
 void RimeWithWeaselHandler::Finalize() {
   m_active_session = 0;
+  m_toolbar_focus.Reset();
   m_disabled = true;
   m_session_status_map.clear();
   LOG(INFO) << "Finalizing la rime.";
@@ -257,15 +258,18 @@ DWORD RimeWithWeaselHandler::AddSession(LPWSTR buffer, EatLine eat) {
 }
 
 DWORD RimeWithWeaselHandler::RemoveSession(WeaselSessionId ipc_id) {
-  if (m_ui)
-    m_ui->Hide();
   if (m_disabled)
     return 0;
   DLOG(INFO) << "Remove session: session_id = " << to_session_id(ipc_id);
+  m_toolbar_focus.FocusOut(ipc_id);
+  if (m_active_session == ipc_id) {
+    if (m_ui)
+      m_ui->Hide();
+    m_active_session = 0;
+  }
   // TODO: force committing? otherwise current composition would be lost
   rime_api->destroy_session(to_session_id(ipc_id));
   m_session_status_map.erase(ipc_id);
-  m_active_session = 0;
   return 0;
 }
 
@@ -330,6 +334,7 @@ BOOL RimeWithWeaselHandler::ProcessKeyEvent(KeyEvent keyEvent,
   _Respond(ipc_id, eat);
   _UpdateUI(ipc_id);
   m_active_session = ipc_id;
+  m_toolbar_focus.FocusIn(ipc_id);
   return (BOOL)handled;
 }
 
@@ -392,10 +397,14 @@ void RimeWithWeaselHandler::FocusIn(DWORD client_caps, WeaselSessionId ipc_id) {
     return;
   _UpdateUI(ipc_id);
   m_active_session = ipc_id;
+  m_toolbar_focus.FocusIn(ipc_id);
 }
 
 void RimeWithWeaselHandler::FocusOut(DWORD param, WeaselSessionId ipc_id) {
   DLOG(INFO) << "Focus out: ipc_id = " << ipc_id;
+  // A late notification from a background client must not hide the current one.
+  if (!m_toolbar_focus.FocusOut(ipc_id))
+    return;
   if (m_ui)
     m_ui->Hide();
   m_active_session = 0;

@@ -1,0 +1,99 @@
+# Leaves & Stone Simplified Chinese full-pinyin schema
+# Derived from the Rime Luna Pinyin schema; see LEAVES_STONE_DATA_LICENSES.md.
+# encoding: utf-8
+
+schema:
+  schema_id: leaves_stone
+  name: "Leaves & Stone 拼音"
+  version: "1.1"
+  dependencies:
+    - leaves_stone_english
+  author:
+    - "Leaves & Stone contributors"
+    - "Rime Developers"
+  description: "Fixed Simplified Chinese full-pinyin with English passthrough."
+
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [ 中文, English ]
+  - name: simplification
+    reset: 1
+    states: [ 繁体, 简体 ]
+  - name: full_shape
+    reset: 0
+    states: [ 半角, 全角 ]
+  - name: ascii_punct
+    reset: 0
+    states: [ 中文标点, English Punctuation ]
+
+engine:
+  processors:
+    - ascii_composer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - script_translator
+    - table_translator@english
+    - echo_translator
+  filters:
+    - simplifier
+    - uniquifier
+
+menu:
+  page_size: 5
+
+speller:
+  alphabet: zyxwvutsrqponmlkjihgfedcba
+  delimiter: " '"
+  algebra:
+    - abbrev/^([a-z]).+$/$1/
+    - abbrev/^(zh|ch|sh).+$/$1/
+    - derive/^([nl])ve$/$1ue/
+    - derive/^([jqxy])u/$1v/
+    - derive/un$/uen$/
+    - derive/ui$/uei$/
+    - derive/iu$/iou$/
+
+translator:
+  dictionary: leaves_stone
+  prism: leaves_stone
+  enable_completion: true
+  enable_sentence: true
+  enable_user_dict: true
+  spelling_hints: 0
+  preedit_format:
+    - xform/([nl])v/$1ü/
+    - xform/([nl])ue/$1üe/
+    - xform/([jqxy])v/$1u/
+
+# Exact names only: partial English spellings must not displace pinyin.
+# echo_translator supplies a low-priority original-text alternative, so
+# unmatched Latin text remains selectable through the normal engine path.
+english:
+  dictionary: leaves_stone_english
+  enable_completion: false
+  enable_sentence: false
+  enable_user_dict: false
+  initial_quality: 0
+
+simplifier:
+  option_name: simplification
+  opencc_config: t2s.json
+  tips: none
+
+punctuator:
+  __include: default:/punctuator
+
+key_binder:
+  __include: default:/key_binder

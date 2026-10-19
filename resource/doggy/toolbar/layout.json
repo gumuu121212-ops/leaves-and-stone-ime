@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "license": "GPL-3.0-only",
+  "canvasPx": [
+    896,
+    480
+  ],
+  "assetScale": 4,
+  "canvasDip": [
+    224,
+    120
+  ],
+  "anchorPx": [
+    832,
+    448
+  ],
+  "anchorDip": [
+    208,
+    112
+  ],
+  "alpha": "straight",
+  "rectFormat": "x,y,width,height",
+  "controls": {
+    "mode": {
+      "hit": [
+        416,
+        304,
+        100,
+        128
+      ],
+      "image": [
+        434,
+        336,
+        64,
+        64
+      ],
+      "action": "open-mode-menu"
+    },
+    "moon": {
+      "hit": [
+        520,
+        304,
+        100,
+        128
+      ],
+      "image": [
+        534,
+        332,
+        72,
+        72
+      ],
+      "action": "toggle-pet-animation"
+    },
+    "shirt": {
+      "hit": [
+        624,
+        304,
+        100,
+        128
+      ],
+      "image": [
+        638,
+        332,
+        72,
+        72
+      ],
+      "action": "open-skin-picker"
+    },
+    "gear": {
+      "hit": [
+        728,
+        304,
+        100,
+        128
+      ],
+      "image": [
+        742,
+        332,
+        72,
+        72
+      ],
+      "action": "open-settings"
+    }
+  },
+  "states": {
+    "default": {
+      "composite": "states/toolbar-default.png",
+      "base": "layers/toolbar-default.png",
+      "panel": [
+        192,
+        288,
+        640,
+        160
+      ],
+      "dog": [
+        72,
+        204,
+        280,
+        224
+      ],
+      "buttonsEnabled": true,
+      "decoration": null
+    },
+    "hover": {
+      "composite": "states/toolbar-hover.png",
+      "base": "layers/toolbar-hover.png",
+      "panel": [
+        192,
+        288,
+        640,
+        160
+      ],
+      "dog": [
+        12,
+        116,
+        400,
+        221
+      ],
+      "buttonsEnabled": true,
+      "decoration": "decorations/hover.png"
+    },
+    "pressed": {
+      "composite": "states/toolbar-pressed.png",
+      "base": "layers/toolbar-pressed.png",
+      "panel": [
+        192,
+        288,
+        640,
+        160
+      ],
+      "dog": [
+        12,
+        116,
+        400,
+        221
+      ],
+      "buttonsEnabled": true,
+      "decoration": "decorations/pressed.png"
+    },
+    "idle": {
+      "composite": "states/toolbar-idle.png",
+      "base": "layers/toolbar-idle.png",
+      "panel": [
+        96,
+        320,
+        736,
+        128
+      ],
+      "dog": [
+        96,
+        148,
+        520,
+        288
+      ],
+      "paw": [
+        696,
+        336,
+        96,
+        96
+      ],
+      "buttonsEnabled": false,
+      "decoration": "decorations/idle.png"
+    }
+  },
+  "behavior": {
+    "hoverDelayMs": 100,
+    "pressedMinMs": 100,
+    "pressedMaxMs": 500,
+    "idleTimeoutMs": 12000,
+    "commitBlinkMs": 110,
+    "commitDebounceMs": 250,
+    "alphaHitThreshold": 32,
+    "firstIdleClick": "wake-only",
+    "transparentPixels": "click-through",
+    "drag": "visible dog or non-button panel"
+  },
+  "renderOrder": [
+    "base",
+    "button-hover-or-pressed-if-needed",
+    "mode-and-tool-icons",
+    "decoration"
+  ],
+  "languageGlyphs": [
+    "zh",
+    "en",
+    "jp",
+    "kr"
+  ],
+  "note": "Finished composites show Chinese mode. For a dynamic mode label, use base + button layers; do not draw controls a second time over the finished composite."
+}

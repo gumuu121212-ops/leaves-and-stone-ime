@@ -117,7 +117,7 @@ $webRequestParams = @{
 if (($api_pat -match "^https://api.github.com.*$") -and $authorization) {
   $webRequestParams.Headers.Authorization = "token $authorization"
 } elseif ($authorization) {
-  Write-Host "⛔ Caution:
+  Write-Host "? Caution:
   $api_pat is not original api url
   authorization should be removed or commented for security"
   SafeExit
@@ -134,7 +134,7 @@ if ($proxy) {
 try {
   $response = Invoke-RestMethod @webRequestParams
 } catch {
-  Write-Host "❌ Error Invoke-RestMethod @webRequestParams: $($_.Exception.Message)"
+  Write-Host "? Error Invoke-RestMethod @webRequestParams: $($_.Exception.Message)"
   SafeExit
 }
 # check 7z available
@@ -144,7 +144,7 @@ try {
 } catch {
   $cmdOk = $false
   if($extract) {
-    Write-Host "❌ Error: 7z is not available. Maybe 7z is not in PATH or not installed";
+    Write-Host "? Error: 7z is not available. Maybe 7z is not in PATH or not installed";
     $original_7z_url = "https://github.com/ip7z/7zip/releases/download/24.08/7zr.exe";
     if ($url_pat -and $url_replace) {
       $original_7z_url = $original_7z_url -replace $url_pat, $url_replace;
@@ -227,7 +227,7 @@ if ($null -ne $response.assets -and $response.assets.Count -gt 0) {
       $url = $_.browser_download_url
       if ($using:ignore_urls -contains $url -and $url -match $using:pattern) {
         $fileName = [System.IO.Path]::GetFileName($url)
-        Write-Host "☑  $fileName is already in the current directory."
+        Write-Host "?  $fileName is already in the current directory."
         return $fileName
       }
       if ($using:url_pat -and $using:url_replace) {
@@ -235,7 +235,7 @@ if ($null -ne $response.assets -and $response.assets.Count -gt 0) {
       }
       if ($url -match $using:pattern) {
         $fileName = [System.IO.Path]::GetFileName($url)
-        Write-Host "⏳ Downloading $fileName..."
+        Write-Host "? Downloading $fileName..."
         $downloadParams = @{
           Uri = $url
           OutFile = $fileName
@@ -246,10 +246,10 @@ if ($null -ne $response.assets -and $response.assets.Count -gt 0) {
         }
         try {
           Invoke-WebRequest @downloadParams
-          Write-Host "☑  Downloaded $fileName to the current directory."
+          Write-Host "?  Downloaded $fileName to the current directory."
           return $fileName
         } catch {
-          Write-Host "❌ Error downloading ${fileName}: $($_.Exception.Message)"
+          Write-Host "? Error downloading ${fileName}: $($_.Exception.Message)"
         }
       }
     } -ThrottleLimit 4
@@ -261,12 +261,12 @@ if ($null -ne $response.assets -and $response.assets.Count -gt 0) {
       }
       if ($ignore_urls -contains $url -and $url -match $pattern) {
         $fileName = [System.IO.Path]::GetFileName($url)
-        Write-Host "☑  $fileName is already in the current directory."
+        Write-Host "?  $fileName is already in the current directory."
         $fileNames += $fileName
       } else {
         if ($url -match $pattern) {
           $fileName = [System.IO.Path]::GetFileName($url)
-          Write-Host "⏳ Downloading $fileName..."
+          Write-Host "? Downloading $fileName..."
           $downloadParams = @{
             Uri = $url
             OutFile = $fileName
@@ -277,10 +277,10 @@ if ($null -ne $response.assets -and $response.assets.Count -gt 0) {
           }
           try {
             Invoke-WebRequest @downloadParams
-            Write-Host "☑  Downloaded $fileName to the current directory."
+            Write-Host "?  Downloaded $fileName to the current directory."
             $fileNames += $fileName
           } catch {
-            Write-Host "❌ Error downloading ${fileName}: $($_.Exception.Message)"
+            Write-Host "? Error downloading ${fileName}: $($_.Exception.Message)"
           }
         }
       }
@@ -301,7 +301,7 @@ if ($null -ne $response.assets -and $response.assets.Count -gt 0) {
       } else {
         7z x $_ * -o"$outPath" -y > $null
       }
-      Write-Host "☑  Extracted $_ to $outPath"
+      Write-Host "?  Extracted $_ to $outPath"
     }
     if ($os -eq "Windows" -and $build_variant -eq "msvc") {
       $dir86 = Get-ChildItem -Path $("rime-"+$hash+"-*x86") -Directory
@@ -313,7 +313,7 @@ if ($null -ne $response.assets -and $response.assets.Count -gt 0) {
         }
         if (Test-Path (Join-Path -Path $src -ChildPath $subpath)) {
           Copy-Item "$src\$subpath" $dest -ErrorAction Stop
-          Write-Host "☑  $(Split-Path $src -Leaf)\$subpath has been copied to $dest"
+          Write-Host "?  $(Split-Path $src -Leaf)\$subpath has been copied to $dest"
         }
       }
       function KillWeaselServer {
@@ -326,7 +326,7 @@ if ($null -ne $response.assets -and $response.assets.Count -gt 0) {
           Start-Sleep -Seconds 0.5
           $process = Get-Process $processName -ErrorAction SilentlyContinue
           if (-not $process) {
-            Write-Host "☑  $processName has been killed"
+            Write-Host "?  $processName has been killed"
           }
         }
       }
@@ -347,13 +347,13 @@ if ($null -ne $response.assets -and $response.assets.Count -gt 0) {
           Remove-Item -Path $dir64 -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue
           Remove-Item -Path $dir86 -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue
         } else {
-          Write-Host "❌ current directory is not a weasel source directory"
+          Write-Host "? current directory is not a weasel source directory"
         }
       } elseif ($use -eq "weasel") {
         if ([Environment]::Is64BitOperatingSystem) {
-          $registryPath = "HKLM:\SOFTWARE\WOW6432Node\Rime\Weasel"
+          $registryPath = "HKLM:\SOFTWARE\WOW6432Node\LeavesAndStone\IME"
         } else {
-          $registryPath = "HKLM:\SOFTWARE\Rime\Weasel"
+          $registryPath = "HKLM:\SOFTWARE\LeavesAndStone\IME"
         }
         try {
           $weaselRoot = (Get-ItemProperty -Path $registryPath -ErrorAction Stop).'WeaselRoot'
@@ -370,20 +370,20 @@ if ($null -ne $response.assets -and $response.assets.Count -gt 0) {
           }
           Start-Process $servercmd -WorkingDirectory $weaselRoot
           if ($(Get-Process $processName -ErrorAction SilentlyContinue)) {
-            Write-Host "☑  $processName has been started"
+            Write-Host "?  $processName has been started"
           }
         } catch [System.UnauthorizedAccessException] {
-          Write-Host "❗ $_ please run as Administrator!"
+          Write-Host "? $_ please run as Administrator!"
           Start-Process $servercmd -WorkingDirectory $weaselRoot
-          Write-Host "☑  $processName started"
+          Write-Host "?  $processName started"
           SafeExit
         } catch {
-          Write-Host "❌ Error: $_"
+          Write-Host "? Error: $_"
         }
       }
     }
   }
 } else {
-  Write-Host "❌ Error: No assets found for the latest release."
+  Write-Host "? Error: No assets found for the latest release."
 }
 SafeExit

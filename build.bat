@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 
 setlocal
 
@@ -7,6 +7,10 @@ if not exist env.bat copy env.bat.template env.bat
 if exist env.bat call env.bat
 
 if not defined WEASEL_ROOT set WEASEL_ROOT=%CD%
+
+rem Leaves & Stone ships only the full-pinyin table and local language model.
+rem Product-owned default.yaml and schema files remain authoritative.
+if not defined WEASEL_BUNDLED_RECIPES set WEASEL_BUNDLED_RECIPES=essay luna-pinyin
 
 if not defined VERSION_MAJOR set VERSION_MAJOR=0
 if not defined VERSION_MINOR set VERSION_MINOR=17
@@ -228,6 +232,14 @@ if %build_installer% == 1 (
   /DPRODUCT_VERSION=%PRODUCT_VERSION% ^
   output\install.nsi
   if errorlevel 1 goto error
+
+  rem Wrap the NSIS package in the drawn installer UI. The wrapper embeds the
+  rem real installer and runs it in silent mode, so the wizard can match the
+  rem artwork while the installation logic stays exactly as it is.
+  move /Y output\archives\leaves-and-stone-%PRODUCT_VERSION%-installer.exe output\archives\leaves-and-stone-%PRODUCT_VERSION%-core.exe
+  if errorlevel 1 goto error
+  powershell -NoProfile -ExecutionPolicy Bypass -File installer-ui\build-setup-ui.ps1 -Core output\archives\leaves-and-stone-%PRODUCT_VERSION%-core.exe -Out output\archives\leaves-and-stone-%PRODUCT_VERSION%-installer.exe
+  if errorlevel 1 goto error
 )
 
 goto end
@@ -371,6 +383,10 @@ rem ---------------------------------------------------------------------------
 :error
 
 echo error building weasel...
+rem Without an explicit exit code the script falls through to :end, where cd
+rem resets errorlevel to 0, so callers saw a successful build after a failure.
+exit /b 1
 
 :end
 cd %WEASEL_ROOT%
+exit /b 0

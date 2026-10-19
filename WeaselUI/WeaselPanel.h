@@ -4,6 +4,10 @@
 #include "StandardLayout.h"
 #include "Layout.h"
 #include "GdiplusBlur.h"
+#include "LeavesStone/SceneLayout.h"
+#include "LeavesStone/SceneRenderer.h"
+#include "LeavesStone/ThemeAssets.h"
+#include "../LeavesStoneSettings/SettingsStore.h"
 
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "dwrite.lib")
@@ -35,6 +39,7 @@ class WeaselPanel
   MESSAGE_HANDLER(WM_MOUSEWHEEL, OnMouseWheel)
   MESSAGE_HANDLER(WM_MOUSEMOVE, OnMouseMove)
   MESSAGE_HANDLER(WM_MOUSELEAVE, OnMouseLeave)
+  MESSAGE_HANDLER(WM_TIMER, OnAnimationTimer)
   CHAIN_MSG_MAP(CDoubleBufferImpl<WeaselPanel>)
   END_MSG_MAP()
 
@@ -56,6 +61,10 @@ class WeaselPanel
   LRESULT OnMouseWheel(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
   LRESULT OnMouseMove(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
   LRESULT OnMouseLeave(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+  LRESULT OnAnimationTimer(UINT uMsg,
+                           WPARAM wParam,
+                           LPARAM lParam,
+                           BOOL& bHandled);
 
   WeaselPanel(weasel::UI& ui);
   ~WeaselPanel();
@@ -71,6 +80,7 @@ class WeaselPanel
                                _In_ UINT_PTR idEvent,
                                _In_ DWORD dwTime);
   static const int AUTOREV_TIMER = 20240315;
+  static const int LEAVES_ANIMATION_TIMER = 20261016;
   static UINT_PTR ptimer;
 
  private:
@@ -82,6 +92,9 @@ class WeaselPanel
   void _CaptureRect(CRect& rect);
   bool m_mouse_entry = false;
   void _CreateLayout();
+  bool _UseLeavesStoneScene() const;
+  void _ApplyLeavesStoneSettings();
+  void _BuildLeavesStoneScene(bool restart_animation);
   void _ResizeWindow();
   void _RepositionWindow(const bool& adj = false);
   bool _DrawPreedit(const Text& text, CDCHandle dc, const CRect& rc);
@@ -141,6 +154,17 @@ class WeaselPanel
   PDWR pDWR;
   std::function<void(size_t* const, size_t* const, bool* const, bool* const)>&
       _UICallback;
+  leaves_stone::ThemeAssets m_theme_assets;
+  leaves_stone::SceneRenderer m_scene_renderer;
+  leaves_stone::CandidateScene m_leaves_scene;
+  leaves_stone::ThemeConfig m_leaves_theme;
+  leaves_stone::settings::SettingsStore m_leaves_settings_store;
+  leaves_stone::settings::UserSettings m_leaves_settings;
+  bool m_theme_assets_ready = false;
+  bool m_leaves_scene_visible = false;
+  ULONGLONG m_scene_animation_start = 0;
+  ULONGLONG m_window_created_at = 0;
+  bool m_first_frame_logged = false;
   float bar_scale_ = 1.0;
   float dpiScaleLayout = 1.0f;
   int m_hoverIndex = -1;

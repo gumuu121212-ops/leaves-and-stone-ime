@@ -12,6 +12,7 @@ STDAPI WeaselTSF::OnUninitDocumentMgr(ITfDocumentMgr* pDocMgr) {
 STDAPI WeaselTSF::OnSetFocus(ITfDocumentMgr* pDocMgrFocus,
                              ITfDocumentMgr* pDocMgrPrevFocus) {
   _InitTextEditSink(pDocMgrFocus);
+  if (pDocMgrFocus) _ScheduleToolbarActivation();
 
   com_ptr<ITfDocumentMgr> pCandidateListDocumentMgr;
   com_ptr<ITfContext> pTfContext = _GetUIContextDocument();
@@ -46,17 +47,31 @@ BOOL WeaselTSF::_InitThreadMgrEventSink() {
     pSource->Release();
     return FALSE;
   }
+  if (FAILED(pSource->AdviseSink(
+          IID_ITfActiveLanguageProfileNotifySink,
+          static_cast<ITfActiveLanguageProfileNotifySink*>(this),
+          &_dwProfileNotifySinkCookie))) {
+    pSource->UnadviseSink(_dwThreadMgrEventSinkCookie);
+    _dwThreadMgrEventSinkCookie = TF_INVALID_COOKIE;
+    _dwProfileNotifySinkCookie = TF_INVALID_COOKIE;
+    pSource->Release();
+    return FALSE;
+  }
   pSource->Release();
   return TRUE;
 }
 
 void WeaselTSF::_UninitThreadMgrEventSink() {
   ITfSource* pSource;
-  if (_dwThreadMgrEventSinkCookie == TF_INVALID_COOKIE)
+  if (!_pThreadMgr)
     return;
   if (SUCCEEDED(_pThreadMgr->QueryInterface(IID_ITfSource, (void**)&pSource))) {
-    pSource->UnadviseSink(_dwThreadMgrEventSinkCookie);
+    if (_dwProfileNotifySinkCookie != TF_INVALID_COOKIE)
+      pSource->UnadviseSink(_dwProfileNotifySinkCookie);
+    if (_dwThreadMgrEventSinkCookie != TF_INVALID_COOKIE)
+      pSource->UnadviseSink(_dwThreadMgrEventSinkCookie);
     pSource->Release();
   }
   _dwThreadMgrEventSinkCookie = TF_INVALID_COOKIE;
+  _dwProfileNotifySinkCookie = TF_INVALID_COOKIE;
 }

@@ -1,117 +1,103 @@
-﻿【小狼毫】輸入法
-================
+# Leaves & Stone 输入法
 
-基於 中州韻輸入法引擎／Rime Input Method Engine 等開源技術
+Windows 上的独立中文输入法，基于 [Weasel 0.17.4](https://github.com/rime/weasel) 与
+[librime](https://github.com/rime/librime)，沿用 TSF 输入法框架，不另造中文输入引擎。
 
-式恕堂 版權所無
+## 当前状态（请先读这一节）
 
-[![Download](https://img.shields.io/github/v/release/rime/weasel)](https://github.com/rime/weasel/releases/latest)
-[![Build status](https://github.com/rime/weasel/actions/workflows/commit-ci.yml/badge.svg)](https://github.com/rime/weasel/actions/workflows/commit-ci.yml)
-[![GitHub Tag](https://img.shields.io/github/tag/rime/weasel.svg)](https://github.com/rime/weasel)
+**这是开发中的测试包，还不是可安装测试版。** 仓库里没有任何一行验收结论是“已通过”的，
+详细逐项状态见 [docs/qa-matrix.md](docs/qa-matrix.md)。
 
-授權條款：GPLv3
+- 候选窗视觉**尚未验收**。交接文档记载用户明确否定过一版生成图，要求回到原建筑植物插画
+  （暖白、砖红、橄榄绿、浅天蓝、黑色建筑线稿；每个候选是独立凸起的 3D 纸雕卡片，
+  不能包在统一可见的大底板里）。没有原图就无法确认现状是否达标。
+- Release 安装包、签名、跨应用输入、多 DPI、32 位宿主均**未经实际验证**。
+- 本仓库不保存私钥。测试包的签名方式见 [docs/testing-certificate.md](docs/testing-certificate.md)。
 
-項目主頁：https://rime.im
+## 适用范围
 
-您可能還需要 RIME 用於其他操作系統的發行版：
+- Windows 10 / 11 x64；兼容 32 位宿主进程。
+- 首版方案：简体全拼、英文直输、中英文标点、数字与空格选词、鼠标选词、方向键与翻页、
+  退格 / Esc、本地用户词频与词典。
+- 设置只有：候选数 5 / 7 / 9、字号、横排竖排、动画、装饰、恢复默认。
 
-  * ibus-rime、fcitx5-rime 或 fcitx-rime 用於 Linux
-  * 【鼠鬚管】用於 macOS （64位）
+**不做**：账号、云词库、云同步、皮肤商店、主题导入、手机 / macOS / Linux、
+双拼 / 五笔 / 手写 / 语音、自动更新、广告、遥测。
 
-安裝輸入法
-----------
+## 产品身份与数据位置
 
-本品適用於 Windows 8.1 ~ Windows 11
+| 项目 | 位置 |
+| --- | --- |
+| 注册表根 | `HKEY_LOCAL_MACHINE\Software\LeavesAndStone\IME` |
+| 用户数据（词典、配置） | `%APPDATA%\LeavesAndStone\Rime` |
+| 卸载入口 | 设置 → 应用，或安装目录下的 `uninstall.exe` |
 
-初次安裝時，安裝程序將顯示「安裝選項」對話框。
+产品身份与 GUID 定义在 [include/LeavesStoneProduct.h](include/LeavesStoneProduct.h)，
+由 [config/product.json](config/product.json) 经 `scripts/generate-product-config.ps1` 生成。
+**不要**把小狼毫的注册表项或用户词典当成本产品的数据，两者互不覆盖。
 
-若要將【小狼毫】註冊到繁體中文（臺灣）鍵盤佈局，請在「輸入語言」欄選擇「中文（臺灣）」，再點擊「安裝」按鈕。
+## 构建
 
-安裝完成後，仍可由開始菜單打開「安裝選項」更改輸入語言。
+需要：Visual Studio 2022（Desktop development with C++）、Windows 10/11 SDK 与 SignTool、
+CMake、Boost 1.84.0（`BOOST_ROOT` 指向解压目录）、NSIS 3、Git、clang-format 18.1.6+。
 
-使用輸入法
-----------
+```powershell
+# 先确认工具链
+powershell -ExecutionPolicy Bypass -File scripts/verify-toolchain.ps1
 
-選取輸入法指示器菜單裏的【中】字樣圖標，開始用小狼毫寫字。
+# Debug x64（开发用）
+powershell -ExecutionPolicy Bypass -File scripts/build-local.ps1 -Configuration Debug -Platform x64
 
-可通過快捷鍵 <kbd>Ctrl+`</kbd> 或 <kbd>F4</kbd> 呼出方案選單、切換輸入方式。
+# Release Win32 + x64 与安装包
+powershell -ExecutionPolicy Bypass -File scripts/build-local.ps1 -Configuration Release -Platform All
+```
 
-定製輸入法
-----------
+安装包输出在 `output/archives/`。完整说明见 [docs/development.md](docs/development.md)。
 
-通過 開始菜單 » 小狼毫輸入法 訪問設定工具及常用位置。
+> 本机策略是 AllSigned 时，脚本需按上面这样带 `-ExecutionPolicy Bypass` 调用。
 
-用戶詞庫、配置文件位於 `%AppData%\Rime`，可通過菜單中的「用戶文件夾」打開。高水平玩家調教 Rime 輸入法常會用到。
+## 测试
 
-修改詞庫、配置文件後，須「重新部署」方可生效。
+```powershell
+# 静态合约测试（不需要编译器）
+Get-ChildItem test\Test*.ps1 | ForEach-Object { powershell -ExecutionPolicy Bypass -File $_.FullName }
 
-定製 Rime 的方法，請參考 Wiki [《定製指南》](https://github.com/rime/home/wiki/CustomizationGuide)。如需定製 Weasel 獨有的樣式和行為，請參考本倉庫 [Wiki 頁面](https://github.com/rime/weasel/wiki)。
+# 编译后的 C++ 单元测试
+output\TestLeavesStoneUI.exe
+```
 
-致謝
-----
+注意：`test\Test*Contract.ps1` 只检查文件存在与关键字符串打点，属于防误删的浅层护栏，
+**不能**证明渲染或行为正确；真正的行为断言在 `test/TestLeavesStoneUI/` 的 C++ 测试里。
 
-### 輸入方案設計：
+## 打包与签名
 
-  * 【朙月拼音】系列及【八股文】詞典
-    - 部分數據來源於 CC-CEDICT、Android 拼音、新酷音、opencc 等開源項目
-    - 維護者：佛振、瑾昀
-  * 【注音／地球拼音】
-    - 維護者：佛振、瑾昀
-  * 【倉頡五代】
-    - 發明人：朱邦復先生
-    - 碼表源自 www.chinesecj.com
-    - 構詞碼表作者：惜緣
+```powershell
+# 出包并生成 SHA256SUMS.txt 与 manifest.json
+powershell -ExecutionPolicy Bypass -File scripts/package.ps1
 
-  【五笔】【粵拼】【上海／蘇州吳語】【中古漢語拼音】【國際音標】等衆多方案
-  不再以安裝包預裝形式提供。可由 <https://github.com/rime/plum> 下載安裝。
+# 生成一次性测试证书（私钥强制落在仓库外）
+powershell -ExecutionPolicy Bypass -File scripts/new-test-certificate.ps1
 
-### 程序設計：
+# 带签名出包
+powershell -ExecutionPolicy Bypass -File scripts/package.ps1 -Sign -Thumbprint <thumbprint>
 
-  * [佛振](https://github.com/lotem)
-  * [鄒旭](https://github.com/zouxu09)
-  * [Xiangyan Sun](https://github.com/wishstudio)
-  * [Prcuvu](https://github.com/Prcuvu)
-  * [nameoverflow](https://github.com/nameoverflow)
-  * [fxliang](https://github.com/fxliang)
-  * [Azuk 443](https://github.com/determ1ne)
+# 安装 / 维修 / 卸载冒烟（需管理员终端）
+powershell -ExecutionPolicy Bypass -File scripts/smoke-install.ps1
+```
 
-  查看更多 [代碼貢獻者](https://github.com/rime/weasel/graphs/contributors)
+打包脚本会先扫描仓库里的 `.pfx` / `.p12` / `.key` / `.pem`，发现私钥即拒绝出包。
 
-### 美術：
+## 文档
 
-  * 圖標設計／[Patricivs](https://github.com/Patricivs)
-  * 配色方案／Aben、P1461、Patricivs、skoj、佛振、五磅兔
+- [docs/qa-matrix.md](docs/qa-matrix.md)：41 项验收矩阵与当前证据（唯一可信的状态来源）
+- [docs/development.md](docs/development.md)：工具链与构建
+- [docs/testing-certificate.md](docs/testing-certificate.md)：测试证书的信任与撤销
+- [docs/superpowers/](docs/superpowers/)：原始设计与实施计划（历史需求资料，不是完成报告）
 
-### 本品引用了以下開源軟件：
+## 许可与来源
 
-  * [Boost C++ Libraries](http://www.boost.org/) (Boost Software License)
-  * [curl](https://curl.haxx.se/) (MIT/X derivate license)
-  * [google-glog](https://github.com/google/glog) (BSD 3-Clause License)
-  * [Google Test](https://github.com/google/googletest) (BSD 3-Clause License)
-  * [LevelDB](https://github.com/google/leveldb) (BSD 3-Clause License)
-  * [librime](https://github.com/rime/librime) (BSD 3-Clause License)
-  * [marisa-trie](https://github.com/s-yata/marisa-trie) (BSD 2-Clause License, LGPL 2.1)
-  * [OpenCC / 開放中文轉換](https://github.com/BYVoid/OpenCC) (Apache License 2.0)
-  * [plum](https://github.com/rime/plum) (GNU Lesser General Public License v3.0)
-  * [WinSparkle](https://github.com/vslavik/winsparkle) (MIT License)
-  * [yaml-cpp](https://github.com/jbeder/yaml-cpp) (MIT License)
-  * [7-Zip](https://www.7-zip.org) (GNU LGPLv2.1+ with unRAR restriction)
-
-問題與反饋
-----------
-
-發現程序有 bug，請到 GitHub 反饋
-<https://github.com/rime/weasel/issues>
-
-歡迎提交 pull request
-<https://github.com/rime/weasel/pulls>
-
-Rime 輸入法（不限於 Windows 平臺）功能、使用方法與配置相關的問題，請反饋到
-<https://github.com/rime/home/issues>
-
-聯繫方式
---------
-
-技術交流，歡迎光臨 [Rime 代碼之家](https://github.com/rime/home)，或致信 Rime 開發者 <rimeime@gmail.com>
-
-謝謝！
+本项目是 Weasel 的衍生作品，遵循 **GPL-3.0**，见 [LICENSE.txt](LICENSE.txt)。
+librime、plum 及其依赖各自遵循其原始许可；主题素材来源见
+[resource/leaves-stone/README.md](resource/leaves-stone/README.md) 与
+[output/data/LEAVES_STONE_DATA_LICENSES.md](output/data/LEAVES_STONE_DATA_LICENSES.md)。
+上游项目与版本对应关系见 [UPSTREAM.md](UPSTREAM.md) 与 [CHANGELOG.md](CHANGELOG.md)。

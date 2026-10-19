@@ -282,6 +282,24 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="LeavesStone\SceneLayout.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="LeavesStone\SceneRenderer.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="LeavesStone\ThemeAssets.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="DoggyToolbar.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="LeavesStone\ThemeConfig.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\LeavesStoneSettings\SettingsStore.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="DirectWriteResources.cpp" />
     <ClCompile Include="FullScreenLayout.cpp" />
     <ClCompile Include="GdiplusBlur.cpp" />
@@ -304,6 +322,14 @@
     <ClCompile Include="WeaselUI.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="LeavesStone\SceneLayout.h" />
+    <ClInclude Include="ToolbarPlacement.h" />
+    <ClInclude Include="LeavesStone\SceneRenderer.h" />
+    <ClInclude Include="LeavesStone\SceneTypes.h" />
+    <ClInclude Include="LeavesStone\ThemeAssets.h" />
+    <ClInclude Include="LeavesStone\ThemeConfig.h" />
+  <ClInclude Include="DoggyToolbar.h" />
+    <ClInclude Include="..\LeavesStoneSettings\SettingsStore.h" />
     <ClInclude Include="FullScreenLayout.h" />
     <ClInclude Include="GdiplusBlur.h" />
     <ClInclude Include="HorizontalLayout.h" />

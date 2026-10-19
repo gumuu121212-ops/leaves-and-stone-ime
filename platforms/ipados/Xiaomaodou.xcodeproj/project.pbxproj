@@ -1,0 +1,700 @@
+// !$*UTF8*$!
+{
+	"archiveVersion" = "1";
+	"classes" = {
+	};
+	"objectVersion" = "56";
+	"objects" = {
+		"9A03A6EA9CB773A372DD209D" = {
+			"isa" = "PBXFileReference";
+			"path" = "Shared/MascotView.swift";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "sourcecode.swift";
+		};
+		"4C88AE69E2BF7A63C18FC8DC" = {
+			"isa" = "PBXFileReference";
+			"path" = "Shared/Theme.swift";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "sourcecode.swift";
+		};
+		"E9FD30BC577E27552E6B043B" = {
+			"isa" = "PBXFileReference";
+			"path" = "Keyboard/InputService.swift";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "sourcecode.swift";
+		};
+		"11176ADE2C2636EE6B6ED3B1" = {
+			"isa" = "PBXFileReference";
+			"path" = "Keyboard/KeyboardSurface.swift";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "sourcecode.swift";
+		};
+		"DAF07ABCC8BAD6B752453E66" = {
+			"isa" = "PBXFileReference";
+			"path" = "Keyboard/KeyboardViewController.swift";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "sourcecode.swift";
+		};
+		"525D0AD817185B70DEB08A25" = {
+			"isa" = "PBXFileReference";
+			"path" = "Keyboard/RimeBridge.mm";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "sourcecode.cpp.objcpp";
+		};
+		"42AB3E6488083AFAAAC3A64C" = {
+			"isa" = "PBXFileReference";
+			"path" = "Native/PinyinSession.cpp";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "sourcecode.cpp.cpp";
+		};
+		"9B08153ED7B70CCAE5AACE9E" = {
+			"isa" = "PBXFileReference";
+			"path" = "Resources/mascot-awake.png";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "image.png";
+		};
+		"8136986E77AE923152019E42" = {
+			"isa" = "PBXFileReference";
+			"path" = "Resources/mascot-sleep.png";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "image.png";
+		};
+		"803A97B880F0628FAD691029" = {
+			"isa" = "PBXFileReference";
+			"path" = "Resources/Rime";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "folder";
+		};
+		"0334B1D1B0CE68E145E9D8C6" = {
+			"isa" = "PBXFileReference";
+			"path" = "Resources/Notices";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "folder";
+		};
+		"4545F5318A0046043187F2EB" = {
+			"isa" = "PBXFileReference";
+			"path" = "Resources/Assets.xcassets";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "folder.assetcatalog";
+		};
+		"A114683FE91CB1C544470CFA" = {
+			"isa" = "PBXFileReference";
+			"path" = "App/XiaomaodouApp.swift";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "sourcecode.swift";
+		};
+		"AE7C9C3EBAD2C8F56EB69942" = {
+			"isa" = "PBXFileReference";
+			"path" = "Tests/KeyboardTests.swift";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "sourcecode.swift";
+		};
+		"9CD131845E37F0168C86945B" = {
+			"isa" = "PBXFileReference";
+			"path" = "Keyboard/RimeBridge.h";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "sourcecode.c.h";
+		};
+		"C2C0366A59E879F3E6F7FC6C" = {
+			"isa" = "PBXFileReference";
+			"path" = "Keyboard/Keyboard-Bridging-Header.h";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "sourcecode.c.h";
+		};
+		"35E2D092CAAB8E1CD42C40DB" = {
+			"isa" = "PBXFileReference";
+			"path" = "Native/PinyinSession.h";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "sourcecode.c.h";
+		};
+		"D4CF6E9C23AF989C93BD8CF8" = {
+			"isa" = "PBXFileReference";
+			"path" = "Vendor/librime-static.xcframework";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "wrapper.xcframework";
+		};
+		"E4EE5A37A6FB249AC299D850" = {
+			"isa" = "PBXFileReference";
+			"path" = "Configuration/App.plist";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "text.plist.xml";
+		};
+		"AA003E8B468E483B90B0EC22" = {
+			"isa" = "PBXFileReference";
+			"path" = "Configuration/Keyboard.plist";
+			"sourceTree" = "SOURCE_ROOT";
+			"lastKnownFileType" = "text.plist.xml";
+		};
+		"441127A1D6B2D2AE11CB39D8" = {
+			"isa" = "PBXFileReference";
+			"path" = "Xiaomaodou.app";
+			"explicitFileType" = "wrapper.application";
+			"sourceTree" = "BUILT_PRODUCTS_DIR";
+		};
+		"B39E4A7C320F11C6747F1D56" = {
+			"isa" = "PBXFileReference";
+			"path" = "XiaomaodouKeyboard.appex";
+			"explicitFileType" = "wrapper.app-extension";
+			"sourceTree" = "BUILT_PRODUCTS_DIR";
+		};
+		"FD2E80FAC21D634E1F9997E1" = {
+			"isa" = "PBXFileReference";
+			"path" = "XiaomaodouTests.xctest";
+			"explicitFileType" = "wrapper.cfbundle";
+			"sourceTree" = "BUILT_PRODUCTS_DIR";
+		};
+		"FBDC4F23F93125BBEEAE800C" = {
+			"isa" = "PBXGroup";
+			"name" = "Products";
+			"sourceTree" = "<group>";
+			"children" = ("441127A1D6B2D2AE11CB39D8", "B39E4A7C320F11C6747F1D56", "FD2E80FAC21D634E1F9997E1");
+		};
+		"B28B7AF69320201D1CF206EB" = {
+			"isa" = "PBXGroup";
+			"sourceTree" = "<group>";
+			"children" = ("9A03A6EA9CB773A372DD209D", "4C88AE69E2BF7A63C18FC8DC", "E9FD30BC577E27552E6B043B", "11176ADE2C2636EE6B6ED3B1", "DAF07ABCC8BAD6B752453E66", "525D0AD817185B70DEB08A25", "42AB3E6488083AFAAAC3A64C", "9B08153ED7B70CCAE5AACE9E", "8136986E77AE923152019E42", "803A97B880F0628FAD691029", "0334B1D1B0CE68E145E9D8C6", "4545F5318A0046043187F2EB", "A114683FE91CB1C544470CFA", "AE7C9C3EBAD2C8F56EB69942", "9CD131845E37F0168C86945B", "C2C0366A59E879F3E6F7FC6C", "35E2D092CAAB8E1CD42C40DB", "D4CF6E9C23AF989C93BD8CF8", "E4EE5A37A6FB249AC299D850", "AA003E8B468E483B90B0EC22", "FBDC4F23F93125BBEEAE800C");
+		};
+		"E0B0FDDB79CE8CC5D2322E40" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9A03A6EA9CB773A372DD209D";
+		};
+		"B10EA373BAFF4979CDA51AE2" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4C88AE69E2BF7A63C18FC8DC";
+		};
+		"4559F5636B5CB83664824004" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E9FD30BC577E27552E6B043B";
+		};
+		"78F57736C13030653DAE66BD" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "11176ADE2C2636EE6B6ED3B1";
+		};
+		"B489C97354717C6433920DF4" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "DAF07ABCC8BAD6B752453E66";
+		};
+		"0D750D51E5541EBBE4478C30" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "525D0AD817185B70DEB08A25";
+		};
+		"0A0FB37BFDBAEB1F402C6889" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "42AB3E6488083AFAAAC3A64C";
+		};
+		"66299843EF7946F7F66D22A4" = {
+			"isa" = "PBXSourcesBuildPhase";
+			"buildActionMask" = "2147483647";
+			"runOnlyForDeploymentPostprocessing" = "0";
+			"files" = ("E0B0FDDB79CE8CC5D2322E40", "B10EA373BAFF4979CDA51AE2", "4559F5636B5CB83664824004", "78F57736C13030653DAE66BD", "B489C97354717C6433920DF4", "0D750D51E5541EBBE4478C30", "0A0FB37BFDBAEB1F402C6889");
+		};
+		"EF86A9A4768AF3FA46381C2E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9B08153ED7B70CCAE5AACE9E";
+		};
+		"AC9D369C48532A5FE69D80DA" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "8136986E77AE923152019E42";
+		};
+		"18D1F983E27C470C007D25B5" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "803A97B880F0628FAD691029";
+		};
+		"55EF5EA83A337625D2B5E80D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0334B1D1B0CE68E145E9D8C6";
+		};
+		"D8A926DD09CA8C8F93BDD0C4" = {
+			"isa" = "PBXResourcesBuildPhase";
+			"buildActionMask" = "2147483647";
+			"runOnlyForDeploymentPostprocessing" = "0";
+			"files" = ("EF86A9A4768AF3FA46381C2E", "AC9D369C48532A5FE69D80DA", "18D1F983E27C470C007D25B5", "55EF5EA83A337625D2B5E80D");
+		};
+		"5492BDD63A92E1E30259D684" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "D4CF6E9C23AF989C93BD8CF8";
+		};
+		"5ABBB438A905F20FD13C0410" = {
+			"isa" = "PBXFrameworksBuildPhase";
+			"buildActionMask" = "2147483647";
+			"runOnlyForDeploymentPostprocessing" = "0";
+			"files" = ("5492BDD63A92E1E30259D684");
+		};
+		"9CEDCE25675599AC1ADA4D6C" = {
+			"isa" = "XCBuildConfiguration";
+			"name" = "Debug";
+			"buildSettings" = {
+				"IPHONEOS_DEPLOYMENT_TARGET" = "15.0";
+				"TARGETED_DEVICE_FAMILY" = "2";
+				"SDKROOT" = "iphoneos";
+				"SWIFT_VERSION" = "5.0";
+				"CLANG_CXX_LANGUAGE_STANDARD" = "c++17";
+				"CLANG_ENABLE_OBJC_ARC" = "YES";
+				"CLANG_ENABLE_MODULES" = "YES";
+				"GCC_C_LANGUAGE_STANDARD" = "gnu11";
+				"ENABLE_BITCODE" = "NO";
+				"CODE_SIGN_STYLE" = "Automatic";
+				"CURRENT_PROJECT_VERSION" = "1";
+				"MARKETING_VERSION" = "0.1.0";
+				"GENERATE_INFOPLIST_FILE" = "NO";
+				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
+				"GCC_WARN_64_TO_32_BIT_CONVERSION" = "YES";
+				"CLANG_WARN_DOCUMENTATION_COMMENTS" = "YES";
+				"PRODUCT_NAME" = "$(TARGET_NAME)";
+				"PRODUCT_BUNDLE_IDENTIFIER" = "org.leavesandstone.xiaomaodou.keyboard";
+				"LD_RUNPATH_SEARCH_PATHS" = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks");
+				"HEADER_SEARCH_PATHS" = ("$(inherited)", "$(SRCROOT)/Vendor/RimeHeaders", "$(SRCROOT)/Native", "$(SRCROOT)/Keyboard");
+				"OTHER_LDFLAGS" = ("$(inherited)", "-all_load", "-lc++", "-liconv", "-lz");
+				"SWIFT_OBJC_BRIDGING_HEADER" = "Keyboard/Keyboard-Bridging-Header.h";
+				"APPLICATION_EXTENSION_API_ONLY" = "YES";
+				"SKIP_INSTALL" = "YES";
+				"INFOPLIST_FILE" = "Configuration/Keyboard.plist";
+				"SWIFT_OPTIMIZATION_LEVEL" = "-Onone";
+				"GCC_OPTIMIZATION_LEVEL" = "0";
+				"SWIFT_ACTIVE_COMPILATION_CONDITIONS" = "DEBUG";
+				"ENABLE_TESTABILITY" = "YES";
+			};
+		};
+		"AF6E1A09D137FC3E41649541" = {
+			"isa" = "XCBuildConfiguration";
+			"name" = "Release";
+			"buildSettings" = {
+				"IPHONEOS_DEPLOYMENT_TARGET" = "15.0";
+				"TARGETED_DEVICE_FAMILY" = "2";
+				"SDKROOT" = "iphoneos";
+				"SWIFT_VERSION" = "5.0";
+				"CLANG_CXX_LANGUAGE_STANDARD" = "c++17";
+				"CLANG_ENABLE_OBJC_ARC" = "YES";
+				"CLANG_ENABLE_MODULES" = "YES";
+				"GCC_C_LANGUAGE_STANDARD" = "gnu11";
+				"ENABLE_BITCODE" = "NO";
+				"CODE_SIGN_STYLE" = "Automatic";
+				"CURRENT_PROJECT_VERSION" = "1";
+				"MARKETING_VERSION" = "0.1.0";
+				"GENERATE_INFOPLIST_FILE" = "NO";
+				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
+				"GCC_WARN_64_TO_32_BIT_CONVERSION" = "YES";
+				"CLANG_WARN_DOCUMENTATION_COMMENTS" = "YES";
+				"PRODUCT_NAME" = "$(TARGET_NAME)";
+				"PRODUCT_BUNDLE_IDENTIFIER" = "org.leavesandstone.xiaomaodou.keyboard";
+				"LD_RUNPATH_SEARCH_PATHS" = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks");
+				"HEADER_SEARCH_PATHS" = ("$(inherited)", "$(SRCROOT)/Vendor/RimeHeaders", "$(SRCROOT)/Native", "$(SRCROOT)/Keyboard");
+				"OTHER_LDFLAGS" = ("$(inherited)", "-all_load", "-lc++", "-liconv", "-lz");
+				"SWIFT_OBJC_BRIDGING_HEADER" = "Keyboard/Keyboard-Bridging-Header.h";
+				"APPLICATION_EXTENSION_API_ONLY" = "YES";
+				"SKIP_INSTALL" = "YES";
+				"INFOPLIST_FILE" = "Configuration/Keyboard.plist";
+				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
+				"GCC_OPTIMIZATION_LEVEL" = "s";
+			};
+		};
+		"52D2CE5708DC078FAB658C84" = {
+			"isa" = "XCConfigurationList";
+			"buildConfigurations" = ("9CEDCE25675599AC1ADA4D6C", "AF6E1A09D137FC3E41649541");
+			"defaultConfigurationIsVisible" = "0";
+			"defaultConfigurationName" = "Release";
+		};
+		"8C02F5BE2E65906E6A79E3B9" = {
+			"isa" = "PBXNativeTarget";
+			"name" = "XiaomaodouKeyboard";
+			"productName" = "XiaomaodouKeyboard";
+			"productReference" = "B39E4A7C320F11C6747F1D56";
+			"productType" = "com.apple.product-type.app-extension";
+			"buildConfigurationList" = "52D2CE5708DC078FAB658C84";
+			"buildPhases" = ("66299843EF7946F7F66D22A4", "D8A926DD09CA8C8F93BDD0C4", "5ABBB438A905F20FD13C0410");
+			"buildRules" = ();
+			"dependencies" = ();
+		};
+		"1E3935906F6DD51849956F7D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9A03A6EA9CB773A372DD209D";
+		};
+		"EFD0849BE1C7CC38358AE317" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4C88AE69E2BF7A63C18FC8DC";
+		};
+		"0426FC170D88293D0DC48111" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A114683FE91CB1C544470CFA";
+		};
+		"328D7160BC0544400934F57F" = {
+			"isa" = "PBXSourcesBuildPhase";
+			"buildActionMask" = "2147483647";
+			"runOnlyForDeploymentPostprocessing" = "0";
+			"files" = ("1E3935906F6DD51849956F7D", "EFD0849BE1C7CC38358AE317", "0426FC170D88293D0DC48111");
+		};
+		"D29D1288F68AA9DF0CD91C13" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9B08153ED7B70CCAE5AACE9E";
+		};
+		"0E3A60F81B64BC8093116EA4" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "8136986E77AE923152019E42";
+		};
+		"73B8B0CFE52866B1E2C491CD" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0334B1D1B0CE68E145E9D8C6";
+		};
+		"51C573D73FD9577637E65D2B" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4545F5318A0046043187F2EB";
+		};
+		"588EB3509F4EC611F972B4EB" = {
+			"isa" = "PBXResourcesBuildPhase";
+			"buildActionMask" = "2147483647";
+			"runOnlyForDeploymentPostprocessing" = "0";
+			"files" = ("D29D1288F68AA9DF0CD91C13", "0E3A60F81B64BC8093116EA4", "73B8B0CFE52866B1E2C491CD", "51C573D73FD9577637E65D2B");
+		};
+		"F69B08DDFA5A517047C99E46" = {
+			"isa" = "PBXFrameworksBuildPhase";
+			"buildActionMask" = "2147483647";
+			"runOnlyForDeploymentPostprocessing" = "0";
+			"files" = ();
+		};
+		"B2C1761F6FE5962B5973FE55" = {
+			"isa" = "PBXContainerItemProxy";
+			"containerPortal" = "98F54143AB4E86B28C3AFEE0";
+			"proxyType" = "1";
+			"remoteGlobalIDString" = "8C02F5BE2E65906E6A79E3B9";
+			"remoteInfo" = "XiaomaodouKeyboard";
+		};
+		"261979727226BC13535908DF" = {
+			"isa" = "PBXTargetDependency";
+			"target" = "8C02F5BE2E65906E6A79E3B9";
+			"targetProxy" = "B2C1761F6FE5962B5973FE55";
+		};
+		"3F263BC3127F6D99FFDFDFE0" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "B39E4A7C320F11C6747F1D56";
+			"settings" = {
+				"ATTRIBUTES" = ("RemoveHeadersOnCopy");
+			};
+		};
+		"37E8022B7B99C3249E08AE16" = {
+			"isa" = "PBXCopyFilesBuildPhase";
+			"buildActionMask" = "2147483647";
+			"dstPath" = "";
+			"dstSubfolderSpec" = "13";
+			"name" = "Embed App Extensions";
+			"files" = ("3F263BC3127F6D99FFDFDFE0");
+			"runOnlyForDeploymentPostprocessing" = "0";
+		};
+		"DA27CE53AF6A6CD29D5FEAC6" = {
+			"isa" = "XCBuildConfiguration";
+			"name" = "Debug";
+			"buildSettings" = {
+				"IPHONEOS_DEPLOYMENT_TARGET" = "15.0";
+				"TARGETED_DEVICE_FAMILY" = "2";
+				"SDKROOT" = "iphoneos";
+				"SWIFT_VERSION" = "5.0";
+				"CLANG_CXX_LANGUAGE_STANDARD" = "c++17";
+				"CLANG_ENABLE_OBJC_ARC" = "YES";
+				"CLANG_ENABLE_MODULES" = "YES";
+				"GCC_C_LANGUAGE_STANDARD" = "gnu11";
+				"ENABLE_BITCODE" = "NO";
+				"CODE_SIGN_STYLE" = "Automatic";
+				"CURRENT_PROJECT_VERSION" = "1";
+				"MARKETING_VERSION" = "0.1.0";
+				"GENERATE_INFOPLIST_FILE" = "NO";
+				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
+				"GCC_WARN_64_TO_32_BIT_CONVERSION" = "YES";
+				"CLANG_WARN_DOCUMENTATION_COMMENTS" = "YES";
+				"PRODUCT_NAME" = "$(TARGET_NAME)";
+				"PRODUCT_BUNDLE_IDENTIFIER" = "org.leavesandstone.xiaomaodou";
+				"LD_RUNPATH_SEARCH_PATHS" = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks");
+				"INFOPLIST_FILE" = "Configuration/App.plist";
+				"ASSETCATALOG_COMPILER_APPICON_NAME" = "AppIcon";
+				"SWIFT_OPTIMIZATION_LEVEL" = "-Onone";
+				"GCC_OPTIMIZATION_LEVEL" = "0";
+				"SWIFT_ACTIVE_COMPILATION_CONDITIONS" = "DEBUG";
+				"ENABLE_TESTABILITY" = "YES";
+			};
+		};
+		"2C2FD3D952A5FE1CB77192FE" = {
+			"isa" = "XCBuildConfiguration";
+			"name" = "Release";
+			"buildSettings" = {
+				"IPHONEOS_DEPLOYMENT_TARGET" = "15.0";
+				"TARGETED_DEVICE_FAMILY" = "2";
+				"SDKROOT" = "iphoneos";
+				"SWIFT_VERSION" = "5.0";
+				"CLANG_CXX_LANGUAGE_STANDARD" = "c++17";
+				"CLANG_ENABLE_OBJC_ARC" = "YES";
+				"CLANG_ENABLE_MODULES" = "YES";
+				"GCC_C_LANGUAGE_STANDARD" = "gnu11";
+				"ENABLE_BITCODE" = "NO";
+				"CODE_SIGN_STYLE" = "Automatic";
+				"CURRENT_PROJECT_VERSION" = "1";
+				"MARKETING_VERSION" = "0.1.0";
+				"GENERATE_INFOPLIST_FILE" = "NO";
+				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
+				"GCC_WARN_64_TO_32_BIT_CONVERSION" = "YES";
+				"CLANG_WARN_DOCUMENTATION_COMMENTS" = "YES";
+				"PRODUCT_NAME" = "$(TARGET_NAME)";
+				"PRODUCT_BUNDLE_IDENTIFIER" = "org.leavesandstone.xiaomaodou";
+				"LD_RUNPATH_SEARCH_PATHS" = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks");
+				"INFOPLIST_FILE" = "Configuration/App.plist";
+				"ASSETCATALOG_COMPILER_APPICON_NAME" = "AppIcon";
+				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
+				"GCC_OPTIMIZATION_LEVEL" = "s";
+			};
+		};
+		"85381F34630400C50E3CED9C" = {
+			"isa" = "XCConfigurationList";
+			"buildConfigurations" = ("DA27CE53AF6A6CD29D5FEAC6", "2C2FD3D952A5FE1CB77192FE");
+			"defaultConfigurationIsVisible" = "0";
+			"defaultConfigurationName" = "Release";
+		};
+		"52B8F93B3A5A004566F3AC49" = {
+			"isa" = "PBXNativeTarget";
+			"name" = "Xiaomaodou";
+			"productName" = "Xiaomaodou";
+			"productReference" = "441127A1D6B2D2AE11CB39D8";
+			"productType" = "com.apple.product-type.application";
+			"buildConfigurationList" = "85381F34630400C50E3CED9C";
+			"buildPhases" = ("328D7160BC0544400934F57F", "588EB3509F4EC611F972B4EB", "F69B08DDFA5A517047C99E46", "37E8022B7B99C3249E08AE16");
+			"buildRules" = ();
+			"dependencies" = ("261979727226BC13535908DF");
+		};
+		"FBA812FABF2621EB4B4F94F0" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9A03A6EA9CB773A372DD209D";
+		};
+		"9F50AF40101AD85FD9846FD4" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4C88AE69E2BF7A63C18FC8DC";
+		};
+		"88DD15BD64E865A4A7F8F1ED" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E9FD30BC577E27552E6B043B";
+		};
+		"6C62341B38AA0ACA650186D1" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "11176ADE2C2636EE6B6ED3B1";
+		};
+		"20F20059988485AEA5B0D64C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "DAF07ABCC8BAD6B752453E66";
+		};
+		"6CC8A6828E2B25D868961846" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "525D0AD817185B70DEB08A25";
+		};
+		"8FA97A5150F3E6A9855991F0" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "42AB3E6488083AFAAAC3A64C";
+		};
+		"E7E764BC4FE346BE560383AF" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "AE7C9C3EBAD2C8F56EB69942";
+		};
+		"9D88F3176C93C85FD2A38B91" = {
+			"isa" = "PBXSourcesBuildPhase";
+			"buildActionMask" = "2147483647";
+			"runOnlyForDeploymentPostprocessing" = "0";
+			"files" = ("FBA812FABF2621EB4B4F94F0", "9F50AF40101AD85FD9846FD4", "88DD15BD64E865A4A7F8F1ED", "6C62341B38AA0ACA650186D1", "20F20059988485AEA5B0D64C", "6CC8A6828E2B25D868961846", "8FA97A5150F3E6A9855991F0", "E7E764BC4FE346BE560383AF");
+		};
+		"ACF4AFD4C9D9BBF0039CE6C9" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9B08153ED7B70CCAE5AACE9E";
+		};
+		"9925C8A7B41211367EF35F71" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "8136986E77AE923152019E42";
+		};
+		"1BD9B4EAAFF8AE43452EA2CA" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "803A97B880F0628FAD691029";
+		};
+		"F32460125DABE7CA48FC4C4D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0334B1D1B0CE68E145E9D8C6";
+		};
+		"A1731122962DFAEC7BA07399" = {
+			"isa" = "PBXResourcesBuildPhase";
+			"buildActionMask" = "2147483647";
+			"runOnlyForDeploymentPostprocessing" = "0";
+			"files" = ("ACF4AFD4C9D9BBF0039CE6C9", "9925C8A7B41211367EF35F71", "1BD9B4EAAFF8AE43452EA2CA", "F32460125DABE7CA48FC4C4D");
+		};
+		"CA28DA45A14E8A1C66248B42" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "D4CF6E9C23AF989C93BD8CF8";
+		};
+		"DA3414BCF66EB2BECCCEAE23" = {
+			"isa" = "PBXFrameworksBuildPhase";
+			"buildActionMask" = "2147483647";
+			"runOnlyForDeploymentPostprocessing" = "0";
+			"files" = ("CA28DA45A14E8A1C66248B42");
+		};
+		"655AFC0346BF12E36BF2ABA0" = {
+			"isa" = "PBXContainerItemProxy";
+			"containerPortal" = "98F54143AB4E86B28C3AFEE0";
+			"proxyType" = "1";
+			"remoteGlobalIDString" = "52B8F93B3A5A004566F3AC49";
+			"remoteInfo" = "Xiaomaodou";
+		};
+		"6F51645AA7330774F937FD71" = {
+			"isa" = "PBXTargetDependency";
+			"target" = "52B8F93B3A5A004566F3AC49";
+			"targetProxy" = "655AFC0346BF12E36BF2ABA0";
+		};
+		"8B1DBBECFBFFB1D6176B4F9E" = {
+			"isa" = "XCBuildConfiguration";
+			"name" = "Debug";
+			"buildSettings" = {
+				"IPHONEOS_DEPLOYMENT_TARGET" = "15.0";
+				"TARGETED_DEVICE_FAMILY" = "2";
+				"SDKROOT" = "iphoneos";
+				"SWIFT_VERSION" = "5.0";
+				"CLANG_CXX_LANGUAGE_STANDARD" = "c++17";
+				"CLANG_ENABLE_OBJC_ARC" = "YES";
+				"CLANG_ENABLE_MODULES" = "YES";
+				"GCC_C_LANGUAGE_STANDARD" = "gnu11";
+				"ENABLE_BITCODE" = "NO";
+				"CODE_SIGN_STYLE" = "Automatic";
+				"CURRENT_PROJECT_VERSION" = "1";
+				"MARKETING_VERSION" = "0.1.0";
+				"GENERATE_INFOPLIST_FILE" = "YES";
+				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
+				"GCC_WARN_64_TO_32_BIT_CONVERSION" = "YES";
+				"CLANG_WARN_DOCUMENTATION_COMMENTS" = "YES";
+				"PRODUCT_NAME" = "$(TARGET_NAME)";
+				"PRODUCT_BUNDLE_IDENTIFIER" = "org.leavesandstone.xiaomaodou.tests";
+				"LD_RUNPATH_SEARCH_PATHS" = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks");
+				"HEADER_SEARCH_PATHS" = ("$(inherited)", "$(SRCROOT)/Vendor/RimeHeaders", "$(SRCROOT)/Native", "$(SRCROOT)/Keyboard");
+				"OTHER_LDFLAGS" = ("$(inherited)", "-all_load", "-lc++", "-liconv", "-lz");
+				"SWIFT_OBJC_BRIDGING_HEADER" = "Keyboard/Keyboard-Bridging-Header.h";
+				"TEST_HOST" = "$(BUILT_PRODUCTS_DIR)/Xiaomaodou.app/Xiaomaodou";
+				"BUNDLE_LOADER" = "$(TEST_HOST)";
+				"SKIP_INSTALL" = "YES";
+				"SWIFT_OPTIMIZATION_LEVEL" = "-Onone";
+				"GCC_OPTIMIZATION_LEVEL" = "0";
+				"SWIFT_ACTIVE_COMPILATION_CONDITIONS" = "DEBUG";
+				"ENABLE_TESTABILITY" = "YES";
+			};
+		};
+		"136736A3072E9D3FB4AB1787" = {
+			"isa" = "XCBuildConfiguration";
+			"name" = "Release";
+			"buildSettings" = {
+				"IPHONEOS_DEPLOYMENT_TARGET" = "15.0";
+				"TARGETED_DEVICE_FAMILY" = "2";
+				"SDKROOT" = "iphoneos";
+				"SWIFT_VERSION" = "5.0";
+				"CLANG_CXX_LANGUAGE_STANDARD" = "c++17";
+				"CLANG_ENABLE_OBJC_ARC" = "YES";
+				"CLANG_ENABLE_MODULES" = "YES";
+				"GCC_C_LANGUAGE_STANDARD" = "gnu11";
+				"ENABLE_BITCODE" = "NO";
+				"CODE_SIGN_STYLE" = "Automatic";
+				"CURRENT_PROJECT_VERSION" = "1";
+				"MARKETING_VERSION" = "0.1.0";
+				"GENERATE_INFOPLIST_FILE" = "YES";
+				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
+				"GCC_WARN_64_TO_32_BIT_CONVERSION" = "YES";
+				"CLANG_WARN_DOCUMENTATION_COMMENTS" = "YES";
+				"PRODUCT_NAME" = "$(TARGET_NAME)";
+				"PRODUCT_BUNDLE_IDENTIFIER" = "org.leavesandstone.xiaomaodou.tests";
+				"LD_RUNPATH_SEARCH_PATHS" = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks");
+				"HEADER_SEARCH_PATHS" = ("$(inherited)", "$(SRCROOT)/Vendor/RimeHeaders", "$(SRCROOT)/Native", "$(SRCROOT)/Keyboard");
+				"OTHER_LDFLAGS" = ("$(inherited)", "-all_load", "-lc++", "-liconv", "-lz");
+				"SWIFT_OBJC_BRIDGING_HEADER" = "Keyboard/Keyboard-Bridging-Header.h";
+				"TEST_HOST" = "$(BUILT_PRODUCTS_DIR)/Xiaomaodou.app/Xiaomaodou";
+				"BUNDLE_LOADER" = "$(TEST_HOST)";
+				"SKIP_INSTALL" = "YES";
+				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
+				"GCC_OPTIMIZATION_LEVEL" = "s";
+			};
+		};
+		"78083F2B60249B84AB019728" = {
+			"isa" = "XCConfigurationList";
+			"buildConfigurations" = ("8B1DBBECFBFFB1D6176B4F9E", "136736A3072E9D3FB4AB1787");
+			"defaultConfigurationIsVisible" = "0";
+			"defaultConfigurationName" = "Release";
+		};
+		"F0E8BE8953FF8274EC7BC36A" = {
+			"isa" = "PBXNativeTarget";
+			"name" = "XiaomaodouTests";
+			"productName" = "XiaomaodouTests";
+			"productReference" = "FD2E80FAC21D634E1F9997E1";
+			"productType" = "com.apple.product-type.bundle.unit-test";
+			"buildConfigurationList" = "78083F2B60249B84AB019728";
+			"buildPhases" = ("9D88F3176C93C85FD2A38B91", "A1731122962DFAEC7BA07399", "DA3414BCF66EB2BECCCEAE23");
+			"buildRules" = ();
+			"dependencies" = ("6F51645AA7330774F937FD71");
+		};
+		"BFD315016DE16320F7E2120C" = {
+			"isa" = "XCBuildConfiguration";
+			"name" = "Debug";
+			"buildSettings" = {
+				"IPHONEOS_DEPLOYMENT_TARGET" = "15.0";
+				"TARGETED_DEVICE_FAMILY" = "2";
+				"SDKROOT" = "iphoneos";
+				"SWIFT_VERSION" = "5.0";
+				"CLANG_CXX_LANGUAGE_STANDARD" = "c++17";
+				"CLANG_ENABLE_OBJC_ARC" = "YES";
+				"CLANG_ENABLE_MODULES" = "YES";
+				"GCC_C_LANGUAGE_STANDARD" = "gnu11";
+				"ENABLE_BITCODE" = "NO";
+				"CODE_SIGN_STYLE" = "Automatic";
+				"CURRENT_PROJECT_VERSION" = "1";
+				"MARKETING_VERSION" = "0.1.0";
+				"GENERATE_INFOPLIST_FILE" = "NO";
+				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
+				"GCC_WARN_64_TO_32_BIT_CONVERSION" = "YES";
+				"CLANG_WARN_DOCUMENTATION_COMMENTS" = "YES";
+				"SWIFT_OPTIMIZATION_LEVEL" = "-Onone";
+				"GCC_OPTIMIZATION_LEVEL" = "0";
+				"SWIFT_ACTIVE_COMPILATION_CONDITIONS" = "DEBUG";
+				"ENABLE_TESTABILITY" = "YES";
+			};
+		};
+		"1D8C0C6B1D22EA8C7669B263" = {
+			"isa" = "XCBuildConfiguration";
+			"name" = "Release";
+			"buildSettings" = {
+				"IPHONEOS_DEPLOYMENT_TARGET" = "15.0";
+				"TARGETED_DEVICE_FAMILY" = "2";
+				"SDKROOT" = "iphoneos";
+				"SWIFT_VERSION" = "5.0";
+				"CLANG_CXX_LANGUAGE_STANDARD" = "c++17";
+				"CLANG_ENABLE_OBJC_ARC" = "YES";
+				"CLANG_ENABLE_MODULES" = "YES";
+				"GCC_C_LANGUAGE_STANDARD" = "gnu11";
+				"ENABLE_BITCODE" = "NO";
+				"CODE_SIGN_STYLE" = "Automatic";
+				"CURRENT_PROJECT_VERSION" = "1";
+				"MARKETING_VERSION" = "0.1.0";
+				"GENERATE_INFOPLIST_FILE" = "NO";
+				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
+				"GCC_WARN_64_TO_32_BIT_CONVERSION" = "YES";
+				"CLANG_WARN_DOCUMENTATION_COMMENTS" = "YES";
+				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
+				"GCC_OPTIMIZATION_LEVEL" = "s";
+			};
+		};
+		"9A306D578D83D1E0821F2E35" = {
+			"isa" = "XCConfigurationList";
+			"buildConfigurations" = ("BFD315016DE16320F7E2120C", "1D8C0C6B1D22EA8C7669B263");
+			"defaultConfigurationIsVisible" = "0";
+			"defaultConfigurationName" = "Release";
+		};
+		"98F54143AB4E86B28C3AFEE0" = {
+			"isa" = "PBXProject";
+			"buildConfigurationList" = "9A306D578D83D1E0821F2E35";
+			"compatibilityVersion" = "Xcode 14.0";
+			"developmentRegion" = "zh-Hans";
+			"knownRegions" = ("zh-Hans", "en", "Base");
+			"mainGroup" = "B28B7AF69320201D1CF206EB";
+			"productRefGroup" = "FBDC4F23F93125BBEEAE800C";
+			"projectDirPath" = "";
+			"projectRoot" = "";
+			"targets" = ("8C02F5BE2E65906E6A79E3B9", "52B8F93B3A5A004566F3AC49", "F0E8BE8953FF8274EC7BC36A");
+			"attributes" = {
+				"LastUpgradeCheck" = "1600";
+				"BuildIndependentTargetsInParallel" = "YES";
+			};
+		};
+	};
+	"rootObject" = "98F54143AB4E86B28C3AFEE0";
+}

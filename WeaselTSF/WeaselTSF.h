@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Globals.h"
+#include "CaretPosition.h"
+#include "DeferredToolbarActivation.h"
 #include <WeaselIPC.h>
 #include <WeaselIPCData.h>
 
@@ -189,6 +191,7 @@ class WeaselTSF : public ITfTextInputProcessorEx,
   HRESULT _HandleCompartment(REFGUID guidCompartment);
 
   void _Reconnect();
+  void _ScheduleToolbarActivation();
   std::wstring _GetRootDir();
 
   bool isImmersive() const {
@@ -198,6 +201,7 @@ class WeaselTSF : public ITfTextInputProcessorEx,
   com_ptr<ITfThreadMgr> _pThreadMgr;
   TfClientId _tfClientId;
   DWORD _dwThreadMgrEventSinkCookie;
+  DWORD _dwProfileNotifySinkCookie;
 
   com_ptr<ITfContext> _pTextEditSinkContext;
   DWORD _dwTextEditSinkCookie, _dwTextLayoutSinkCookie;
@@ -211,6 +215,7 @@ class WeaselTSF : public ITfTextInputProcessorEx,
   com_ptr<CCompartmentEventSink> _pConvertionCompartmentSink;
 
   com_ptr<ITfComposition> _pComposition;
+  leaves_stone::CaretPositionState _caretPositionState;
 
   com_ptr<CLangBarItemButton> _pLangBarButton;
 
@@ -223,7 +228,10 @@ class WeaselTSF : public ITfTextInputProcessorEx,
 
   /* Weasel Related */
   weasel::Client m_client;
+  unsigned _server_retry = 0;
   DWORD _activateFlags;
+  leaves_stone::DeferredToolbarActivation _toolbar_activation;
+  bool _toolbar_profile_active = false;
 
   /* IME status */
   weasel::Status _status;

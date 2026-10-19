@@ -1,4 +1,4 @@
-﻿// WeaselSetup.cpp : main source file for WeaselSetup.exe
+// WeaselSetup.cpp : main source file for WeaselSetup.exe
 //
 
 #include "stdafx.h"
@@ -60,9 +60,9 @@ static int CustomInstall(bool installing) {
   bool old_ime_support = false;
   std::wstring user_dir;
 
-  const WCHAR KEY[] = L"Software\\Rime\\Weasel";
   HKEY hKey;
-  LSTATUS ret = RegOpenKey(HKEY_CURRENT_USER, KEY, &hKey);
+  LSTATUS ret = RegOpenKey(HKEY_CURRENT_USER,
+                           leaves_stone::product::kRegistryRoot, &hKey);
   if (ret == ERROR_SUCCESS) {
     WCHAR value[MAX_PATH];
     DWORD len = sizeof(value);
@@ -108,15 +108,18 @@ static int CustomInstall(bool installing) {
     ExpandEnvironmentStringsW(L"%APPDATA%\\Rime", _path, _countof(_path));
     user_dir = std::wstring(_path);
   }
-  ret = SetRegKeyValue(HKEY_CURRENT_USER, KEY, L"RimeUserDir", user_dir.c_str(),
-                       REG_SZ, false);
+  // The product-identity refactor replaced KEY with the product registry root
+  // everywhere in this file except these two calls, which still referenced the
+  // upstream macro and therefore did not compile.
+  ret = SetRegKeyValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryRoot,
+                       L"RimeUserDir", user_dir.c_str(), REG_SZ, false);
   if (FAILED(HRESULT_FROM_WIN32(ret))) {
     MSG_BY_IDS(IDS_STR_ERR_WRITE_USER_DIR, IDS_STR_INSTALL_FAILED,
                MB_ICONERROR | MB_OK);
     return 1;
   }
-  ret = SetRegKeyValue(HKEY_CURRENT_USER, KEY, L"Hant", (hant ? 1 : 0),
-                       REG_DWORD, false);
+  ret = SetRegKeyValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryRoot,
+                       L"Hant", (hant ? 1 : 0), REG_DWORD, false);
   if (FAILED(HRESULT_FROM_WIN32(ret))) {
     MSG_BY_IDS(IDS_STR_ERR_WRITE_HANT, IDS_STR_INSTALL_FAILED,
                MB_ICONERROR | MB_OK);
@@ -189,44 +192,44 @@ static int Run(LPTSTR lpCmdLine) {
   }
 
   if (auto res = GetParamByPrefix(lpCmdLine, L"/userdir:")) {
-    return SetRegKeyValue(HKEY_CURRENT_USER, L"Software\\Rime\\weasel",
+    return SetRegKeyValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryRoot,
                           L"RimeUserDir", res, REG_SZ);
   }
 
   if (!wcscmp(L"/ls", lpCmdLine)) {
-    return SetRegKeyValue(HKEY_CURRENT_USER, L"Software\\Rime\\weasel",
+    return SetRegKeyValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryRoot,
                           L"Language", L"chs", REG_SZ);
   } else if (!wcscmp(L"/lt", lpCmdLine)) {
-    return SetRegKeyValue(HKEY_CURRENT_USER, L"Software\\Rime\\weasel",
+    return SetRegKeyValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryRoot,
                           L"Language", L"cht", REG_SZ);
   } else if (!wcscmp(L"/le", lpCmdLine)) {
-    return SetRegKeyValue(HKEY_CURRENT_USER, L"Software\\Rime\\weasel",
+    return SetRegKeyValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryRoot,
                           L"Language", L"eng", REG_SZ);
   }
 
   if (!wcscmp(L"/eu", lpCmdLine)) {
-    return SetRegKeyValue(HKEY_CURRENT_USER, L"Software\\Rime\\weasel\\Updates",
+    return SetRegKeyValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryUpdates,
                           L"CheckForUpdates", L"1", REG_SZ);
   }
   if (!wcscmp(L"/du", lpCmdLine)) {
-    return SetRegKeyValue(HKEY_CURRENT_USER, L"Software\\Rime\\weasel\\Updates",
+    return SetRegKeyValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryUpdates,
                           L"CheckForUpdates", L"0", REG_SZ);
   }
 
   if (!wcscmp(L"/toggleime", lpCmdLine)) {
-    return SetRegKeyValue(HKEY_CURRENT_USER, L"Software\\Rime\\weasel",
+    return SetRegKeyValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryRoot,
                           L"ToggleImeOnOpenClose", L"yes", REG_SZ);
   }
   if (!wcscmp(L"/toggleascii", lpCmdLine)) {
-    return SetRegKeyValue(HKEY_CURRENT_USER, L"Software\\Rime\\weasel",
+    return SetRegKeyValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryRoot,
                           L"ToggleImeOnOpenClose", L"no", REG_SZ);
   }
   if (!wcscmp(L"/testing", lpCmdLine)) {
-    return SetRegKeyValue(HKEY_CURRENT_USER, L"Software\\Rime\\weasel",
+    return SetRegKeyValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryRoot,
                           L"UpdateChannel", L"testing", REG_SZ);
   }
   if (!wcscmp(L"/release", lpCmdLine)) {
-    return SetRegKeyValue(HKEY_CURRENT_USER, L"Software\\Rime\\weasel",
+    return SetRegKeyValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryRoot,
                           L"UpdateChannel", L"release", REG_SZ);
   }
 

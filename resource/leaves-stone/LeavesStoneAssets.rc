@@ -1,0 +1,51 @@
+// Theme artwork embedded into whichever module draws the candidate window.
+// Paths are relative to this file, so every project can compile the same
+// resource script regardless of where its .vcxproj lives.
+#include "../../include/resource.h"
+
+IDR_LS_LEAF_LEFT            RCDATA "leaf-left.png"
+IDR_LS_LEAF_RIGHT           RCDATA "leaf-right.png"
+IDR_LS_BUILDING_TERRACOTTA  RCDATA "building-terracotta.png"
+IDR_LS_BUILDING_IVORY       RCDATA "building-ivory.png"
+IDR_LS_SKY_BLUE             RCDATA "sky-blue.png"
+IDR_LS_ARCHITECTURAL_LINES  RCDATA "architectural-lines.png"
+
+// Plush doggy skin artwork.
+IDR_DOG_MASCOT_DEFAULT      RCDATA "../doggy/mascot-default.png"
+IDR_DOG_MASCOT_HOVER        RCDATA "../doggy/mascot-hover.png"
+IDR_DOG_MASCOT_PRESSED      RCDATA "../doggy/mascot-pressed.png"
+IDR_DOG_MASCOT_IDLE         RCDATA "../doggy/mascot-idle.png"
+IDR_DOG_MASCOT_AVATAR       RCDATA "../doggy/mascot-avatar.png"
+IDR_DOG_PANEL               RCDATA "../doggy/textures/panel-plush.png"
+IDR_DOG_MENU                RCDATA "../doggy/textures/menu-plush.png"
+IDR_DOG_PAW                 RCDATA "../doggy/icons/icon-paw.png"
+IDR_DOG_ICON_ZH             RCDATA "../doggy/icons/icon-zh.png"
+IDR_DOG_ICON_EN             RCDATA "../doggy/icons/icon-en.png"
+IDR_DOG_ICON_JP             RCDATA "../doggy/icons/icon-jp.png"
+IDR_DOG_ICON_KR             RCDATA "../doggy/icons/icon-kr.png"
+IDR_DOG_ICON_MOON           RCDATA "../doggy/icons/icon-moon.png"
+IDR_DOG_ICON_SHIRT          RCDATA "../doggy/icons/icon-shirt.png"
+IDR_DOG_ICON_GEAR           RCDATA "../doggy/icons/icon-gear.png"
+
+// Floating doggy toolbar.
+  IDR_DOG_TOOLBAR_DEFAULT    RCDATA "../doggy/toolbar/layers/toolbar-default.png"
+  IDR_DOG_TOOLBAR_HOVER      RCDATA "../doggy/toolbar/layers/toolbar-hover.png"
+  IDR_DOG_TOOLBAR_PRESSED    RCDATA "../doggy/toolbar/layers/toolbar-pressed.png"
+  IDR_DOG_TOOLBAR_IDLE       RCDATA "../doggy/toolbar/layers/toolbar-idle.png"
+  IDR_DOG_TB_MODE_BG         RCDATA "../doggy/toolbar/controls/mode-background.png"
+  IDR_DOG_TB_MODE_ZH         RCDATA "../doggy/toolbar/controls/mode-glyph-zh.png"
+  IDR_DOG_TB_MODE_EN         RCDATA "../doggy/toolbar/controls/mode-glyph-en.png"
+  IDR_DOG_TB_ICON_MOON       RCDATA "../doggy/toolbar/controls/icon-moon.png"
+  IDR_DOG_TB_ICON_SHIRT      RCDATA "../doggy/toolbar/controls/icon-shirt.png"
+  IDR_DOG_TB_ICON_GEAR       RCDATA "../doggy/toolbar/controls/icon-gear.png"
+  IDR_DOG_TB_BTN_HOVER       RCDATA "../doggy/toolbar/controls/button-hover.png"
+  IDR_DOG_TB_BTN_PRESSED     RCDATA "../doggy/toolbar/controls/button-pressed.png"
+  IDR_DOG_TB_DECOR_HOVER     RCDATA "../doggy/toolbar/decorations/hover.png"
+  IDR_DOG_TB_DECOR_PRESSED   RCDATA "../doggy/toolbar/decorations/pressed.png"
+  IDR_DOG_TB_DECOR_IDLE      RCDATA "../doggy/toolbar/decorations/idle.png"
+
+// Resting toolbar frames.
+  IDR_DOG_REST_SLEEP          RCDATA "../doggy/rest/toolbar-sleep.png"
+  IDR_DOG_REST_AWAKE          RCDATA "../doggy/rest/toolbar-awake.png"
+  IDR_DOG_REST_DECOR_SLEEP    RCDATA "../doggy/rest/decoration-sleep.png"
+  IDR_DOG_REST_DECOR_AWAKE    RCDATA "../doggy/rest/decoration-awake.png"

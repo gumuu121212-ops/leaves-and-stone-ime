@@ -1,0 +1,22 @@
+# Normalise line endings in the index so a one-line edit stops showing up as a
+# whole-file rewrite. core.autocrlf=true gives CRLF in the working tree while
+# the index stays LF, which is what Windows tools and NSIS both accept.
+* text=auto
+
+*.sln text eol=crlf
+*.vcxproj text eol=crlf
+*.vcxproj.filters text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.nsi text eol=crlf
+*.nsh text eol=crlf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.7z binary
+*.zip binary
+*.exe binary
+*.dll binary

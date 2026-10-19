@@ -127,7 +127,7 @@ Route TSF registration, candidate UI identity, registry access, default `%APPDAT
 
 - [ ] **Step 5: Run identity and upstream regression tests**
 
-Run the focused test, then all Debug tests. Expected: all pass; a repository search for user-visible `С�Ǻ�` and product registry `Software\\Rime\\Weasel` returns only upstream attribution/migration documentation, never active Leaves & Stone registration code.
+Run the focused test, then all Debug tests. Expected: all pass; a repository search for user-visible `小狼毫` and product registry `Software\\Rime\\Weasel` returns only upstream attribution/migration documentation, never active Leaves & Stone registration code.
 
 - [ ] **Step 6: Commit**
 
@@ -144,7 +144,7 @@ Commit the independent product identity and registration isolation.
 - Create: `test/TestLeavesStoneUI/ConfigTests.cpp`
 
 **Interfaces:**
-- Consumes: librime schema loading and product paths from Tasks 1�C2.
+- Consumes: librime schema loading and product paths from Tasks 1–2.
 - Produces: schema id `leaves_stone`, Simplified Chinese full-pinyin candidates, English passthrough, fixed candidate counts `5|7|9`, and theme flags `animation_enabled` and `decoration_enabled`.
 
 - [ ] **Step 1: Write failing configuration tests**
@@ -290,7 +290,7 @@ Commit the themed candidate renderer, assets, and integration.
 
 - [ ] **Step 1: Write failing settings and input-state tests**
 
-Assert defaults, 5/7/9 validation, atomic save, corrupt-file backup, hot reload, animation/decoration flags, and Chinese��English transitions with empty and active compositions.
+Assert defaults, 5/7/9 validation, atomic save, corrupt-file backup, hot reload, animation/decoration flags, and Chinese→English transitions with empty and active compositions.
 
 - [ ] **Step 2: Verify focused failure**
 
@@ -329,7 +329,7 @@ Commit settings and input-state behavior.
 - Modify: `LICENSE.txt`
 
 **Interfaces:**
-- Consumes: signed Release binaries, product constants, settings executable, schema data, and runtime assets from Tasks 2�C6.
+- Consumes: signed Release binaries, product constants, settings executable, schema data, and runtime assets from Tasks 2–6.
 - Produces: `output/archives/leaves-and-stone-<version>-test-installer.exe`, repair/uninstall entries, and explicit certificate install/remove instructions.
 
 - [ ] **Step 1: Write failing package validation checks**
@@ -400,10 +400,9 @@ Package installer, public test certificate, certificate instructions, checksums,
 
 - [ ] **Step 6: Run final verification**
 
-From a clean checkout, rebuild, run all automated tests, validate the package, install on a clean VM, type and commit `���������ܺ�`, switch to English and commit `Leaves & Stone`, then uninstall. Record the exact results in `docs/qa-matrix.md`.
+From a clean checkout, rebuild, run all automated tests, validate the package, install on a clean VM, type and commit `今天天气很好`, switch to English and commit `Leaves & Stone`, then uninstall. Record the exact results in `docs/qa-matrix.md`.
 
 - [ ] **Step 7: Commit**
 
 Commit CI, QA evidence, documentation, and the test-release metadata.
-
 

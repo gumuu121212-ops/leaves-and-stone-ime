@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 
 #include <WeaselIPCData.h>
 #include <thread>
@@ -8,6 +8,7 @@
 #include "LanguageBar.h"
 #include "Compartment.h"
 #include "ResponseParser.h"
+#include "TsfDiagnostics.h"
 
 static void error_message(const WCHAR* msg) {
   static DWORD next_tick = 0;
@@ -22,6 +23,7 @@ WeaselTSF::WeaselTSF() {
   _cRef = 1;
 
   _dwThreadMgrEventSinkCookie = TF_INVALID_COOKIE;
+  _dwProfileNotifySinkCookie = TF_INVALID_COOKIE;
 
   _dwTextEditSinkCookie = TF_INVALID_COOKIE;
   _dwTextLayoutSinkCookie = TF_INVALID_COOKIE;
@@ -37,6 +39,7 @@ WeaselTSF::WeaselTSF() {
 }
 
 WeaselTSF::~WeaselTSF() {
+  _toolbar_activation.Stop();
   DllRelease();
 }
 
@@ -65,6 +68,8 @@ STDAPI WeaselTSF::QueryInterface(REFIID riid, void** ppvObject) {
     *ppvObject = (ITfEditSession*)this;
   else if (IsEqualIID(riid, IID_ITfThreadFocusSink))
     *ppvObject = (ITfThreadFocusSink*)this;
+  else if (IsEqualIID(riid, IID_ITfActiveLanguageProfileNotifySink))
+    *ppvObject = (ITfActiveLanguageProfileNotifySink*)this;
   else if (IsEqualIID(riid, IID_ITfDisplayAttributeProvider))
     *ppvObject = (ITfDisplayAttributeProvider*)this;
 
@@ -95,6 +100,9 @@ STDAPI WeaselTSF::Activate(ITfThreadMgr* pThreadMgr, TfClientId tfClientId) {
 }
 
 STDAPI WeaselTSF::Deactivate() {
+  _toolbar_profile_active = false;
+  _toolbar_activation.Stop();
+  m_client.FocusOut();
   m_client.EndSession();
 
   _InitTextEditSink(com_ptr<ITfDocumentMgr>());
@@ -108,7 +116,7 @@ STDAPI WeaselTSF::Deactivate() {
 
   _UninitCompartment();
 
-  _UninitThreadMgrEventSink();
+  _UninitThreadFocusSink();
 
   _pThreadMgr = NULL;
 
@@ -124,6 +132,7 @@ STDAPI WeaselTSF::ActivateEx(ITfThreadMgr* pThreadMgr,
                              DWORD dwFlags) {
   com_ptr<ITfDocumentMgr> pDocMgrFocus;
   _activateFlags = dwFlags;
+  _toolbar_profile_active = true;
 
   _pThreadMgr = pThreadMgr;
   _tfClientId = tfClientId;
@@ -159,7 +168,14 @@ STDAPI WeaselTSF::ActivateEx(ITfThreadMgr* pThreadMgr,
   if (!_InitThreadFocusSink())
     goto ExitError;
 
-  _EnsureServerConnected();
+  if (_EnsureServerConnected()) {
+    BOOL focused = FALSE;
+    if (SUCCEEDED(_pThreadMgr->IsThreadFocus(&focused)) && focused)
+      m_client.FocusIn();
+  }
+  // Initial profile/focus notifications may precede the IPC session or the
+  // final thread-focus state. Reconcile after activation, without a key event.
+  _ScheduleToolbarActivation();
 
   return S_OK;
 
@@ -169,11 +185,13 @@ ExitError:
 }
 
 STDMETHODIMP WeaselTSF::OnSetThreadFocus() {
+  _ScheduleToolbarActivation();
   std::wstring _ToggleImeOnOpenClose{};
-  RegGetStringValue(HKEY_CURRENT_USER, L"Software\\Rime\\weasel",
+  RegGetStringValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryRoot,
                     L"ToggleImeOnOpenClose", _ToggleImeOnOpenClose);
   _isToOpenClose = (_ToggleImeOnOpenClose == L"yes");
   if (m_client.Echo()) {
+    m_client.FocusIn();
     m_client.ProcessKeyEvent(0);
     weasel::ResponseParser parser(NULL, NULL, &_status, NULL, &_cand->style());
     bool ok = m_client.GetResponseData(std::ref(parser));
@@ -183,6 +201,8 @@ STDMETHODIMP WeaselTSF::OnSetThreadFocus() {
   return S_OK;
 }
 STDMETHODIMP WeaselTSF::OnKillThreadFocus() {
+  _toolbar_activation.Stop();
+  m_client.FocusOut();
   _AbortComposition();
   return S_OK;
 }
@@ -196,14 +216,15 @@ BOOL WeaselTSF::_InitThreadFocusSink() {
     return FALSE;
   return TRUE;
 }
-void WeaselTSF::_UninitThreadFocusSink() {
-  com_ptr<ITfSource> pSource;
-  if (FAILED(_pThreadMgr->QueryInterface(&pSource)))
-    return;
-  if (FAILED(pSource->UnadviseSink(_dwThreadFocusSinkCookie)))
-    return;
-}
 
+void WeaselTSF::_UninitThreadFocusSink() {
+  if (_dwThreadFocusSinkCookie == TF_INVALID_COOKIE || !_pThreadMgr)
+    return;
+  com_ptr<ITfSource> source;
+  if (SUCCEEDED(_pThreadMgr->QueryInterface(&source)))
+    source->UnadviseSink(_dwThreadFocusSinkCookie);
+  _dwThreadFocusSinkCookie = TF_INVALID_COOKIE;
+}
 STDMETHODIMP WeaselTSF::OnActivated(REFCLSID clsid,
                                     REFGUID guidProfile,
                                     BOOL isActivated) {
@@ -212,13 +233,45 @@ STDMETHODIMP WeaselTSF::OnActivated(REFCLSID clsid,
   }
 
   if (isActivated) {
+    _toolbar_profile_active = true;
     _ShowLanguageBar(TRUE);
     _UpdateLanguageBar(_status);
+    BOOL focused = FALSE;
+    if (_pThreadMgr && SUCCEEDED(_pThreadMgr->IsThreadFocus(&focused)) &&
+        focused && m_client.Echo())
+      m_client.FocusIn();
+    _ScheduleToolbarActivation();
   } else {
+    _toolbar_profile_active = false;
+    _toolbar_activation.Stop();
+    m_client.FocusOut();
     _DeleteCandidateList();
     _ShowLanguageBar(FALSE);
   }
+  leaves_stone::WriteTsfDiagnostic("profile", isActivated ? "active=1" : "active=0");
   return S_OK;
+}
+
+void WeaselTSF::_ScheduleToolbarActivation() {
+  if (!_toolbar_profile_active || !_pThreadMgr) return;
+  const com_ptr<WeaselTSF> owner(this);
+  _toolbar_activation.Start([this, owner]() {
+    // Keep the service alive across a reentrant deactivation during IPC.
+    if (!owner->_toolbar_profile_active || !owner->_pThreadMgr) return true;
+    BOOL focused = FALSE;
+    const bool thread_focused =
+        SUCCEEDED(_pThreadMgr->IsThreadFocus(&focused)) && focused;
+    const bool connected = thread_focused && _EnsureServerConnected();
+    if (!_toolbar_profile_active || !_pThreadMgr) return true;
+    BOOL still_focused = FALSE;
+    const bool ready = connected &&
+        SUCCEEDED(_pThreadMgr->IsThreadFocus(&still_focused)) && still_focused;
+    leaves_stone::WriteTsfDiagnostic(
+        "toolbar-focus", std::string("focused=") + (thread_focused ? "1" : "0") +
+                             " ready=" + (ready ? "1" : "0"));
+    if (ready) m_client.FocusIn();
+    return ready;
+  });
 }
 
 void WeaselTSF::_Reconnect() {
@@ -232,32 +285,30 @@ void WeaselTSF::_Reconnect() {
   }
 }
 
-static unsigned int retry = 0;
-
 bool WeaselTSF::_EnsureServerConnected() {
   if (!m_client.Echo()) {
     _Reconnect();
-    retry++;
-    if (retry >= 6) {
+    ++_server_retry;
+    if (_server_retry >= 6) {
       HANDLE hMutex = CreateMutex(NULL, TRUE, L"WeaselDeployerExclusiveMutex");
       if (!m_client.Echo() && GetLastError() != ERROR_ALREADY_EXISTS) {
         std::wstring dir = _GetRootDir();
-        std::thread th([dir, this]() {
+        std::thread th([dir]() {
           ShellExecuteW(NULL, L"open", (dir + L"\\start_service.bat").c_str(),
                         NULL, dir.c_str(), SW_HIDE);
-          // wait 500ms, then reconnect
-          std::this_thread::sleep_for(std::chrono::milliseconds(500));
-          _Reconnect();
+          // Activation retries reconnect on the TSF thread. Do not retain the
+          // text service or access its COM language bar from this launcher.
         });
         th.detach();
       }
       if (hMutex) {
         CloseHandle(hMutex);
       }
-      retry = 0;
+      _server_retry = 0;
     }
     return (m_client.Echo() != 0);
   } else {
+    _server_retry = 0;
     return true;
   }
 }

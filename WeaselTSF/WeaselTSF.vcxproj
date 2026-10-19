@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM">
@@ -426,6 +426,7 @@
   <ItemGroup>
     <ClCompile Include="CandidateList.cpp" />
     <ClCompile Include="Compartment.cpp" />
+    <ClCompile Include="LeavesStoneInputState.cpp" />
     <ClCompile Include="Composition.cpp" />
     <ClCompile Include="DisplayAttribute.cpp" />
     <ClCompile Include="DisplayAttributeInfo.cpp" />
@@ -481,6 +482,8 @@
   <ItemGroup>
     <ClInclude Include="CandidateList.h" />
     <ClInclude Include="Compartment.h" />
+    <ClInclude Include="LeavesStoneInputState.h" />
+    <ClInclude Include="DeferredToolbarActivation.h" />
     <ClInclude Include="ctffunc.h" />
     <ClInclude Include="DisplayAttributeInfo.h" />
     <ClInclude Include="EditSession.h" />
@@ -512,6 +515,7 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WeaselTSF.rc" />
+    <ResourceCompile Include="..\resource\leaves-stone\LeavesStoneAssets.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

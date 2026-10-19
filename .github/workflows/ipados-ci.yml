@@ -1,0 +1,47 @@
+name: Xiaomaodou iPadOS
+
+on:
+  push:
+    paths:
+      - 'platforms/ipados/**'
+      - '.github/workflows/ipados-ci.yml'
+      - 'output/data/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ipados-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native:
+    name: Native iPad keyboard build and tests
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record Apple toolchain
+        run: xcodebuild -version
+      - name: Build dictionaries and test real Rime input
+        run: bash platforms/ipados/tools/build-native.sh
+      - name: Test simulator and archive device app
+        run: bash platforms/ipados/tools/build.sh
+      - name: Upload keyboard results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipados-keyboard-${{ github.sha }}
+          path: |
+            platforms/ipados/dist
+            platforms/ipados/.build/KeyboardTests.xcresult
+          if-no-files-found: warn
+      - name: Upload verified native resources
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipados-native-${{ github.sha }}
+          path: |
+            platforms/ipados/Resources/Rime
+            platforms/ipados/Resources/Notices
+          if-no-files-found: error

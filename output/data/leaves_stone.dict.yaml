@@ -1,0 +1,13 @@
+# Leaves & Stone dictionary manifest
+# Imports the complete Luna Pinyin table installed at build time by pinned Plum.
+# Luna Pinyin is maintained by Rime Developers under LGPL-3.0-or-later.
+# encoding: utf-8
+
+---
+name: leaves_stone
+version: "1.0"
+sort: by_weight
+use_preset_vocabulary: true
+import_tables:
+  - luna_pinyin
+...

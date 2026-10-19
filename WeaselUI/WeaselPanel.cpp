@@ -1,6 +1,10 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "WeaselPanel.h"
 
+#include <atomic>
+#include <cmath>
+#include <fstream>
+#include <string>
 #include <utility>
 #include <ShellScalingApi.h>
 #include <VersionHelpers.hpp>
@@ -23,6 +27,9 @@
   ((((color & 0xff000000) >> 25) & 0xff) << 24) | (color & 0x00ffffff)
 
 #pragma comment(lib, "Shcore.lib")
+#pragma comment(lib, "windowscodecs.lib")
+#pragma comment(lib, "msimg32.lib")
+#pragma comment(lib, "ole32.lib")
 
 template <class t0, class t1, class t2>
 inline void LoadIconNecessary(t0& a, t1& b, t2& c, int d) {
@@ -98,10 +105,202 @@ WeaselPanel::~WeaselPanel() {
 
 void WeaselPanel::_ResizeWindow() {
   CDCHandle dc = GetDC();
-  CSize m_size = m_layout->GetContentSize();
+  CSize m_size;
+  if (_UseLeavesStoneScene()) {
+    m_size.cx =
+        static_cast<LONG>(std::ceil(m_leaves_scene.window_bounds.Width()));
+    m_size.cy =
+        static_cast<LONG>(std::ceil(m_leaves_scene.window_bounds.Height()));
+  } else {
+    m_size = m_layout->GetContentSize();
+  }
   SetWindowPos(NULL, 0, 0, m_size.cx, m_size.cy,
                SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOREDRAW);
   ReleaseDC(dc);
+}
+
+namespace {
+void LogLeavesStoneFirstFrame(ULONGLONG created_at, float opacity, bool drawn) {
+  static std::atomic<unsigned> count{0};
+  if (count.fetch_add(1) >= 24)
+    return;
+  wchar_t temp[MAX_PATH]{};
+  const DWORD length = GetTempPathW(MAX_PATH, temp);
+  if (!length || length >= MAX_PATH)
+    return;
+  const std::wstring path = std::wstring(temp) + L"leaves-stone-first-frame.log";
+  std::ofstream out(path.c_str(), std::ios::app | std::ios::binary);
+  if (out) {
+    const ULONGLONG now = GetTickCount64();
+    out << now << " pid=" << GetCurrentProcessId()
+        << " tid=" << GetCurrentThreadId()
+        << " create_to_frame_ms=" << now - created_at
+        << " opacity=" << opacity << " drawn=" << drawn << '\n';
+  }
+}
+
+// Diagnostic for the candidate window. Nothing else exposes why the Leaves &
+// Stone scene was or was not used, so record the gate inputs in
+// %TEMP%\leaves-stone-ui.log, a bounded number of times and only once there is
+// something to draw.
+void LogLeavesStoneGate(bool assets_ready,
+                        bool inline_preedit,
+                        bool ascii_mode,
+                        const std::wstring& schema_id,
+                        size_t candidate_count,
+                        bool has_preedit) {
+  static int written = 0;
+  if (candidate_count == 0 && !has_preedit)
+    return;
+  if (written >= 20)
+    return;
+  ++written;
+  wchar_t temp_path[MAX_PATH] = {0};
+  if (GetTempPathW(MAX_PATH, temp_path) == 0)
+    return;
+  std::wstring path = std::wstring(temp_path) + L"leaves-stone-ui.log";
+  std::ofstream out(path.c_str(), std::ios::app | std::ios::binary);
+  if (!out)
+    return;
+  std::string schema;
+  if (!schema_id.empty()) {
+    const int size = WideCharToMultiByte(CP_UTF8, 0, schema_id.c_str(), -1,
+                                         nullptr, 0, nullptr, nullptr);
+    if (size > 1) {
+      schema.resize(static_cast<size_t>(size - 1));
+      WideCharToMultiByte(CP_UTF8, 0, schema_id.c_str(), -1, &schema[0], size,
+                          nullptr, nullptr);
+    }
+  }
+  out << "assets_ready=" << (assets_ready ? 1 : 0)
+      << " inline_preedit=" << (inline_preedit ? 1 : 0)
+      << " ascii_mode=" << (ascii_mode ? 1 : 0)
+      << " schema_id=" << (schema.empty() ? "<empty>" : schema)
+      << " candidates=" << candidate_count
+      << " has_preedit=" << (has_preedit ? 1 : 0) << "\n";
+}
+}  // namespace
+
+bool WeaselPanel::_UseLeavesStoneScene() const {
+  // The panel can be asked before the session status has arrived, and then
+  // schema_id is empty. Requiring an exact schema id made the whole scene
+  // unreachable in that case, so an empty id is accepted; this product ships a
+  // single schema and the check still keeps other schemas on the classic look.
+  const bool schema_matches =
+      m_status.schema_id.empty() || m_status.schema_id == L"leaves_stone";
+  // Inline preedit is allowed here: the host draws the pinyin and the scene
+  // still draws the bar with its candidates. Refusing the scene under inline
+  // preedit silently fell back to the classic white candidate list.
+  const bool use_scene =
+      m_theme_assets_ready && !hide_candidates && !m_status.ascii_mode &&
+      schema_matches &&
+      (!m_ctx.preedit.str.empty() || !m_ctx.cinfo.candies.empty());
+  LogLeavesStoneGate(m_theme_assets_ready, m_style.inline_preedit,
+                     m_status.ascii_mode, m_status.schema_id,
+                     m_ctx.cinfo.candies.size(),
+                     !m_ctx.preedit.str.empty());
+  return use_scene;
+}
+
+void WeaselPanel::_ApplyLeavesStoneSettings() {
+  m_leaves_theme.default_candidate_count = m_leaves_settings.candidate_count;
+  m_leaves_theme.animation_enabled = m_leaves_settings.animation_enabled;
+  m_leaves_theme.decoration_enabled = m_leaves_settings.decoration_enabled;
+  m_leaves_theme.orientation =
+      m_leaves_settings.orientation ==
+              leaves_stone::settings::Orientation::Vertical
+          ? leaves_stone::Orientation::Vertical
+          : leaves_stone::Orientation::Horizontal;
+  switch (m_leaves_settings.text_size) {
+    case leaves_stone::settings::TextSize::Small:
+      m_leaves_theme.text_size = leaves_stone::TextSize::Small;
+      break;
+    case leaves_stone::settings::TextSize::Large:
+      m_leaves_theme.text_size = leaves_stone::TextSize::Large;
+      break;
+    default:
+      m_leaves_theme.text_size = leaves_stone::TextSize::Medium;
+      break;
+  }
+}
+
+void WeaselPanel::_BuildLeavesStoneScene(bool restart_animation) {
+  if (!_UseLeavesStoneScene())
+    return;
+
+  RECT work_area = {0, 0, 1920, 1080};
+  const HMONITOR monitor =
+      MonitorFromRect(m_inputPos, MONITOR_DEFAULTTONEAREST);
+  if (monitor) {
+    MONITORINFO info = {};
+    info.cbSize = sizeof(info);
+    if (GetMonitorInfo(monitor, &info))
+      work_area = info.rcWork;
+  }
+
+  leaves_stone::SceneInput input;
+  // TSF supplies the selection caret for inline preedit. Do not estimate its
+  // advance from the number of characters or from the candidate-window text.
+  input.anchor = {static_cast<float>(m_inputPos.left),
+                  static_cast<float>(m_inputPos.top),
+                  static_cast<float>(m_inputPos.right),
+                  static_cast<float>(m_inputPos.bottom)};
+  input.work_area = {static_cast<float>(work_area.left),
+                     static_cast<float>(work_area.top),
+                     static_cast<float>(work_area.right),
+                     static_cast<float>(work_area.bottom)};
+  // Draw the whole scene a little smaller than the raw scale: the arrow window
+  // is large and used to dominate the screen next to the caret.
+  input.dpi_scale = dpiScaleLayout * 0.85f;
+  // With inline preedit the host draws the pinyin in its own text field, so the
+  // bar must not repeat it: show candidates only.
+  input.preedit = m_style.inline_preedit ? std::wstring() : m_ctx.preedit.str;
+  input.selected_index = static_cast<size_t>(m_ctx.cinfo.highlighted);
+  input.requested_candidate_count = m_leaves_settings.candidate_count;
+  input.has_previous_page = m_ctx.cinfo.currentPage > 0;
+  input.has_next_page = !m_ctx.cinfo.is_last_page;
+  input.theme = m_leaves_theme;
+  input.candidates.reserve(m_ctx.cinfo.candies.size());
+  for (size_t index = 0; index < m_ctx.cinfo.candies.size(); ++index) {
+    const std::wstring comment = index < m_ctx.cinfo.comments.size()
+                                     ? m_ctx.cinfo.comments[index].str
+                                     : L"";
+    input.candidates.push_back({m_ctx.cinfo.candies[index].str, comment});
+  }
+  m_leaves_scene = m_scene_renderer.BuildScene(input);
+  // Record the caret rect the host reports so a window that refuses to follow
+  // the text can be told apart from a host that never sends a new rect.
+  {
+    static int trail = 0;
+    if (trail < 40) {
+      ++trail;
+      wchar_t temp[MAX_PATH] = {0};
+      if (GetTempPathW(MAX_PATH, temp) != 0) {
+        std::wstring path = std::wstring(temp) + L"leaves-stone-caret.log";
+        std::ofstream out(path.c_str(), std::ios::app | std::ios::binary);
+        if (out) {
+          out << "caret " << m_inputPos.left << "," << m_inputPos.top << ","
+              << m_inputPos.right << "," << m_inputPos.bottom << "  window "
+              << static_cast<int>(m_leaves_scene.window_bounds.left) << ","
+              << static_cast<int>(m_leaves_scene.window_bounds.top) << "  bar "
+              << static_cast<int>(m_leaves_scene.bar.left) << ","
+              << static_cast<int>(m_leaves_scene.bar.top) << " above "
+              << m_leaves_scene.placed_above << "  len "
+              << m_ctx.preedit.str.size() << " drawn_len "
+              << input.preedit.size() << " inline " << m_style.inline_preedit
+              << "\n";
+        }
+      }
+    }
+  }
+
+  if (restart_animation && m_leaves_theme.animation_enabled) {
+    m_scene_animation_start = GetTickCount64();
+    SetTimer(LEAVES_ANIMATION_TIMER, 16, nullptr);
+  } else if (!m_leaves_theme.animation_enabled) {
+    KillTimer(LEAVES_ANIMATION_TIMER);
+    m_scene_animation_start = 0;
+  }
 }
 
 void WeaselPanel::_CreateLayout() {
@@ -130,6 +329,10 @@ void WeaselPanel::_CreateLayout() {
 
 // 更新界面
 void WeaselPanel::Refresh() {
+  if (m_leaves_settings_store.ReloadIfChanged(&m_leaves_settings)) {
+    _ApplyLeavesStoneSettings();
+    m_scene_renderer.DiscardDeviceResources();
+  }
   bool should_show_icon =
       (m_status.ascii_mode || !m_status.composing || !m_ctx.aux.empty());
   m_candidateCount = (BYTE)m_ctx.cinfo.candies.size();
@@ -155,15 +358,30 @@ void WeaselPanel::Refresh() {
   // only RedrawWindow if no need to hide candidates window, or
   // inline_no_candidates
   if (!hide_candidates || inline_no_candidates) {
+    const bool context_changed = m_ctx != m_octx;
     _InitFontRes();
     _CreateLayout();
 
     CDCHandle dc = GetDC();
     m_layout->DoLayout(dc, pDWR);
     ReleaseDC(dc);
+    // The scene needs its artwork, and OnCreate can run before the imaging
+    // component is usable in this process, so retry on refresh instead of
+    // staying on the classic layout for the life of the window.
+    if (!m_theme_assets_ready)
+      m_theme_assets_ready = m_theme_assets.Load(nullptr);
+    const bool use_leaves_scene = _UseLeavesStoneScene();
+    const bool animate_appearance = leaves_stone::ShouldAnimateAppearance(
+        m_leaves_scene_visible, use_leaves_scene, m_leaves_theme);
+    _BuildLeavesStoneScene(animate_appearance);
+    if (!use_leaves_scene) {
+      KillTimer(LEAVES_ANIMATION_TIMER);
+      m_scene_animation_start = 0;
+    }
+    m_leaves_scene_visible = use_leaves_scene;
     _ResizeWindow();
     _RepositionWindow();
-    if (m_ctx != m_octx) {
+    if (context_changed) {
       m_octx = m_ctx;
       RedrawWindow();
     }
@@ -266,6 +484,22 @@ LRESULT WeaselPanel::OnLeftClickedUp(UINT uMsg,
   point.x = GET_X_LPARAM(lParam);
   point.y = GET_Y_LPARAM(lParam);
 
+  if (_UseLeavesStoneScene()) {
+    const auto hit = leaves_stone::HitTest(
+        m_leaves_scene,
+        {point.x + m_leaves_scene.window_bounds.left,
+         point.y + m_leaves_scene.window_bounds.top});
+    if (hit && hit->kind == leaves_stone::HitKind::Candidate && _UICallback) {
+      size_t index = hit->candidate_index;
+      m_mouse_entry = false;
+      _UICallback(&index, nullptr, nullptr, nullptr);
+      if (!m_status.composing)
+        DestroyWindow();
+    }
+    bHandled = true;
+    return 0;
+  }
+
   ::KillTimer(m_hWnd, AUTOREV_TIMER);
   bar_scale_ = 1.0;
   ptimer = 0;
@@ -303,6 +537,28 @@ LRESULT WeaselPanel::OnLeftClickedDown(UINT uMsg,
   CPoint point;
   point.x = GET_X_LPARAM(lParam);
   point.y = GET_Y_LPARAM(lParam);
+
+  if (_UseLeavesStoneScene()) {
+    const auto hit = leaves_stone::HitTest(
+        m_leaves_scene,
+        {point.x + m_leaves_scene.window_bounds.left,
+         point.y + m_leaves_scene.window_bounds.top});
+    if (hit && _UICallback) {
+      if (hit->kind == leaves_stone::HitKind::PreviousPage) {
+        bool next_page = false;
+        _UICallback(nullptr, nullptr, &next_page, nullptr);
+      } else if (hit->kind == leaves_stone::HitKind::NextPage) {
+        bool next_page = true;
+        _UICallback(nullptr, nullptr, &next_page, nullptr);
+      } else if (hit->candidate_index !=
+                 static_cast<size_t>(m_ctx.cinfo.highlighted)) {
+        size_t index = hit->candidate_index;
+        _UICallback(nullptr, &index, nullptr, nullptr);
+      }
+    }
+    bHandled = true;
+    return 0;
+  }
 
   // capture
   if (m_style.click_to_capture) {
@@ -438,6 +694,27 @@ LRESULT WeaselPanel::OnMouseMove(UINT uMsg,
   CPoint point;
   point.x = GET_X_LPARAM(lParam);
   point.y = GET_Y_LPARAM(lParam);
+
+  if (_UseLeavesStoneScene()) {
+    const auto hit = leaves_stone::HitTest(
+        m_leaves_scene,
+        {point.x + m_leaves_scene.window_bounds.left,
+         point.y + m_leaves_scene.window_bounds.top});
+    int hover_index = -1;
+    if (hit && hit->kind == leaves_stone::HitKind::Candidate) {
+      hover_index = static_cast<int>(hit->candidate_index);
+      if (m_style.hover_type == UIStyle::HoverType::HILITE && _UICallback &&
+          hover_index != m_ctx.cinfo.highlighted) {
+        size_t index = hit->candidate_index;
+        _UICallback(nullptr, &index, nullptr, nullptr);
+      }
+    }
+    if (hover_index != m_hoverIndex) {
+      m_hoverIndex = hover_index;
+      InvalidateRect(&rcw, true);
+    }
+    return 0;
+  }
 
   for (size_t i = 0; i < m_candidateCount && i < MAX_CANDIDATES_COUNT; ++i) {
     CRect rect = m_layout->GetCandidateRect((int)i);
@@ -938,6 +1215,49 @@ void WeaselPanel::DoPaint(CDCHandle dc) {
   // turn off WS_EX_TRANSPARENT, for better resp performance
   ModifyStyleEx(WS_EX_TRANSPARENT, WS_EX_LAYERED);
   GetClientRect(&rcw);
+  if (_UseLeavesStoneScene()) {
+    HDC screen_dc = ::GetDC(m_hWnd);
+    HDC memory_dc = ::CreateCompatibleDC(screen_dc);
+    BITMAPINFO info = {};
+    info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    info.bmiHeader.biWidth = rcw.Width();
+    info.bmiHeader.biHeight = -rcw.Height();
+    info.bmiHeader.biPlanes = 1;
+    info.bmiHeader.biBitCount = 32;
+    info.bmiHeader.biCompression = BI_RGB;
+    void* pixels = nullptr;
+    HBITMAP bitmap = ::CreateDIBSection(memory_dc, &info, DIB_RGB_COLORS,
+                                        &pixels, nullptr, 0);
+    HGDIOBJ previous = bitmap ? ::SelectObject(memory_dc, bitmap) : nullptr;
+    ::ReleaseDC(m_hWnd, screen_dc);
+
+    // Sample elapsed time on every paint, rather than waiting for WM_TIMER to
+    // change cached opacity. Hosts can process TSF input while timers are late.
+    const float opacity = m_leaves_theme.animation_enabled &&
+                                  m_scene_animation_start != 0
+                              ? leaves_stone::CandidateAppearanceOpacity(
+                                    static_cast<float>(GetTickCount64() -
+                                                       m_scene_animation_start))
+                              : 1.0f;
+    const bool drawn = bitmap && m_scene_renderer.Render(
+                                      memory_dc, m_leaves_scene,
+                                      m_theme_assets, opacity);
+    if (drawn)
+      _LayerUpdate(rcw, memory_dc);
+    else
+      ShowWindow(SW_HIDE);
+    if (!m_first_frame_logged) {
+      m_first_frame_logged = true;
+      LogLeavesStoneFirstFrame(m_window_created_at, opacity, drawn);
+    }
+    if (previous)
+      ::SelectObject(memory_dc, previous);
+    if (bitmap)
+      ::DeleteObject(bitmap);
+    if (memory_dc)
+      ::DeleteDC(memory_dc);
+    return;
+  }
   // prepare memDC
   CDCHandle hdc = ::GetDC(m_hWnd);
   CDCHandle memDC = ::CreateCompatibleDC(hdc);
@@ -1094,6 +1414,11 @@ LRESULT WeaselPanel::OnCreate(UINT uMsg,
                               BOOL& bHandled) {
   m_mouse_entry = false;
   m_hoverIndex = -1;
+  m_window_created_at = GetTickCount64();
+  m_first_frame_logged = false;
+  m_leaves_settings = m_leaves_settings_store.Load();
+  _ApplyLeavesStoneSettings();
+  m_theme_assets_ready = m_theme_assets.Load(nullptr);
   Refresh();
   return TRUE;
 }
@@ -1104,6 +1429,12 @@ LRESULT WeaselPanel::OnDestroy(UINT uMsg,
                                BOOL& bHandled) {
   m_hoverIndex = -1;
   m_sticky = false;
+  KillTimer(LEAVES_ANIMATION_TIMER);
+  m_scene_renderer.DiscardDeviceResources();
+  m_theme_assets.Discard();
+  m_theme_assets_ready = false;
+  m_leaves_scene_visible = false;
+  m_scene_animation_start = 0;
   delete m_layout;
   m_layout = NULL;
   return 0;
@@ -1113,8 +1444,26 @@ LRESULT WeaselPanel::OnDpiChanged(UINT uMsg,
                                   WPARAM wParam,
                                   LPARAM lParam,
                                   BOOL& bHandled) {
+  m_scene_renderer.DiscardDeviceResources();
   Refresh();
   return LRESULT();
+}
+
+LRESULT WeaselPanel::OnAnimationTimer(UINT uMsg,
+                                      WPARAM wParam,
+                                      LPARAM lParam,
+                                      BOOL& bHandled) {
+  if (wParam != LEAVES_ANIMATION_TIMER) {
+    bHandled = FALSE;
+    return 0;
+  }
+  const ULONGLONG elapsed = GetTickCount64() - m_scene_animation_start;
+  if (elapsed >= 140) {
+    KillTimer(LEAVES_ANIMATION_TIMER);
+  }
+  RedrawWindow();
+  bHandled = TRUE;
+  return 0;
 }
 
 void WeaselPanel::MoveTo(RECT const& rc) {
@@ -1164,6 +1513,16 @@ void WeaselPanel::_RepositionWindow(const bool& adj) {
       m_hMonitor = hMonitor;
       m_redraw_by_monitor_change = true;
     }
+  }
+  if (_UseLeavesStoneScene()) {
+    _BuildLeavesStoneScene(false);
+    _ResizeWindow();
+    SetWindowPos(
+        HWND_TOPMOST,
+        static_cast<int>(std::floor(m_leaves_scene.window_bounds.left)),
+        static_cast<int>(std::floor(m_leaves_scene.window_bounds.top)), 0, 0,
+        SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOREDRAW);
+    return;
   }
   RECT rcWindow;
   GetWindowRect(&rcWindow);

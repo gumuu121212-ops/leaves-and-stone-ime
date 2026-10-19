@@ -12,6 +12,12 @@
 #define IDR_MENU_POPUP_HANT             108
 #define IDR_MENU_POPUP_HANS             109
 #define IDS_STR_UNDER_MAINTENANCE       302
+#define IDR_LS_LEAF_LEFT                501
+#define IDR_LS_LEAF_RIGHT               502
+#define IDR_LS_BUILDING_TERRACOTTA      503
+#define IDR_LS_BUILDING_IVORY           504
+#define IDR_LS_SKY_BLUE                 505
+#define IDR_LS_ARCHITECTURAL_LINES      506
 #define ID_WEASELTRAY_QUIT              40001
 #define ID_WEASELTRAY_DEPLOY            40002
 #define ID_WEASELTRAY_CHECKUPDATE       40003
@@ -27,6 +33,7 @@
 #define ID_WEASELTRAY_DISABLE_ASCII     40014
 #define ID_WEASELTRAY_RERUN_SERVICE     40015
 #define ID_WEASELTRAY_LOGDIR            40016
+#define ID_WEASELTRAY_SHOW_TOOLBAR      40017
 
 // Next default values for new objects
 //
@@ -38,3 +45,42 @@
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
+// Plush doggy skin artwork (resource/doggy).
+#define IDR_DOG_MASCOT_DEFAULT      601
+#define IDR_DOG_MASCOT_HOVER        602
+#define IDR_DOG_MASCOT_PRESSED      603
+#define IDR_DOG_MASCOT_IDLE         604
+#define IDR_DOG_MASCOT_AVATAR       605
+#define IDR_DOG_PANEL               606
+#define IDR_DOG_MENU                607
+#define IDR_DOG_PAW                 608
+#define IDR_DOG_ICON_ZH             609
+#define IDR_DOG_ICON_EN             610
+#define IDR_DOG_ICON_JP             611
+#define IDR_DOG_ICON_KR             612
+#define IDR_DOG_ICON_MOON           613
+#define IDR_DOG_ICON_SHIRT          614
+#define IDR_DOG_ICON_GEAR           615
+
+// Floating doggy toolbar (resource/doggy/toolbar).
+#define IDR_DOG_TOOLBAR_DEFAULT      620
+#define IDR_DOG_TOOLBAR_HOVER        621
+#define IDR_DOG_TOOLBAR_PRESSED      622
+#define IDR_DOG_TOOLBAR_IDLE         623
+#define IDR_DOG_TB_MODE_BG           624
+#define IDR_DOG_TB_MODE_ZH           625
+#define IDR_DOG_TB_MODE_EN           626
+#define IDR_DOG_TB_ICON_MOON         627
+#define IDR_DOG_TB_ICON_SHIRT        628
+#define IDR_DOG_TB_ICON_GEAR         629
+#define IDR_DOG_TB_BTN_HOVER         630
+#define IDR_DOG_TB_BTN_PRESSED       631
+#define IDR_DOG_TB_DECOR_HOVER       632
+#define IDR_DOG_TB_DECOR_PRESSED     633
+#define IDR_DOG_TB_DECOR_IDLE        634
+
+// Resting toolbar (resource/doggy/rest).
+#define IDR_DOG_REST_SLEEP          635
+#define IDR_DOG_REST_AWAKE          636
+#define IDR_DOG_REST_DECOR_SLEEP    637
+#define IDR_DOG_REST_DECOR_AWAKE    638

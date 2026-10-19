@@ -6,6 +6,7 @@
 #include "ResponseParser.h"
 #include "CandidateList.h"
 #include "LanguageBar.h"
+#include "LeavesStoneInputState.h"
 
 STDAPI CCompartmentEventSink::QueryInterface(REFIID riid,
                                              _Outptr_ void** ppvObj) {
@@ -253,15 +254,35 @@ HRESULT WeaselTSF::_HandleCompartment(REFGUID guidCompartment) {
       _EnableLanguageBar(isOpen);
       _UpdateLanguageBar(_status);
     } else {
+      const auto current_mode =
+          _status.ascii_mode ? leaves_stone::input_state::Mode::English
+                             : leaves_stone::input_state::Mode::Chinese;
       _status.ascii_mode = !_status.ascii_mode;
+      const auto requested_mode =
+          _status.ascii_mode ? leaves_stone::input_state::Mode::English
+                             : leaves_stone::input_state::Mode::Chinese;
+      const auto transition = leaves_stone::input_state::PlanModeSwitch(
+          current_mode, requested_mode, _IsComposing(),
+          leaves_stone::input_state::CompositionPolicy::Commit);
+      if (_pEditSessionContext &&
+          transition.action ==
+              leaves_stone::input_state::CompositionAction::Commit) {
+        // Preserve the text already displayed in the TSF composition range,
+        // then clear only the server-side preedit before entering passthrough.
+        _EndComposition(_pEditSessionContext, false);
+        m_client.ClearComposition();
+      } else if (_pEditSessionContext &&
+                 transition.action ==
+                     leaves_stone::input_state::CompositionAction::Cancel) {
+        m_client.ClearComposition();
+        _EndComposition(_pEditSessionContext, true);
+      }
       _SetKeyboardOpen(true);
       if (_pLangBarButton && _pLangBarButton->IsLangBarDisabled())
         _EnableLanguageBar(true);
       _HandleLangBarMenuSelect(_status.ascii_mode
                                    ? ID_WEASELTRAY_ENABLE_ASCII
                                    : ID_WEASELTRAY_DISABLE_ASCII);
-      if (_pEditSessionContext)
-        m_client.ClearComposition();
       _UpdateLanguageBar(_status);
     }
   } else if (IsEqualGUID(guidCompartment,

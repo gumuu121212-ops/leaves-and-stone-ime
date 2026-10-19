@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <string>
 #include <vector>
 #include <msctf.h>
@@ -8,28 +8,15 @@
 #include <WeaselUtility.h>
 #include "InstallOptionsDlg.h"
 
-// {A3F4CDED-B1E9-41EE-9CA6-7B4D0DE6CB0A}
-static const GUID c_clsidTextService = {
-    0xa3f4cded,
-    0xb1e9,
-    0x41ee,
-    {0x9c, 0xa6, 0x7b, 0x4d, 0xd, 0xe6, 0xcb, 0xa}};
-
-// {3D02CAB6-2B8E-4781-BA20-1C9267529467}
-static const GUID c_guidProfile = {
-    0x3d02cab6,
-    0x2b8e,
-    0x4781,
-    {0xba, 0x20, 0x1c, 0x92, 0x67, 0x52, 0x94, 0x67}};
+static const GUID c_clsidTextService =
+    leaves_stone::product::kTextServiceClsid;
+static const GUID c_guidProfile =
+    leaves_stone::product::kLanguageProfileGuid;
 
 // if in the future, option hant is extended, maybe a function to generate this
 // info is required
-#define PSZTITLE_HANS                                                     \
-  L"0804:{A3F4CDED-B1E9-41EE-9CA6-7B4D0DE6CB0A}{3D02CAB6-2B8E-4781-BA20-" \
-  L"1C9267529467}"
-#define PSZTITLE_HANT                                                     \
-  L"0404:{A3F4CDED-B1E9-41EE-9CA6-7B4D0DE6CB0A}{3D02CAB6-2B8E-4781-BA20-" \
-  L"1C9267529467}"
+#define PSZTITLE_HANS leaves_stone::product::kInstallLayoutHans
+#define PSZTITLE_HANT leaves_stone::product::kInstallLayoutHant
 #define ILOT_UNINSTALL 0x00000001
 typedef HRESULT(WINAPI* PTF_INSTALLLAYOUTORTIP)(LPCWSTR psz, DWORD dwFlags);
 
@@ -400,7 +387,7 @@ int register_ime(const std::wstring& ime_path,
       if (ret != ERROR_SUCCESS)
         continue;
 
-      // 小狼毫?
+      // Leaves & Stone?
       if (_wcsicmp(imeFile, L"weasel.ime") == 0) {
         DWORD value;
         swscanf_s(subKey, L"%x", &value);
@@ -623,9 +610,9 @@ int uninstall(bool silent) {
   // 注销输入法
   int retval = 0;
 
-  const WCHAR KEY[] = L"Software\\Rime\\Weasel";
   HKEY hKey;
-  LSTATUS ret = RegOpenKey(HKEY_CURRENT_USER, KEY, &hKey);
+  LSTATUS ret = RegOpenKey(HKEY_CURRENT_USER,
+                           leaves_stone::product::kRegistryRoot, &hKey);
   if (ret == ERROR_SUCCESS) {
     DWORD type = 0;
     DWORD data = 0;

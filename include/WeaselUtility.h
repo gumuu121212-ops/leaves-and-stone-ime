@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <wrl/client.h>
+#include <LeavesStoneProduct.h>
 using namespace Microsoft::WRL;
 
 namespace fs = std::filesystem;
@@ -194,7 +195,7 @@ inline std::wstring get_weasel_ime_name() {
       langId == MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_HONGKONG) ||
       langId == MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_SINGAPORE) ||
       langId == MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_MACAU)) {
-    return L"小狼毫";
+    return L"小毛豆输入法";
   } else {
     return L"Weasel";
   }
@@ -217,7 +218,7 @@ inline LONG RegGetStringValue(HKEY key,
 
 inline LANGID get_language_id() {
   std::wstring lang{};
-  if (RegGetStringValue(HKEY_CURRENT_USER, L"Software\\Rime\\Weasel",
+  if (RegGetStringValue(HKEY_CURRENT_USER, leaves_stone::product::kRegistryRoot,
                         L"Language", lang) == ERROR_SUCCESS) {
     if (lang == L"chs")
       return MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED);

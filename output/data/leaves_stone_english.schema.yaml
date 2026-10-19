@@ -1,0 +1,7 @@
+# Build-only dependency. Omit schema/name so the settings dialog excludes it.
+# SPDX-License-Identifier: GPL-3.0-only
+schema:
+  schema_id: leaves_stone_english
+  version: "1.0"
+translator:
+  dictionary: leaves_stone_english
