@@ -209,6 +209,44 @@ private extension UIView {
         attachment.name = "xiaomaodou-setup-app"; attachment.lifetime = .keepAlways
         add(attachment)
     }
+
+    func testSilentDocumentChangeStopsRepeatAtItsNextTick() {
+        let controller = ProxyKeyboardController()
+        controller.proxy.text = "OLD"
+        controller.loadViewIfNeeded()
+        controller.view.frame = CGRect(x: 0, y: 0, width: 768, height: 388)
+        controller.viewWillAppear(false)
+        controller.viewDidLayoutSubviews()
+        controller.view.layoutIfNeeded()
+        controller.view.findButton("backspace")?.sendActions(for: .touchDown)
+        let deleted = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in controller.proxy.text != "OLD" }, object: nil)
+        wait(for: [deleted], timeout: 10)
+        controller.proxy.documentIdentifier = UUID(); controller.proxy.text = "SAFE"
+        // No textDidChange notification: the repeat must detect this itself.
+        RunLoop.main.run(until: Date().addingTimeInterval(0.7))
+        XCTAssertEqual(controller.proxy.text, "SAFE")
+        controller.viewWillDisappear(false)
+    }
+
+    func testHostFocusChangeWhileInsertingDiscardsAlreadyQueuedText() {
+        let controller = ProxyKeyboardController()
+        controller.loadViewIfNeeded()
+        controller.view.frame = CGRect(x: 0, y: 0, width: 768, height: 388)
+        controller.viewWillAppear(false)
+        controller.viewDidLayoutSubviews()
+        controller.view.layoutIfNeeded()
+        let moved = expectation(description: "host automatically moved to another field")
+        controller.proxy.onInsert = {
+            controller.proxy.onInsert = nil
+            controller.proxy.documentIdentifier = UUID(); controller.proxy.text = "SAFE"
+            moved.fulfill()
+        }
+        for id in ["mode", "key-a", "key-b"] { controller.view.findButton(id)?.sendActions(for: .touchUpInside) }
+        wait(for: [moved], timeout: 10)
+        RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+        XCTAssertEqual(controller.proxy.text, "SAFE")
+        controller.viewWillDisappear(false)
+    }
 }
 
 private final class ProxyKeyboardController: KeyboardViewController {
@@ -219,6 +257,7 @@ private final class ProxyKeyboardController: KeyboardViewController {
 private final class TestDocumentProxy: NSObject, UITextDocumentProxy {
     var text = ""
     var selection: String?
+    var onInsert: (() -> Void)?
     var documentIdentifier = UUID()
     var documentContextBeforeInput: String? { selection == nil ? text : "" }
     var documentContextAfterInput: String? { "" }
@@ -227,6 +266,7 @@ private final class TestDocumentProxy: NSObject, UITextDocumentProxy {
     var hasText: Bool { !text.isEmpty }
     func insertText(_ text: String) {
         if selection != nil { self.text = text; selection = nil } else { self.text += text }
+        onInsert?()
     }
     func deleteBackward() { if !text.isEmpty { text.removeLast() } }
     func adjustTextPosition(byCharacterOffset offset: Int) {}
