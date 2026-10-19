@@ -46,5 +46,48 @@ int RunCaretPositionTests() {
     return false;
   }, result) && result.left == 7 && result.bottom == 10,
         "unavailable layout must not replace the last position with garbage");
+
+  leaves_stone::CaretPositionState stable;
+  Rect position{};
+  const auto start_only = [](CaretRange range, Rect& r) {
+    if (range != CaretRange::CompositionStart) return false;
+    r = {1698, 1056, 1698, 1092}; return true;
+  };
+  check(stable.Resolve(true, start_only, position) && position.left == 1698,
+        "a new composition must allow a start-only layout as its initial anchor");
+  for (int caret : {1792, 1812, 1754}) {
+    check(stable.Resolve(true, [&](CaretRange range, Rect& r) {
+      if (range != CaretRange::Selection) return false;
+      r = {caret, 1056, caret, 1092}; return true;
+    }, position) && position.left == caret,
+          "valid layout must follow typing and backspace without a debounce");
+    for (int pending = 0; pending < 3; ++pending) {
+      check(!stable.Resolve(true, start_only, position) && position.left == caret,
+            "transient layout loss must not jump from the real caret back to "
+            "the composition start");
+    }
+  }
+  check(stable.Resolve(true, [](CaretRange range, Rect& r) {
+    if (range != CaretRange::Selection) return false;
+    r = {1698, 1100, 1698, 1136}; return true;
+  }, position) && position.left == 1698 && position.top == 1100,
+        "stabilization must still accept a real wrap to the next input line");
+  check(!stable.Resolve(true, [](CaretRange, Rect&) { return false; }, position)
+            && position.left == 1698 && position.top == 1100,
+        "total layout loss must preserve the last accepted wrapped position");
+
+  stable.Reset();
+  check(stable.Resolve(true, start_only, position) && position.left == 1698 &&
+            position.top == 1056,
+        "ending a composition must re-enable the initial start fallback");
+  check(stable.Resolve(true, [](CaretRange range, Rect& r) {
+    if (range != CaretRange::CompositionEnd) return false;
+    r = {1826, 1056, 1826, 1092}; return true;
+  }, position) && position.left == 1826,
+        "a composition-end position must also establish a precise anchor");
+  check(!stable.Resolve(true, start_only, position) && position.left == 1826,
+        "layout loss after an end anchor must not revert to the start");
+  check(stable.Resolve(false, start_only, position) && position.left == 1698,
+        "non-inline preedit must keep using its composition-start anchor");
   return failures;
 }

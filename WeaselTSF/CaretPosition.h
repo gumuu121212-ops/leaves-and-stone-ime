@@ -24,4 +24,14 @@ bool ResolveCaretRect(bool inline_preedit, Query&& query, Rect& result) {
   return false;
 }
 
+class CaretPositionState {
+ public:
+  void Reset() {}
+
+  template <typename Query, typename Rect>
+  bool Resolve(bool inline_preedit, Query&& query, Rect& result) {
+    return ResolveCaretRect(inline_preedit, query, result);
+  }
+};
+
 }  // namespace leaves_stone
