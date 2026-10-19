@@ -270,6 +270,6 @@ private final class TestDocumentProxy: NSObject, UITextDocumentProxy {
     }
     func deleteBackward() { if !text.isEmpty { text.removeLast() } }
     func adjustTextPosition(byCharacterOffset offset: Int) {}
-    func setMarkedText(_ markedText: String?, selectedRange: NSRange) {}
+    func setMarkedText(_ markedText: String, selectedRange: NSRange) {}
     func unmarkText() {}
 }
