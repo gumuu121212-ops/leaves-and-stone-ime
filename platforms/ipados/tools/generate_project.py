@@ -35,8 +35,7 @@ def main():
     keyboard = ["Keyboard/InputService.swift", "Keyboard/KeyboardSurface.swift",
                 "Keyboard/KeyboardViewController.swift", "Keyboard/RimeBridge.mm",
                 "Native/PinyinSession.cpp"]
-    image_resources = ["Resources/mascot-awake.png", "Resources/mascot-sleep.png",
-                       "Resources/panel-plush.png"]
+    image_resources = ["Resources/mascot-awake.png", "Resources/mascot-sleep.png"]
     resources = image_resources + ["Resources/Rime", "Resources/Notices", "Resources/Assets.xcassets"]
     all_files = shared + keyboard + resources + ["App/XiaomaodouApp.swift", "Tests/KeyboardTests.swift",
         "Keyboard/RimeBridge.h", "Keyboard/Keyboard-Bridging-Header.h", "Native/PinyinSession.h",

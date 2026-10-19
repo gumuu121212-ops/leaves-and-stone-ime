@@ -104,8 +104,6 @@ def main():
     for state in ("awake", "sleep"):
         shutil.copy2(REPO / "resource" / "doggy" / "rest" / f"mascot-{state}.png",
                      resources / f"mascot-{state}.png")
-    shutil.copy2(REPO / "resource" / "doggy" / "textures" / "panel-plush.png",
-                 resources / "panel-plush.png")
     shutil.copy2(REPO / "LICENSE.txt", notices / "Xiaomaodou-GPL-3.0.txt")
     shutil.copy2(REPO / "output" / "data" / "LEAVES_STONE_DATA_LICENSES.md",
                  notices / "Pinyin-data-attribution.md")

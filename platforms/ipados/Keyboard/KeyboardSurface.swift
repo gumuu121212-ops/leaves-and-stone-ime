@@ -16,7 +16,7 @@ final class KeyboardSurface: UIView {
     var onAction: ((KeyboardAction) -> Void)?
     let globeButton = MaodouKeyButton(type: .custom)
     private let mascot = MascotView()
-    private let panel = UIImageView(image: MaodouTheme.image("panel-plush"))
+    private let panel = UIView()
     private let preedit = UILabel()
     private let preeditScroll = UIScrollView()
     private let candidateScroll = UIScrollView()
@@ -39,8 +39,10 @@ final class KeyboardSurface: UIView {
         super.init(frame: frame)
         backgroundColor = MaodouTheme.background
         panel.isUserInteractionEnabled = false
-        panel.contentMode = .scaleToFill
-        panel.layer.cornerRadius = 24
+        panel.backgroundColor = MaodouTheme.key
+        panel.layer.cornerRadius = 10
+        panel.layer.borderWidth = 0.5
+        panel.layer.borderColor = MaodouTheme.selection.withAlphaComponent(0.45).cgColor
         panel.clipsToBounds = true
         addSubview(panel)
         addSubview(preeditScroll)
@@ -56,7 +58,7 @@ final class KeyboardSurface: UIView {
         for (button, symbol, action) in [(previous, "chevron.left", KeyboardAction.previousPage),
                                            (nextPageButton, "chevron.right", KeyboardAction.nextPage)] {
             decorate(button, title: nil, symbol: symbol)
-            button.layer.cornerRadius = 16
+            button.layer.cornerRadius = 6
             button.accessibilityLabel = symbol == "chevron.left" ? "上一页候选" : "下一页候选"
             button.addAction(UIAction { [weak self] _ in self?.emit(action) }, for: .touchUpInside)
             addSubview(button)
@@ -152,7 +154,7 @@ final class KeyboardSurface: UIView {
         button.setTitleColor(MaodouTheme.ink, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 20, weight: .regular)
         button.backgroundColor = MaodouTheme.key
-        button.layer.cornerRadius = 9
+        button.layer.cornerRadius = 7
         button.layer.borderWidth = 0.5
         button.layer.borderColor = MaodouTheme.selection.withAlphaComponent(0.45).cgColor
         button.isExclusiveTouch = true
@@ -169,7 +171,7 @@ final class KeyboardSurface: UIView {
             button.titleLabel?.lineBreakMode = .byClipping
             button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 12)
             button.backgroundColor = index == state.selected ? MaodouTheme.selection : .clear
-            button.layer.cornerRadius = 17
+            button.layer.cornerRadius = 10
             button.accessibilityIdentifier = "candidate-\(index)"
             button.accessibilityLabel = word
             button.addAction(UIAction { [weak self] _ in self?.emit(.select(index, revision: revision)) }, for: .touchUpInside)

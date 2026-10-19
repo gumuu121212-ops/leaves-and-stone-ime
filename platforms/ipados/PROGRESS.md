@@ -24,3 +24,5 @@ Visual inspection: the 320pt number toggle needed a smaller 16pt label to avoid 
 
 RED verified for the last two focus cases: f980d22 run 39219330202 / job 117950670201 produced SAFEb after synchronous host focus change and deleted SAFE after silent focus change. The tests therefore exercise real failures before fixes. All seven findings have production fixes and independent read-only re-review with no remaining material finding. Full GREEN simulator run, SDK-matched simulator choice, and unsigned device archive are the next gate. Mac/signing availability is still not answered; no device installation has been claimed.
 
+Latest user steering: the iPad version must look flat. Replace the plush candidate texture with solid fill and thin lines; use simple flat key/selection corners and preserve the original dog. Remove the generated texture resource from the iPad project and preparation tool. Re-run the full simulator/device pipeline on this final visual version and inspect its new renders; earlier plush renders are not the final preview.
+
